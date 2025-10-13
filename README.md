@@ -1,4 +1,4 @@
-# Multi-Agent System for AML Compliance
+# Multi-Agens in Fintech Regulatory Compliance
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
