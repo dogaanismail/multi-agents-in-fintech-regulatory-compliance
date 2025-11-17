@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  transaction-pattern-agent:
+    build:
+      context: ./agents/transaction_pattern_agent
+      dockerfile: Dockerfile
+    container_name: transaction-pattern-agent
+    ports:
+      - "8001:8001"
+    environment:
+      - MODEL_PATH=/app/trained_models
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  customer-risk-agent:
+    build:
+      context: ./agents/customer_risk_agent
+      dockerfile: Dockerfile
+    container_name: customer-risk-agent
+    ports:
+      - "8002:8002"
+    environment:
+      - MODEL_PATH=/app/trained_models
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  network-analysis-agent:
+    build:
+      context: ./agents/network_analysis_agent
+      dockerfile: Dockerfile
+    container_name: network-analysis-agent
+    ports:
+      - "8003:8003"
+    environment:
+      - MODEL_PATH=/app/trained_models
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: aml-multi-agent-network

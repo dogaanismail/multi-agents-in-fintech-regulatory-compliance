@@ -1,0 +1,39 @@
+{
+    "model_name": "XGBoost Transaction Pattern Agent",
+    "model_type": "XGBClassifier",
+    "training_date": "2025-11-17 23:41:16",
+    "dataset": "SAML-D (Synthetic AML Transaction Monitoring Dataset)",
+    "total_training_samples": 7603881,
+    "total_test_samples": 1900971,
+    "hyperparameters": {
+        "n_estimators": 200,
+        "max_depth": 4,
+        "learning_rate": 0.1,
+        "scale_pos_weight": 300,
+        "eval_metric": "aucpr",
+        "random_state": 42
+    },
+    "optimal_threshold": 0.3210378933346639,
+    "performance_metrics": {
+        "recall": 0.8939,
+        "precision": 0.0012,
+        "frauds_detected": 1711,
+        "frauds_missed": 203,
+        "false_positives": 1427943,
+        "true_negatives": 471114,
+        "false_positive_rate": 0.752,
+        "pr_auc": 0.0586
+    },
+    "business_impact": {
+        "fraud_detection_rate": "89.39%",
+        "missed_fraud_count": 203,
+        "estimated_review_cost_range": "$7.1M - $14.3M",
+        "regulatory_risk": "LOW"
+    },
+    "deployment_notes": [
+        "Champion model selected from comparison of LR, RF, XGBoost, CatBoost, and LightGBM",
+        "Optimized threshold (0.13) for 85-90% recall target",
+        "Requires preprocessor for categorical encoding and numeric scaling",
+        "Best balance between fraud detection (89%) and operational feasibility"
+    ]
+}
