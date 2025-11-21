@@ -1,0 +1,24 @@
+{
+  "customer_id": "CUST_HIGH_RISK_001",
+  "features": {
+    "transaction_count": 45,
+    "total_amount": 350000.00,
+    "avg_amount": 7777.78,
+    "median_amount": 5000.00,
+    "max_amount": 50000.00,
+    "min_amount": 1000.00,
+    "std_amount": 8500.00,
+    "active_days": 30,
+    "transactions_per_day": 1.5,
+    "cross_border_ratio": 0.75,
+    "cash_transaction_ratio": 0.05,
+    "amount_consistency": 1.09,
+    "large_transaction_ratio": 0.35,
+    "unique_receivers": 25,
+    "unique_receiver_countries": 8,
+    "receiver_diversity": 0.55,
+    "night_transaction_ratio": 0.28,
+    "weekend_transaction_ratio": 0.18,
+    "unique_currencies": 5
+  }
+}

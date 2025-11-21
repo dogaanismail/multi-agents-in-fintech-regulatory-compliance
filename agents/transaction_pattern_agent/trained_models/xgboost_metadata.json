@@ -1,39 +1,24 @@
 {
-    "model_name": "XGBoost Transaction Pattern Agent",
-    "model_type": "XGBClassifier",
-    "training_date": "2025-11-17 23:41:16",
-    "dataset": "SAML-D (Synthetic AML Transaction Monitoring Dataset)",
-    "total_training_samples": 7603881,
-    "total_test_samples": 1900971,
-    "hyperparameters": {
+    "model_name": "XGBoost Transaction Pattern Agent V2",
+    "training_date": "2025-11-21 23:15:42",
+    "optimal_threshold": 0.13224509358406067,
+    "performance_metrics": {
+        "recall": 0.8909520594193113,
+        "precision": 0.0015531953212271597,
+        "f1_score": 0.0031009847007120867,
+        "roc_auc": 0.7946272224035604
+    },
+    "training_config": {
+        "random_state": 42,
+        "test_size": 0.3,
+        "target_recall_low": 0.89,
+        "target_recall_high": 0.93,
         "n_estimators": 200,
         "max_depth": 4,
         "learning_rate": 0.1,
         "scale_pos_weight": 300,
-        "eval_metric": "aucpr",
-        "random_state": 42
+        "smote_applied": false
     },
-    "optimal_threshold": 0.3210378933346639,
-    "performance_metrics": {
-        "recall": 0.8939,
-        "precision": 0.0012,
-        "frauds_detected": 1711,
-        "frauds_missed": 203,
-        "false_positives": 1427943,
-        "true_negatives": 471114,
-        "false_positive_rate": 0.752,
-        "pr_auc": 0.0586
-    },
-    "business_impact": {
-        "fraud_detection_rate": "89.39%",
-        "missed_fraud_count": 203,
-        "estimated_review_cost_range": "$7.1M - $14.3M",
-        "regulatory_risk": "LOW"
-    },
-    "deployment_notes": [
-        "Champion model selected from comparison of LR, RF, XGBoost, CatBoost, and LightGBM",
-        "Optimized threshold (0.13) for 85-90% recall target",
-        "Requires preprocessor for categorical encoding and numeric scaling",
-        "Best balance between fraud detection (89%) and operational feasibility"
-    ]
+    "training_samples": 6653396,
+    "test_samples": 2851456
 }

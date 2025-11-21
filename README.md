@@ -18,9 +18,9 @@ This project designs, develops, and evaluates a novel framework for AML complian
 ## ✨ Core Features
 
 * **Specialized Multi-Agent System (MAS):** Three distinct agents collaborate for robust detection:
-    * `TransactionPatternAgent`: Analyses the characteristics of individual transactions.
-    * `CustomerRiskAgent`: Assesses the risk profiles of the sender and receiver.
-    * `NetworkAnalysisAgent`: Examines the relationships between accounts over time using graph-based analysis.
+    * **Transaction Pattern Agent** (Port 8001): Analyzes individual transaction characteristics using XGBoost to detect suspicious patterns. Trained on 9.5M+ transactions with 89.10% recall rate.
+    * **Customer Risk Agent** (Port 8002): Assesses customer-level risk by aggregating 30-day transaction history into 19 behavioral features. Uses XGBoost with SMOTE, achieving 90.51% ROC-AUC.
+    * **Network Analysis Agent** (Port 8003): Examines account relationships and transaction flows using graph-based analysis to detect money laundering networks.
 * **Adaptive Learning with MARL:** Agents are trained using the **Multi-Agent Deep Deterministic Policy Gradient (MADDPG)** algorithm in a simulated environment to develop cooperative policies.
 * **Microservices Architecture:** The entire system is built on a decoupled, event-driven architecture using Docker, ensuring scalability and resilience.
 * **Explainable AI (XAI):** A dedicated component synthesizes findings from all agents to produce a clear narrative for each flagged transaction, designed for a human analyst.

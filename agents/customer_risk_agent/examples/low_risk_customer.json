@@ -1,0 +1,24 @@
+{
+  "customer_id": "CUST_LOW_RISK_001",
+  "features": {
+    "transaction_count": 12,
+    "total_amount": 25000.00,
+    "avg_amount": 2083.33,
+    "median_amount": 2000.00,
+    "max_amount": 5000.00,
+    "min_amount": 500.00,
+    "std_amount": 1200.00,
+    "active_days": 30,
+    "transactions_per_day": 0.4,
+    "cross_border_ratio": 0.08,
+    "cash_transaction_ratio": 0.15,
+    "amount_consistency": 0.58,
+    "large_transaction_ratio": 0.0,
+    "unique_receivers": 5,
+    "unique_receiver_countries": 1,
+    "receiver_diversity": 0.42,
+    "night_transaction_ratio": 0.0,
+    "weekend_transaction_ratio": 0.08,
+    "unique_currencies": 1
+  }
+}
