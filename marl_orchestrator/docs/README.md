@@ -159,15 +159,40 @@ export GAMMA=0.99
 export TAU=0.01
 ```
 
-## Training (Coming Soon)
+## Training
 
-Training notebook: `notebooks/01_MADDPG_Training.ipynb`
+### Quick Start
 
-Will include:
-- Simulated transaction environment
-- Reward function design
-- Training loop with experience replay
-- Model evaluation
+**Set training mode:**
+```bash
+export MADDPG_MODE=training
+```
+
+**Option 1: Jupyter Notebook (Recommended)**
+```bash
+jupyter notebook notebooks/01_MADDPG_Training.ipynb
+```
+
+**Option 2: Command Line**
+```bash
+python train.py --episodes 1000 --steps 100 --batch-size 64
+```
+
+### Training Features
+
+✅ **Simulated AML Environment** - Real transaction data with ground truth labels  
+✅ **Reward Function** - Optimized for detection accuracy  
+✅ **Experience Replay** - Stable off-policy learning  
+✅ **Checkpointing** - Save models every 100 episodes  
+✅ **Visualization** - Training curves and metrics  
+✅ **Evaluation** - Test on holdout set  
+
+### Expected Results
+- **Training time:** 2-4 hours (1000 episodes)
+- **Target accuracy:** 85-92%
+- **F1-Score:** 78-86%
+
+See [TRAINING_GUIDE.md](TRAINING_GUIDE.md) for comprehensive documentation.
 
 ## Project Structure
 

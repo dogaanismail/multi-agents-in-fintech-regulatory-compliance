@@ -20,7 +20,6 @@ from .replay_buffer import ReplayBuffer
 from ..core.config import settings
 from ..core.logging import logger
 
-
 class MADDPGCoordinator:
     """
     MADDPG Coordinator for multi-agent AML detection

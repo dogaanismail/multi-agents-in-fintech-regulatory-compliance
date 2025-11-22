@@ -10,7 +10,6 @@ from collections import deque
 from typing import Tuple, List
 import random
 
-
 class ReplayBuffer:
     """
     Experience replay buffer for MADDPG
