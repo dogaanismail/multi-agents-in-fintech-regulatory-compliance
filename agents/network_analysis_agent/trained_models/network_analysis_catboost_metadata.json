@@ -1,0 +1,106 @@
+{
+  "model_info": {
+    "name": "CatBoost",
+    "type": "Network Topology Anomaly Detector",
+    "created_at": "2025-11-22T03:22:40.906613",
+    "version": "2.0_clean"
+  },
+  "config": {
+    "data_path": "../../transaction_pattern_agent/data/Anti Money Laundering Transaction Data (SAML-D).csv",
+    "top_n_accounts": 5000,
+    "min_transactions": 5,
+    "suspicious_percentile": 90,
+    "test_size": 0.2,
+    "random_state": 42,
+    "use_smote": true,
+    "smote_k_neighbors": 5,
+    "model_output_dir": "../trained_models/"
+  },
+  "network_stats": {
+    "nodes": 289826,
+    "edges": 301835,
+    "density": 3.5933242679242883e-06
+  },
+  "training_data": {
+    "total_samples": 262213,
+    "train_samples": 209770,
+    "test_samples": 52443,
+    "suspicious_rate": 0.11974616056412153
+  },
+  "features": {
+    "count": 11,
+    "list": [
+      "in_degree",
+      "out_degree",
+      "degree_centrality",
+      "in_degree_centrality",
+      "out_degree_centrality",
+      "betweenness_centrality",
+      "closeness_centrality",
+      "pagerank",
+      "eigenvector_centrality",
+      "clustering_coefficient",
+      "community"
+    ],
+    "note": "Topology only - volume features excluded"
+  },
+  "performance": {
+    "roc_auc": 0.8466364375417984,
+    "pr_auc": 0.5962155494180693,
+    "f1_score": 0.4243834341554211,
+    "precision": 0.29980276134122286,
+    "recall": 0.7261146496815286
+  },
+  "all_models": [
+    {
+      "Model": "CatBoost",
+      "ROC-AUC": 0.8466364375417984,
+      "PR-AUC": 0.5962155494180693,
+      "Precision": 0.29980276134122286,
+      "Recall": 0.7261146496815286,
+      "F1-Score": 0.4243834341554211,
+      "Train Time (s)": 3.3758208751678467,
+      "Inference Time (s)": 0.01091909408569336
+    },
+    {
+      "Model": "XGBoost",
+      "ROC-AUC": 0.8453563673777948,
+      "PR-AUC": 0.5972159441198455,
+      "Precision": 0.2989344909234412,
+      "Recall": 0.7237261146496815,
+      "F1-Score": 0.4231055669335319,
+      "Train Time (s)": 0.63018798828125,
+      "Inference Time (s)": 0.027386188507080078
+    },
+    {
+      "Model": "LightGBM",
+      "ROC-AUC": 0.8450875314983972,
+      "PR-AUC": 0.5940668820806835,
+      "Precision": 0.4549555900183279,
+      "Recall": 0.5138535031847133,
+      "F1-Score": 0.48261422268750465,
+      "Train Time (s)": 1.195220947265625,
+      "Inference Time (s)": 0.12035202980041504
+    },
+    {
+      "Model": "Random Forest",
+      "ROC-AUC": 0.8447817799045227,
+      "PR-AUC": 0.5928416752438391,
+      "Precision": 0.29082858950031626,
+      "Recall": 0.7321656050955414,
+      "F1-Score": 0.4162969669533726,
+      "Train Time (s)": 7.100414991378784,
+      "Inference Time (s)": 0.14010190963745117
+    },
+    {
+      "Model": "Logistic Regression",
+      "ROC-AUC": 0.7707189171546794,
+      "PR-AUC": 0.5044618032845581,
+      "Precision": 0.21212881219903693,
+      "Recall": 0.6734076433121019,
+      "F1-Score": 0.322627403112603,
+      "Train Time (s)": 1.7410378456115723,
+      "Inference Time (s)": 0.007782936096191406
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "account_id": "ACC_LOW_RISK_001",
+  "features": {
+    "in_degree": 12,
+    "out_degree": 8,
+    "degree_centrality": 0.0069,
+    "in_degree_centrality": 0.0041,
+    "out_degree_centrality": 0.0028,
+    "betweenness_centrality": 0.00001,
+    "closeness_centrality": 0.3234,
+    "pagerank": 0.00012,
+    "eigenvector_centrality": 0.0023,
+    "clustering_coefficient": 0.1456,
+    "community": 12
+  }
+}

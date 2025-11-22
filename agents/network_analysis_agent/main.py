@@ -1,19 +1,19 @@
 """
 Main FastAPI application
-Transaction Pattern Agent for AML Monitoring
+Network Analysis Agent for AML Compliance
 
 Author: Ismail Dogan
 Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.logging import logger
 from app.services.model_loader import model_loader
-from app.api import api_router
+from app.api import health, model, predictions
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown events
     """
     # Startup
-    logger.info("🚀 Starting Transaction Pattern Agent...")
+    logger.info("🚀 Starting Network Analysis Agent...")
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Version: {settings.app_version}")
     
@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    logger.info("👋 Shutting down Transaction Pattern Agent...")
+    logger.info("👋 Shutting down Network Analysis Agent...")
 
 
 # Create FastAPI application
@@ -72,6 +72,8 @@ async def root():
         "version": settings.app_version,
         "status": "operational",
         "environment": settings.environment,
+        "description": "AI-powered network topology analysis for detecting suspicious accounts in AML compliance",
+        "approach": "Uses network centrality metrics, clustering, and community detection",
         "endpoints": {
             "health": "/health",
             "docs": "/docs",
@@ -80,10 +82,14 @@ async def root():
         }
     }
 
+# Create API router and include sub-routers
+api_router = APIRouter()
+api_router.include_router(health.router, tags=["Health"])
+api_router.include_router(model.router, tags=["Model"])
+api_router.include_router(predictions.router, tags=["Prediction"])
 
 # Include API routes
 app.include_router(api_router, prefix=settings.api_v1_prefix)
-
 
 if __name__ == "__main__":
     import uvicorn

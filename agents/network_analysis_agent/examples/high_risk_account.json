@@ -1,0 +1,16 @@
+{
+  "account_id": "ACC_HIGH_RISK_001",
+  "features": {
+    "in_degree": 85,
+    "out_degree": 72,
+    "degree_centrality": 0.0542,
+    "in_degree_centrality": 0.0293,
+    "out_degree_centrality": 0.0248,
+    "betweenness_centrality": 0.0245,
+    "closeness_centrality": 0.5123,
+    "pagerank": 0.00156,
+    "eigenvector_centrality": 0.0456,
+    "clustering_coefficient": 0.0089,
+    "community": 3
+  }
+}
