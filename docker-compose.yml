@@ -55,6 +55,32 @@ services:
       retries: 3
       start_period: 10s
 
+  marl-orchestrator:
+    build:
+      context: ./marl_orchestrator
+      dockerfile: Dockerfile
+    container_name: marl-orchestrator
+    ports:
+      - "8004:8004"
+    environment:
+      - MADDPG_MODE=inference
+      - MODEL_PATH=/app/trained_models
+      - LOG_LEVEL=info
+      - TRANSACTION_AGENT_URL=http://transaction-pattern-agent:8001
+      - CUSTOMER_AGENT_URL=http://customer-risk-agent:8002
+      - NETWORK_AGENT_URL=http://network-analysis-agent:8003
+    depends_on:
+      - transaction-pattern-agent
+      - customer-risk-agent
+      - network-analysis-agent
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
 networks:
   default:
     name: aml-multi-agent-network
