@@ -10,8 +10,8 @@ import torch.nn as nn
 from typing import Optional, Dict, List
 
 from .network_manager import NetworkManager
-from .replay_buffer import ReplayBuffer
-from ..core.logging import logger
+from ..networks import ReplayBuffer
+from ..logger import logger
 
 
 class MADDPGTrainer:

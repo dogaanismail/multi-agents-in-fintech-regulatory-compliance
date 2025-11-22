@@ -11,8 +11,8 @@ from ..models.schemas import (
     CoordinatedDecisionResponse,
     ActionType
 )
-from ..services.detection_client import detection_client
-from ..agents.maddpg_agent import maddpg_coordinator
+from ..services.agent_orchestrator import agent_orchestrator
+from maddpg.core import maddpg_coordinator
 from ..core.logging import logger
 from ..core.config import settings
 
@@ -40,10 +40,10 @@ async def coordinated_predict(request: CoordinatedDecisionRequest):
     
     try:
         # Step 1: Get observations from all 3 detection agents (parallel)
-        observations = await detection_client.get_all_observations(
-            transaction=request.transaction.model_dump(),
-            customer=request.customer.model_dump(),
-            network=request.network.model_dump()
+        observations = await agent_orchestrator.get_all_observations(
+            transaction_features=request.transaction.model_dump(),
+            customer_features=request.customer.model_dump(),
+            network_features=request.network.model_dump()
         )
         
         logger.info(f"Received observations from all agents")

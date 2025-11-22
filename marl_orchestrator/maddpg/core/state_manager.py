@@ -8,7 +8,7 @@ Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 import numpy as np
 from typing import Dict
 
-from ..core.constants import (
+from ..constants import (
     AGENT_NAMES,
     AGENT_TRANSACTION,
     AGENT_CUSTOMER,

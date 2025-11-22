@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     # Load MADDPG models if in inference mode
     if settings.maddpg_mode == "inference":
         try:
-            from app.agents.maddpg_agent import maddpg_coordinator
+            from maddpg.core import maddpg_coordinator
             maddpg_coordinator.load_models()
             logger.info("✅ MADDPG models loaded successfully")
         except Exception as e:

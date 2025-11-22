@@ -8,8 +8,8 @@ Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 import torch
 from typing import Dict, List
 
-from ..core.logging import logger
-from ..core.constants import AGENT_NAMES, ACTION_LABELS, ACTION_BLOCK, ACTION_ALLOW
+from ..logger import logger
+from ..constants import AGENT_NAMES, ACTION_LABELS, ACTION_BLOCK, ACTION_ALLOW
 
 
 class DecisionMaker:

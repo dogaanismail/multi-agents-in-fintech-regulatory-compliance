@@ -15,9 +15,9 @@ from .state_manager import StateManager
 from .decision_maker import DecisionMaker
 from .network_manager import NetworkManager
 from .trainer import MADDPGTrainer
-from .replay_buffer import ReplayBuffer
-from ..core.config import settings
-from ..core.logging import logger
+from ..networks import ReplayBuffer
+from app.core.config import settings
+from ..logger import logger
 
 class MADDPGCoordinator:
     """

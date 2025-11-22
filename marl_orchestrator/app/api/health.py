@@ -6,8 +6,8 @@ from fastapi import APIRouter
 from datetime import datetime
 
 from ..models.schemas import HealthResponse
-from ..services.detection_client import detection_client
-from ..agents.maddpg_agent import maddpg_coordinator
+from ..services.agent_orchestrator import agent_orchestrator
+from maddpg.core import maddpg_coordinator
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def health_check():
         Health status of MARL orchestrator and detection agents
     """
     # Check detection agents
-    agents_status = await detection_client.check_agents_health()
+    agents_status = await agent_orchestrator.check_all_agents_health()
     
     # Check if MADDPG models are loaded
     maddpg_loaded = True  # Simplified check

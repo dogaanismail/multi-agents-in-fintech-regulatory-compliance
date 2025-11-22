@@ -11,11 +11,10 @@ import copy
 from pathlib import Path
 from typing import Dict, List
 
-from .actor import Actor
-from .critic import Critic
+from ..networks import Actor, Critic
 from .model_persistence import ModelPersistence
-from ..core.logging import logger
-from ..core.constants import AGENT_NAMES
+from ..logger import logger
+from ..constants import AGENT_NAMES
 
 
 class NetworkManager:
