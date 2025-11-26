@@ -41,14 +41,15 @@ build/
 Jupyter Notebook
 .ipynb_checkpoints
 
-Large data files and trained models
-IMPORTANT: Use Git LFS for these if you need to track them
+# Large data files and trained models
+# IMPORTANT: Use Git LFS for these if you need to track them
 *.csv
+!data/.gitkeep
 *.h5
 *.hdf5
 *.pkl
-.joblib
-/agents//trained_models/
+*.joblib
+/agents/*/trained_models/
 
 ===================================================================
 Java (Banking Environment - Maven & Gradle)

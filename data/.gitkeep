@@ -1,0 +1,26 @@
+# Data Directory
+
+This directory contains the training dataset for all detection agents.
+
+## Dataset
+
+**Source:** [Kaggle - Synthetic Transaction Monitoring Dataset (AML)](https://www.kaggle.com/datasets/berkanoztas/synthetic-transaction-monitoring-dataset-aml)
+
+**File:** `Anti Money Laundering Transaction Data (SAML-D).csv`
+
+**Size:** Version 2 (996.17 MB)
+
+**Note:** The CSV file is not committed to version control due to size. Download it from Kaggle and place it here.
+
+## How to Get the Data
+
+1. Visit: https://www.kaggle.com/datasets/berkanoztas/synthetic-transaction-monitoring-dataset-aml
+2. Download `Anti Money Laundering Transaction Data (SAML-D).csv`
+3. Place it in this directory: `data/Anti Money Laundering Transaction Data (SAML-D).csv`
+
+## Used By
+
+- Transaction Pattern Agent
+- Customer Risk Agent  
+- Network Analysis Agent
+- MADDPG Training Pipeline

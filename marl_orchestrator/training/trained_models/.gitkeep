@@ -1,0 +1,6 @@
+# Trained models directory
+# MADDPG model weights will be stored here
+# - actor_transaction.pth
+# - actor_customer.pth
+# - actor_network.pth
+# - critic.pth
