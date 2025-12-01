@@ -9,6 +9,9 @@ version = '0.0.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
 }
 
 dependencyManagement {
@@ -26,9 +29,21 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    // Kafka + Avro
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
+    implementation "org.apache.avro:avro:${apacheAvroVersion}"
+    
+    // Avro Schema Library
+    implementation project(':avro-schema-library-java')
+
     implementation project(':risk-engine-service:risk-engine-svc-db-migration-changelog')
 
     implementation 'org.postgresql:postgresql'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 }
 
 springBoot {

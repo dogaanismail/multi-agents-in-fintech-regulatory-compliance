@@ -1,0 +1,70 @@
+{
+  "namespace": "com.aml.payment",
+  "type": "record",
+  "name": "PaymentCreatedEvent",
+  "doc": "Event published when a payment is initiated",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID)"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Payment identifier"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Customer making the payment"
+    },
+    {
+      "name": "senderAccountId",
+      "type": "string",
+      "doc": "Sender account identifier"
+    },
+    {
+      "name": "receiverAccountId",
+      "type": "string",
+      "doc": "Receiver account identifier"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Payment amount"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Payment currency (USD, EUR, GBP, etc.)"
+    },
+    {
+      "name": "paymentType",
+      "type": "string",
+      "doc": "Payment method (Wire, ACH, Card, etc.)"
+    },
+    {
+      "name": "senderCountry",
+      "type": "string",
+      "doc": "Sender country"
+    },
+    {
+      "name": "receiverCountry",
+      "type": "string",
+      "doc": "Receiver country"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional payment description"
+    }
+  ]
+}

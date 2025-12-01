@@ -1,0 +1,59 @@
+import com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask
+
+plugins {
+    id 'java'
+    id 'com.github.davidmc24.gradle.plugin.avro' version '1.9.1'
+}
+
+group = 'org.bank.solution'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = 21
+    targetCompatibility = 21
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://packages.confluent.io/maven/'
+    }
+}
+
+dependencies {
+    implementation 'org.apache.avro:avro:1.12.1'
+    implementation 'io.confluent:kafka-avro-serializer:8.1.0'
+}
+
+avro {
+    fieldVisibility = 'PRIVATE'
+    outputCharacterEncoding = 'UTF-8'
+    stringType = 'String'
+    templateDirectory = null
+    createSetters = true
+    createOptionalGetters = false
+    gettersReturnOptional = false
+    optionalGettersForNullableFieldsOnly = false
+    enableDecimalLogicalType = true
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['build/generated-main-avro-java']
+        }
+    }
+}
+
+// Task to generate Java classes from Avro schemas
+tasks.register('generateAvro', GenerateAvroJavaTask) {
+    source('../schemas')
+    outputDir = file('build/generated-main-avro-java')
+}
+
+compileJava.dependsOn generateAvro
+
+// Clean task
+clean {
+    delete 'build/generated-main-avro-java'
+}
