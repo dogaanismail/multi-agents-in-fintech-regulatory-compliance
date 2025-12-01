@@ -19,3 +19,9 @@ include 'account-service'
 include 'account-service:account-svc'
 include 'account-service:account-svc-db-migration'
 include 'account-service:account-svc-db-migration-changelog'
+
+// customer profile service modules
+include 'customer-profile-service'
+include 'customer-profile-service:customer-profile-svc'
+include 'customer-profile-service:customer-profile-svc-db-migration'
+include 'customer-profile-service:customer-profile-svc-db-migration-changelog'
