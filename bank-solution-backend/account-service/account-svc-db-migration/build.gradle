@@ -18,13 +18,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-liquibase'
     implementation 'org.liquibase:liquibase-core'
 
-    implementation project(':customer-service:customer-svc-db-migration-changelog')
+    implementation project(':account-service:account-svc-db-migration-changelog')
 
     runtimeOnly 'org.postgresql:postgresql'
 }
 
 springBoot {
-    mainClass = 'org.banksolution.CustomerServiceDbMigrationApp'
+    mainClass = 'org.banksolution.AccountServiceDbMigrationApp'
 }
 
 test {
