@@ -25,3 +25,9 @@ include 'customer-profile-service'
 include 'customer-profile-service:customer-profile-svc'
 include 'customer-profile-service:customer-profile-svc-db-migration'
 include 'customer-profile-service:customer-profile-svc-db-migration-changelog'
+
+// payment history service modules
+include 'payment-history-service'
+include 'payment-history-service:payment-history-svc'
+include 'payment-history-service:payment-history-svc-db-migration'
+include 'payment-history-service:payment-history-svc-db-migration-changelog'
