@@ -49,7 +49,7 @@ Jupyter Notebook
 *.hdf5
 *.pkl
 *.joblib
-/agents/*/trained_models/
+/ai-services/agents/*/trained_models/
 
 ===================================================================
 Java (Banking Environment - Maven & Gradle)

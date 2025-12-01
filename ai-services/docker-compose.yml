@@ -3,8 +3,8 @@ version: '3.8'
 services:
   transaction-pattern-agent:
     build:
-      context: ./agents/transaction_pattern_agent
-      dockerfile: Dockerfile
+      context: agents/transaction_pattern_agent
+      dockerfile: agents/transaction_pattern_agent/Dockerfile
     container_name: transaction-pattern-agent
     ports:
       - "8001:8001"
@@ -21,8 +21,8 @@ services:
 
   customer-risk-agent:
     build:
-      context: ./agents/customer_risk_agent
-      dockerfile: Dockerfile
+      context: agents/customer_risk_agent
+      dockerfile: agents/customer_risk_agent/Dockerfile
     container_name: customer-risk-agent
     ports:
       - "8002:8002"
@@ -39,8 +39,8 @@ services:
 
   network-analysis-agent:
     build:
-      context: ./agents/network_analysis_agent
-      dockerfile: Dockerfile
+      context: agents/network_analysis_agent
+      dockerfile: agents/network_analysis_agent/Dockerfile
     container_name: network-analysis-agent
     ports:
       - "8003:8003"
@@ -57,8 +57,8 @@ services:
 
   marl-orchestrator:
     build:
-      context: ./marl_orchestrator
-      dockerfile: Dockerfile
+      context: marl_orchestrator
+      dockerfile: marl_orchestrator/Dockerfile
     container_name: marl-orchestrator
     ports:
       - "8004:8004"

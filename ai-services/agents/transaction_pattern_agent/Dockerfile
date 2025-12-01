@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application code
 COPY main.py .
-COPY app/ ./app/
-COPY trained_models/ ./trained_models/
+COPY app ./app/
+COPY trained_models ./trained_models/
 
 # Expose port
 EXPOSE 8001
