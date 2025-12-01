@@ -20,7 +20,7 @@ subprojects {
     apply plugin: 'java-library'
     apply plugin: 'io.spring.dependency-management'
 
-    group = 'org.banksolution'
+    group = 'org.bank.solution'
     version = '0.0.1-SNAPSHOT'
 
     java {

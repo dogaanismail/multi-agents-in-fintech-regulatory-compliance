@@ -7,3 +7,9 @@ pluginManagement {
 }
 
 rootProject.name = 'bank-solution-backend'
+
+// customer service modules
+include 'customer-service'
+include 'customer-service:customer-svc'
+include 'customer-service:customer-svc-db-migration'
+include 'customer-service:customer-svc-db-migration-changelog'

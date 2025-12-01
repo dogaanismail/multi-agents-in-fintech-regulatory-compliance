@@ -1,0 +1,35 @@
+plugins {
+    id 'org.springframework.boot' version "${springframeworkBootVersion}"
+    id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+    id 'java'
+}
+
+group = 'org.bank.solution'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    implementation project(':customer-service:customer-svc-db-migration-changelog')
+
+    implementation 'org.liquibase:liquibase-core'
+    implementation 'org.postgresql:postgresql'
+}
+
+springBoot {
+    mainClass = 'org.banksolution.CustomerServiceDbMigrationApp'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    enabled = true
+}
