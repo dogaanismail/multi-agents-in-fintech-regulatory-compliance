@@ -20,9 +20,13 @@
         "type": "enum",
         "name": "FraudAction",
         "doc": "Final fraud detection decision",
-        "symbols": ["BLOCK", "ALLOW"]
+        "symbols": [
+          "ALLOW",
+          "BLOCK",
+          "REVIEW"
+        ]
       },
-      "doc": "Coordinated decision: BLOCK or ALLOW"
+      "doc": "Coordinated decision: ALLOW (approve), BLOCK (reject), or REVIEW (human review required)"
     },
     {
       "name": "confidence",
@@ -36,52 +40,17 @@
     },
     {
       "name": "transactionAgentObservation",
-      "type": {
-        "type": "record",
-        "name": "AgentObservation",
-        "doc": "Individual agent's risk assessment",
-        "fields": [
-          {
-            "name": "agentName",
-            "type": "string",
-            "doc": "Agent identifier"
-          },
-          {
-            "name": "isSuspicious",
-            "type": "boolean",
-            "doc": "Binary fraud classification"
-          },
-          {
-            "name": "probability",
-            "type": "double",
-            "doc": "Fraud probability (0.0 to 1.0)"
-          },
-          {
-            "name": "riskScore",
-            "type": "double",
-            "doc": "Risk score (0-100 scale)"
-          },
-          {
-            "name": "confidence",
-            "type": "string",
-            "doc": "Confidence level: LOW, MEDIUM, HIGH, CRITICAL"
-          },
-          {
-            "name": "responseTimeMs",
-            "type": "double",
-            "doc": "Agent response time in milliseconds"
-          }
-        ]
-      }
+      "type": "com.aml.agents.AgentObservation",
+      "doc": "Transaction pattern agent assessment"
     },
     {
       "name": "customerAgentObservation",
-      "type": "AgentObservation",
+      "type": "com.aml.agents.AgentObservation",
       "doc": "Customer risk agent assessment"
     },
     {
       "name": "networkAgentObservation",
-      "type": "AgentObservation",
+      "type": "com.aml.agents.AgentObservation",
       "doc": "Network analysis agent assessment"
     },
     {

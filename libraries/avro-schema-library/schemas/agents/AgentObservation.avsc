@@ -1,0 +1,38 @@
+{
+  "namespace": "com.aml.agents",
+  "type": "record",
+  "name": "AgentObservation",
+  "doc": "Individual agent's risk assessment observation",
+  "fields": [
+    {
+      "name": "agentName",
+      "type": "string",
+      "doc": "Agent identifier (transaction-pattern-agent, customer-risk-agent, network-analysis-agent)"
+    },
+    {
+      "name": "isSuspicious",
+      "type": "boolean",
+      "doc": "Binary fraud classification"
+    },
+    {
+      "name": "probability",
+      "type": "double",
+      "doc": "Fraud probability (0.0 to 1.0)"
+    },
+    {
+      "name": "riskScore",
+      "type": "double",
+      "doc": "Risk score (0-100 scale)"
+    },
+    {
+      "name": "confidence",
+      "type": "string",
+      "doc": "Confidence level: LOW, MEDIUM, HIGH, CRITICAL"
+    },
+    {
+      "name": "responseTimeMs",
+      "type": "double",
+      "doc": "Agent response time in milliseconds"
+    }
+  ]
+}

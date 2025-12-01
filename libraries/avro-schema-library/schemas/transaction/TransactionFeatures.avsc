@@ -1,0 +1,78 @@
+{
+  "namespace": "com.aml.transaction",
+  "type": "record",
+  "name": "TransactionFeatures",
+  "doc": "Transaction-level features for fraud detection",
+  "fields": [
+    {
+      "name": "transactionId",
+      "type": "string",
+      "doc": "Unique transaction identifier"
+    },
+    {
+      "name": "date",
+      "type": "string",
+      "doc": "Transaction date (YYYY-MM-DD)"
+    },
+    {
+      "name": "time",
+      "type": "string",
+      "doc": "Transaction time (HH:MM:SS)"
+    },
+    {
+      "name": "fromBank",
+      "type": "string",
+      "doc": "Sender bank name"
+    },
+    {
+      "name": "fromAccount",
+      "type": "string",
+      "doc": "Sender account identifier"
+    },
+    {
+      "name": "toBank",
+      "type": "string",
+      "doc": "Receiver bank name"
+    },
+    {
+      "name": "toAccount",
+      "type": "string",
+      "doc": "Receiver account identifier"
+    },
+    {
+      "name": "amountReceived",
+      "type": "double",
+      "doc": "Amount received by recipient"
+    },
+    {
+      "name": "receivingCurrency",
+      "type": "string",
+      "doc": "Currency received (USD, EUR, GBP, etc.)"
+    },
+    {
+      "name": "amountPaid",
+      "type": "double",
+      "doc": "Amount paid by sender"
+    },
+    {
+      "name": "paymentCurrency",
+      "type": "string",
+      "doc": "Currency paid (USD, EUR, GBP, etc.)"
+    },
+    {
+      "name": "paymentType",
+      "type": "string",
+      "doc": "Payment method (Wire, ACH, Card, etc.)"
+    },
+    {
+      "name": "senderBankLocation",
+      "type": "string",
+      "doc": "Sender bank country/location"
+    },
+    {
+      "name": "receiverBankLocation",
+      "type": "string",
+      "doc": "Receiver bank country/location"
+    }
+  ]
+}

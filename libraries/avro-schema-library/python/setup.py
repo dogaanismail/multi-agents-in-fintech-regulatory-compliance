@@ -26,7 +26,7 @@ setup(
     long_description=read_readme(),
     long_description_content_type='text/markdown',
     author='Ismail Dogan',
-    author_email='ismail.dogan@example.com',
+    author_email='ismaildogaan@gmail.com',
     url='https://github.com/dogaanismail/multi-agents-in-fintech-regulatory-compliance',
     packages=find_packages(),
     install_requires=[

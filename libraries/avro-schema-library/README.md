@@ -11,14 +11,27 @@ This library provides a single source of truth for all Avro schemas used across:
 
 ## Schemas
 
+### Agents (`schemas/agents/`)
+- **AgentObservation.avsc** - Individual agent risk assessment (used by all ML agents)
+
+### Transaction (`schemas/transaction/`)
+- **TransactionFeatures.avsc** - Transaction-level features (standalone, reusable)
+
+### Customer (`schemas/customer/`)
+- **CustomerFeatures.avsc** - Customer behavioral features (standalone, reusable)
+
+### Network (`schemas/network/`)
+- **NetworkFeatures.avsc** - Network topology features (standalone, reusable)
+
 ### Fraud Detection (`schemas/fraud/`)
-- **FraudDetectionRequest.avsc** - Request from risk-engine to MARL orchestrator
-- **FraudDetectionResponse.avsc** - Response from MARL orchestrator back to risk-engine
+- **FraudDetectionRequest.avsc** - Request from risk-engine to MARL orchestrator (references Transaction, Customer, Network features)
+- **FraudDetectionResponse.avsc** - Response from MARL orchestrator (references AgentObservation)
 
 ### Payment (`schemas/payment/`)
 - **PaymentCreatedEvent.avsc** - Payment initiated event
 - **PaymentCompletedEvent.avsc** - Payment successfully processed
 - **PaymentBlockedEvent.avsc** - Payment blocked by fraud detection
+- **PaymentReviewRequiredEvent.avsc** - Payment requires human review (MADDPG uncertain)
 
 ## Quick Start
 
@@ -75,15 +88,39 @@ Use in your code:
 
 ```java
 import com.aml.fraud.FraudDetectionRequest;
-import com.aml.fraud.TransactionFeatures;
+import com.aml.transaction.TransactionFeatures;
+import com.aml.customer.CustomerFeatures;
+import com.aml.network.NetworkFeatures;
 
+// Build transaction features
+TransactionFeatures transactionFeatures = TransactionFeatures.newBuilder()
+    .setTransactionId("TXN-001")
+    .setAmountReceived(1000.0)
+    .setPaymentCurrency("USD")
+    .build();
+
+// Build customer features
+CustomerFeatures customerFeatures = CustomerFeatures.newBuilder()
+    .setCustomerId("CUST-12345")
+    .setAccountId("ACC-67890")
+    .setTransactionCount(150)
+    .setAvgAmount(500.0)
+    .build();
+
+// Build network features  
+NetworkFeatures networkFeatures = NetworkFeatures.newBuilder()
+    .setAccountId("ACC-67890")
+    .setPagerank(0.025)
+    .setClusteringCoefficient(0.35)
+    .build();
+
+// Build fraud detection request
 FraudDetectionRequest request = FraudDetectionRequest.newBuilder()
     .setRequestId(UUID.randomUUID().toString())
     .setTransactionId("TXN-001")
-    .setTransactionFeatures(TransactionFeatures.newBuilder()
-        .setAmountReceived(1000.0)
-        .setPaymentCurrency("USD")
-        .build())
+    .setTransactionFeatures(transactionFeatures)
+    .setCustomerFeatures(customerFeatures)
+    .setNetworkFeatures(networkFeatures)
     .build();
 
 kafkaTemplate.send("fraud.detection.requests", request);

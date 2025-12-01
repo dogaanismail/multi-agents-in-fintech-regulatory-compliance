@@ -1,0 +1,68 @@
+{
+  "namespace": "com.aml.network",
+  "type": "record",
+  "name": "NetworkFeatures",
+  "doc": "Network topology features from transaction graph",
+  "fields": [
+    {
+      "name": "accountId",
+      "type": "string",
+      "doc": "Account identifier in the network graph"
+    },
+    {
+      "name": "inDegree",
+      "type": "int",
+      "doc": "Number of incoming connections"
+    },
+    {
+      "name": "outDegree",
+      "type": "int",
+      "doc": "Number of outgoing connections"
+    },
+    {
+      "name": "degreeCentrality",
+      "type": "double",
+      "doc": "Degree centrality measure"
+    },
+    {
+      "name": "inDegreeCentrality",
+      "type": "double",
+      "doc": "In-degree centrality"
+    },
+    {
+      "name": "outDegreeCentrality",
+      "type": "double",
+      "doc": "Out-degree centrality"
+    },
+    {
+      "name": "betweennessCentrality",
+      "type": "double",
+      "doc": "Betweenness centrality (bridge role)"
+    },
+    {
+      "name": "closenessCentrality",
+      "type": "double",
+      "doc": "Closeness centrality (network proximity)"
+    },
+    {
+      "name": "pagerank",
+      "type": "double",
+      "doc": "PageRank score in transaction network"
+    },
+    {
+      "name": "eigenvectorCentrality",
+      "type": "double",
+      "doc": "Eigenvector centrality (influence measure)"
+    },
+    {
+      "name": "clusteringCoefficient",
+      "type": "double",
+      "doc": "Clustering coefficient (network density)"
+    },
+    {
+      "name": "community",
+      "type": "int",
+      "doc": "Community/cluster identifier"
+    }
+  ]
+}

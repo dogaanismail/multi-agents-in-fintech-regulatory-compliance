@@ -1,6 +1,10 @@
 package org.banksolution.kafka;
 
 import com.aml.fraud.*;
+import com.aml.customer.CustomerFeatures;
+import com.aml.network.NetworkFeatures;
+import com.aml.transaction.TransactionFeatures;
+import com.aml.agents.AgentObservation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
