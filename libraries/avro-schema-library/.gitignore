@@ -1,0 +1,31 @@
+# Gradle
+java/build/
+java/.gradle/
+java/gradle/
+java/gradlew
+java/gradlew.bat
+
+# Python
+python/build/
+python/dist/
+python/*.egg-info/
+python/__pycache__/
+python/**/__pycache__/
+*.pyc
+*.pyo
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

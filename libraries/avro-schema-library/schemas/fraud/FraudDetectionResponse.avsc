@@ -1,0 +1,112 @@
+{
+  "namespace": "com.aml.fraud",
+  "type": "record",
+  "name": "FraudDetectionResponse",
+  "doc": "Response from MARL orchestrator with coordinated fraud decision",
+  "fields": [
+    {
+      "name": "requestId",
+      "type": "string",
+      "doc": "Original request identifier"
+    },
+    {
+      "name": "transactionId",
+      "type": "string",
+      "doc": "Business transaction identifier"
+    },
+    {
+      "name": "action",
+      "type": {
+        "type": "enum",
+        "name": "FraudAction",
+        "doc": "Final fraud detection decision",
+        "symbols": ["BLOCK", "ALLOW"]
+      },
+      "doc": "Coordinated decision: BLOCK or ALLOW"
+    },
+    {
+      "name": "confidence",
+      "type": "double",
+      "doc": "Decision confidence level (0.0 to 1.0)"
+    },
+    {
+      "name": "maddpgQValue",
+      "type": "double",
+      "doc": "Q-value from MADDPG critic (expected reward)"
+    },
+    {
+      "name": "transactionAgentObservation",
+      "type": {
+        "type": "record",
+        "name": "AgentObservation",
+        "doc": "Individual agent's risk assessment",
+        "fields": [
+          {
+            "name": "agentName",
+            "type": "string",
+            "doc": "Agent identifier"
+          },
+          {
+            "name": "isSuspicious",
+            "type": "boolean",
+            "doc": "Binary fraud classification"
+          },
+          {
+            "name": "probability",
+            "type": "double",
+            "doc": "Fraud probability (0.0 to 1.0)"
+          },
+          {
+            "name": "riskScore",
+            "type": "double",
+            "doc": "Risk score (0-100 scale)"
+          },
+          {
+            "name": "confidence",
+            "type": "string",
+            "doc": "Confidence level: LOW, MEDIUM, HIGH, CRITICAL"
+          },
+          {
+            "name": "responseTimeMs",
+            "type": "double",
+            "doc": "Agent response time in milliseconds"
+          }
+        ]
+      }
+    },
+    {
+      "name": "customerAgentObservation",
+      "type": "AgentObservation",
+      "doc": "Customer risk agent assessment"
+    },
+    {
+      "name": "networkAgentObservation",
+      "type": "AgentObservation",
+      "doc": "Network analysis agent assessment"
+    },
+    {
+      "name": "agentContributions",
+      "type": {
+        "type": "map",
+        "values": "double"
+      },
+      "doc": "Contribution scores from each agent (transaction, customer, network)"
+    },
+    {
+      "name": "processingTimeMs",
+      "type": "double",
+      "doc": "Total processing time in milliseconds"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Response timestamp in milliseconds since epoch"
+    },
+    {
+      "name": "mode",
+      "type": "string",
+      "doc": "Execution mode: inference or training"
+    }
+  ]
+}

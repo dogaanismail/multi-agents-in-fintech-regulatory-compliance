@@ -1,0 +1,44 @@
+{
+  "namespace": "com.aml.payment",
+  "type": "record",
+  "name": "PaymentCompletedEvent",
+  "doc": "Event published when a payment is successfully completed",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID)"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Payment identifier"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Payment amount"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Payment currency"
+    },
+    {
+      "name": "riskCheckPassed",
+      "type": "boolean",
+      "doc": "Whether fraud detection passed"
+    },
+    {
+      "name": "processingTimeMs",
+      "type": "double",
+      "doc": "Total processing time"
+    }
+  ]
+}
