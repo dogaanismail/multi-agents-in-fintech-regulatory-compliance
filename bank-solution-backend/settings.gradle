@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'bank-solution-backend'
+
+// customer service modules
+include 'customer-service'
+include 'customer-service:customer-svc'
+include 'customer-service:customer-svc-db-migration'
+include 'customer-service:customer-svc-db-migration-changelog'
