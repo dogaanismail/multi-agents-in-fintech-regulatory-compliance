@@ -43,3 +43,9 @@ include 'payment-engine-service'
 include 'payment-engine-service:payment-engine-svc'
 include 'payment-engine-service:payment-engine-svc-db-migration'
 include 'payment-engine-service:payment-engine-svc-db-migration-changelog'
+
+// risk engine service modules
+include 'risk-engine-service'
+include 'risk-engine-service:risk-engine-svc'
+include 'risk-engine-service:risk-engine-svc-db-migration'
+include 'risk-engine-service:risk-engine-svc-db-migration-changelog'
