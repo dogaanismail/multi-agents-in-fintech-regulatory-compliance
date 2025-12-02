@@ -11,20 +11,24 @@ echo "📝 Registering Avro schemas to Schema Registry"
 echo "Schema Registry URL: $SCHEMA_REGISTRY_URL"
 echo ""
 
-# Function to register a schema
-register_schema() {
+# Function to register a schema with references
+register_schema_with_refs() {
     local schema_file=$1
     local subject=$2
+    shift 2
+    local refs_json="$@"
     
     echo "Registering: $subject"
     
-    # Read schema and escape for JSON
+    # Read schema
     schema_content=$(cat "$schema_file" | jq -c .)
     
-    # Create JSON payload
-    payload=$(jq -n \
-        --arg schema "$schema_content" \
-        '{schema: $schema}')
+    # Build payload with references
+    if [ -z "$refs_json" ]; then
+        payload=$(jq -n --arg schema "$schema_content" '{schema: $schema, references: []}')
+    else
+        payload=$(jq -n --arg schema "$schema_content" --argjson refs "$refs_json" '{schema: $schema, references: $refs}')
+    fi
     
     # Register to Schema Registry
     response=$(curl -s -X POST \
@@ -42,6 +46,11 @@ register_schema() {
     fi
 }
 
+# Function to register a schema (backward compatibility)
+register_schema() {
+    register_schema_with_refs "$1" "$2" ""
+}
+
 # Check if Schema Registry is available
 echo "Checking Schema Registry connectivity..."
 if ! curl -s "$SCHEMA_REGISTRY_URL" > /dev/null 2>&1; then
@@ -54,10 +63,18 @@ fi
 echo "✅ Schema Registry is reachable"
 echo ""
 
-# Register fraud detection schemas
+# Register base/dependency schemas first (in order)
+echo "Base Schemas (Dependencies):"
+register_schema "$SCHEMAS_DIR/transaction/TransactionFeatures.avsc" "transaction-features-value"
+register_schema "$SCHEMAS_DIR/customer/CustomerFeatures.avsc" "customer-features-value"
+register_schema "$SCHEMAS_DIR/network/NetworkFeatures.avsc" "network-features-value"
+register_schema "$SCHEMAS_DIR/agents/AgentObservation.avsc" "agent-observation-value"
+echo ""
+
+# Register fraud detection schemas (using dot notation to match Kafka topic names)
 echo "Fraud Detection Schemas:"
-register_schema "$SCHEMAS_DIR/fraud/FraudDetectionRequest.avsc" "fraud-detection-request-value"
-register_schema "$SCHEMAS_DIR/fraud/FraudDetectionResponse.avsc" "fraud-detection-response-value"
+register_schema "$SCHEMAS_DIR/fraud/FraudDetectionRequest.avsc" "fraud.detection.request-value"
+register_schema "$SCHEMAS_DIR/fraud/FraudDetectionResponse.avsc" "fraud.detection.response-value"
 echo ""
 
 # Register payment event schemas
@@ -65,6 +82,7 @@ echo "Payment Event Schemas:"
 register_schema "$SCHEMAS_DIR/payment/PaymentCreatedEvent.avsc" "payment-created-event-value"
 register_schema "$SCHEMAS_DIR/payment/PaymentCompletedEvent.avsc" "payment-completed-event-value"
 register_schema "$SCHEMAS_DIR/payment/PaymentBlockedEvent.avsc" "payment-blocked-event-value"
+register_schema "$SCHEMAS_DIR/payment/PaymentReviewRequiredEvent.avsc" "payment-review-required-event-value"
 echo ""
 
 echo "=================================================="

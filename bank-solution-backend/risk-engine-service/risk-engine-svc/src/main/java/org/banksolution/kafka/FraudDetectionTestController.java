@@ -1,10 +1,6 @@
 package org.banksolution.kafka;
 
 import com.aml.fraud.*;
-import com.aml.customer.CustomerFeatures;
-import com.aml.network.NetworkFeatures;
-import com.aml.transaction.TransactionFeatures;
-import com.aml.agents.AgentObservation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -101,7 +97,7 @@ public class FraudDetectionTestController {
         log.info("Creating test FraudDetectionResponse from Avro schema");
 
         // Build Agent Observations
-        AgentObservation transactionAgentObs = AgentObservation.newBuilder()
+        TransactionAgentObservation transactionAgentObs = TransactionAgentObservation.newBuilder()
                 .setAgentName("transaction-pattern-agent")
                 .setIsSuspicious(true)
                 .setProbability(0.92)
@@ -110,7 +106,7 @@ public class FraudDetectionTestController {
                 .setResponseTimeMs(45.0)
                 .build();
 
-        AgentObservation customerAgentObs = AgentObservation.newBuilder()
+        CustomerAgentObservation customerAgentObs = CustomerAgentObservation.newBuilder()
                 .setAgentName("customer-risk-agent")
                 .setIsSuspicious(false)
                 .setProbability(0.15)
@@ -119,7 +115,7 @@ public class FraudDetectionTestController {
                 .setResponseTimeMs(30.0)
                 .build();
 
-        AgentObservation networkAgentObs = AgentObservation.newBuilder()
+        NetworkAgentObservation networkAgentObs = NetworkAgentObservation.newBuilder()
                 .setAgentName("network-analysis-agent")
                 .setIsSuspicious(false)
                 .setProbability(0.05)

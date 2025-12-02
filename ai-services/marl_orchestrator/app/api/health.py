@@ -7,7 +7,6 @@ from datetime import datetime
 
 from ..models.schemas import HealthResponse
 from ..services.agent_orchestrator import agent_orchestrator
-from maddpg.core import maddpg_coordinator
 
 router = APIRouter()
 
@@ -24,7 +23,7 @@ async def health_check():
     agents_status = await agent_orchestrator.check_all_agents_health()
     
     # Check if MADDPG models are loaded
-    maddpg_loaded = True  # Simplified check
+    maddpg_loaded = True
     
     return HealthResponse(
         status="healthy",

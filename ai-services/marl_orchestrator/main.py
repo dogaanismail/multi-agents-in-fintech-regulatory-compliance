@@ -6,6 +6,7 @@ Author: Ismail Dogan
 Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 """
 
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -13,6 +14,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import logger
 from app.api import api_router
+from app.consumers.fraud_detection_request_listener import fraud_detection_request_listener
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,10 +38,16 @@ async def lifespan(app: FastAPI):
             logger.warning(f"⚠️ MADDPG models not loaded: {str(e)}")
             logger.info("💡 Running in training mode - models will be trained first")
     
+    # Start Kafka listener in background
+    logger.info("🎧 Starting Kafka fraud detection request listener...")
+    listener_task = asyncio.create_task(fraud_detection_request_listener.start())
+    
     yield
     
     # Shutdown
     logger.info("👋 Shutting down MARL Orchestrator...")
+    fraud_detection_request_listener.stop()
+    await listener_task
 
 
 # Create FastAPI application

@@ -61,11 +61,12 @@ class Settings(BaseSettings):
     actor_net_path: str = os.path.join(model_path, "actor_network.pth")
     critic_path: str = os.path.join(model_path, "critic.pth")
     
-    # Kafka (for future Phase 3)
+    # Kafka
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-    kafka_consumer_group: str = "marl-orchestrator"
-    kafka_topic_transactions: str = "transactions.new"
-    kafka_topic_alerts: str = "alerts.suspicious"
+    schema_registry_url: str = os.getenv("SCHEMA_REGISTRY_URL", "http://localhost:8081")
+    kafka_consumer_group: str = "marl-orchestrator-group"
+    fraud_request_topic: str = "fraud.detection.request"
+    fraud_response_topic: str = "fraud.detection.response"
     
     # Logging
     log_path: str = "./logs"

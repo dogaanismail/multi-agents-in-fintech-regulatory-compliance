@@ -21,12 +21,15 @@ pydantic-settings==2.6.1    # Settings management
 # Configuration
 python-dotenv==1.0.1        # Environment variables
 
-# Kafka (optional - for Phase 3)
-# confluent-kafka==2.6.0    # Kafka client (uncomment when needed)
+# Kafka
+confluent-kafka==2.6.0      # Kafka client with Avro support
+avro-python3==1.10.2        # Avro serialization
 
 # Monitoring & Logging
 python-json-logger==3.2.1   # Structured JSON logging
 
-# Development
+# Development & Testing
 pytest==8.3.4               # Testing framework
 pytest-asyncio==0.24.0      # Async testing support
+pytest-cov==6.0.0           # Coverage reporting
+pytest-mock==3.14.0         # Enhanced mocking
