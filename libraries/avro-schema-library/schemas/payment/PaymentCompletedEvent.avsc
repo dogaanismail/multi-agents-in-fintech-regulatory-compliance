@@ -21,14 +21,51 @@
       "doc": "Event timestamp"
     },
     {
+      "name": "paymentType",
+      "type": {
+        "type": "enum",
+        "name": "PaymentType",
+        "symbols": [
+          "TRANSFER_IN",
+          "TRANSFER_OUT",
+          "DEPOSIT",
+          "WITHDRAWAL"
+        ]
+      },
+      "doc": "Type of payment operation"
+    },
+    {
+      "name": "sourceAccountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Source account ID (for transfers/withdrawals)"
+    },
+    {
+      "name": "destinationAccountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Destination account ID (for transfers/deposits)"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Customer ID who initiated the payment"
+    },
+    {
       "name": "amount",
-      "type": "double",
-      "doc": "Payment amount"
+      "type": "string",
+      "doc": "Payment amount as string to preserve precision (use BigDecimal)"
     },
     {
       "name": "currency",
       "type": "string",
-      "doc": "Payment currency"
+      "doc": "Payment currency (ISO 4217 code)"
     },
     {
       "name": "riskCheckPassed",
@@ -36,9 +73,18 @@
       "doc": "Whether fraud detection passed"
     },
     {
+      "name": "riskScore",
+      "type": [
+        "null",
+        "double"
+      ],
+      "default": null,
+      "doc": "Risk score from fraud detection (0.0-1.0)"
+    },
+    {
       "name": "processingTimeMs",
       "type": "double",
-      "doc": "Total processing time"
+      "doc": "Total processing time in milliseconds"
     }
   ]
 }
