@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="2025-12-04-01-00" author="Ismail Dogan">
+        <comment>Add customer_address table</comment>
+        <sqlFile path="changelog/add_customer_address_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2025-12-04-01-05" author="Ismail Dogan">
+        <comment>Add customer table</comment>
+        <sqlFile path="changelog/add_customer_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>
+

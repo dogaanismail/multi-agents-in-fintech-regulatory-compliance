@@ -16,7 +16,6 @@ from .transaction_agent_client import transaction_agent_client
 from .customer_agent_client import customer_agent_client
 from .network_agent_client import network_agent_client
 
-
 class AgentOrchestrator:
     """
     Orchestrates parallel calls to multiple detection agents
@@ -80,57 +79,7 @@ class AgentOrchestrator:
         }
         
         return observations
-    
-    async def get_transaction_observation(self, features: Dict) -> AgentObservation:
-        """
-        Get observation from Transaction Agent only
         
-        Args:
-            features: Transaction features
-        
-        Returns:
-            AgentObservation from transaction agent
-        """
-        try:
-            return await self.transaction_client.predict(features)
-        except Exception as e:
-            logger.error(f"Transaction agent call failed: {str(e)}")
-            return self._get_fallback_observation("transaction", e)
-    
-    async def get_customer_observation(self, features: Dict, customer_id: str = None) -> AgentObservation:
-        """
-        Get observation from Customer Agent only
-        
-        Args:
-            features: Customer features
-            customer_id: Optional customer identifier
-        
-        Returns:
-            AgentObservation from customer agent
-        """
-        try:
-            return await self.customer_client.assess_risk(features, customer_id or "ORCHESTRATOR_REQUEST")
-        except Exception as e:
-            logger.error(f"Customer agent call failed: {str(e)}")
-            return self._get_fallback_observation("customer", e)
-    
-    async def get_network_observation(self, features: Dict, account_id: str = None) -> AgentObservation:
-        """
-        Get observation from Network Agent only
-        
-        Args:
-            features: Network features
-            account_id: Optional account identifier
-        
-        Returns:
-            AgentObservation from network agent
-        """
-        try:
-            return await self.network_client.analyze(features, account_id or "ORCHESTRATOR_REQUEST")
-        except Exception as e:
-            logger.error(f"Network agent call failed: {str(e)}")
-            return self._get_fallback_observation("network", e)
-    
     async def check_all_agents_health(self) -> Dict[str, str]:
         """
         Check health status of all detection agents

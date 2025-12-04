@@ -8,6 +8,9 @@ pluginManagement {
 
 rootProject.name = 'bank-solution-backend'
 
+// common module
+include 'common'
+
 // avro schema library
 include 'avro-schema-library-java'
 project(':avro-schema-library-java').projectDir = file('../libraries/avro-schema-library/java')

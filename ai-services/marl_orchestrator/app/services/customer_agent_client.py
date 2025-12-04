@@ -24,11 +24,14 @@ class CustomerAgentClient:
     
     def __init__(self):
         """Initialize HTTP client for Customer Agent"""
+        
         self.client = httpx.AsyncClient(
             base_url=settings.customer_agent_url,
             timeout=settings.agent_timeout
         )
+        
         self.agent_name = "customer"
+        
         logger.info(f"✅ {self.agent_name.capitalize()} Agent client initialized")
     
     async def assess_risk(self, features: Dict, customer_id: str = "ORCHESTRATOR_REQUEST") -> AgentObservation:

@@ -1,0 +1,23 @@
+plugins {
+    id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+    id 'java'
+}
+
+group = 'org.banksolution'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    compileOnly "com.fasterxml.jackson.core:jackson-annotations:${jacksonAnnotationsVersion}"
+    compileOnly "org.springframework:spring-web:${springWebVersion}"
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}
+
+
