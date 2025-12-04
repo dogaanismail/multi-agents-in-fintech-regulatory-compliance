@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.banksolution.exception.CustomError;
 import org.banksolution.exception.AccountAlreadyExistsException;
 import org.banksolution.exception.AccountNotFoundException;
+import org.banksolution.exception.BalanceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -103,6 +104,18 @@ public class GlobalExceptionHandler {
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)
                 .header(CustomError.Header.API_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BalanceNotFoundException.class)
+    protected ResponseEntity<@NonNull CustomError> handleBalanceNotFoundException(BalanceNotFoundException ex) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.NOT_FOUND)
+                .header(CustomError.Header.NOT_FOUND.getName())
                 .message(ex.getMessage())
                 .build();
 

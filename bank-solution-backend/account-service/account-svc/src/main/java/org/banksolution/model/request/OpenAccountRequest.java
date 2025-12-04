@@ -1,0 +1,27 @@
+package org.banksolution.model.request;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+import org.banksolution.entity.enums.AccountType;
+import org.banksolution.entity.enums.Currency;
+
+import java.util.List;
+import java.util.UUID;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class OpenAccountRequest {
+
+    @NotNull(message = "Customer ID can't be null.")
+    private UUID customerId;
+
+    @NotNull(message = "Account type can't be null.")
+    private AccountType accountType;
+
+    @NotNull(message = "At least one currency must be specified.")
+    private List<Currency> currencies;
+}
+

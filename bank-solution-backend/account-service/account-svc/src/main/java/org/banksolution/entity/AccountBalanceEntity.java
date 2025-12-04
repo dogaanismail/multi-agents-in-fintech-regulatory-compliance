@@ -17,7 +17,7 @@ import java.util.UUID;
 @Entity(name = "account_balance")
 @Table(name = "account_balance",
        uniqueConstraints = @UniqueConstraint(columnNames = {"account_id", "currency"}))
-public class AccountBalance extends BaseEntity {
+public class AccountBalanceEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -32,11 +32,11 @@ public class AccountBalance extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-    @Column(name = "available_balance", nullable = false, precision = 19, scale = 4)
+    @Column(name = "available_balance", nullable = false, precision = 19, scale = 2)
     @Builder.Default
     private BigDecimal availableBalance = BigDecimal.ZERO;
 
-    @Column(name = "pending_balance", nullable = false, precision = 19, scale = 4)
+    @Column(name = "pending_balance", nullable = false, precision = 19, scale = 2)
     @Builder.Default
     private BigDecimal pendingBalance = BigDecimal.ZERO;
 

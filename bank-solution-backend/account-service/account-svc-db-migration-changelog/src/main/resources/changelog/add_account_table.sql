@@ -4,6 +4,7 @@ CREATE TABLE account
     id              UUID PRIMARY KEY,
     customer_id     UUID         NOT NULL,
     account_number  VARCHAR(20)  NOT NULL UNIQUE,
+    account_type    VARCHAR(50)  NOT NULL DEFAULT 'CHECKING',
     account_status  VARCHAR(50)  NOT NULL DEFAULT 'ACTIVE',
     opening_date    DATE         NOT NULL,
     closing_date    DATE,
@@ -12,6 +13,7 @@ CREATE TABLE account
     deleted_at      TIMESTAMP,
     deleted_reason  VARCHAR(500),
     version         INTEGER      NOT NULL DEFAULT 0,
+    CONSTRAINT chk_account_type CHECK (account_type IN ('CHECKING', 'SAVINGS', 'BUSINESS')),
     CONSTRAINT chk_account_status CHECK (account_status IN ('ACTIVE', 'SUSPENDED', 'CLOSED'))
 );
 
@@ -29,6 +31,7 @@ COMMENT ON TABLE account IS 'Stores account information for customers';
 COMMENT ON COLUMN account.id IS 'Unique identifier for account';
 COMMENT ON COLUMN account.customer_id IS 'Reference to customer who owns the account';
 COMMENT ON COLUMN account.account_number IS 'Unique account number';
+COMMENT ON COLUMN account.account_type IS 'Type of account: CHECKING, SAVINGS, or BUSINESS';
 COMMENT ON COLUMN account.account_status IS 'Account status: ACTIVE, SUSPENDED, or CLOSED';
 COMMENT ON COLUMN account.opening_date IS 'Date when the account was opened';
 COMMENT ON COLUMN account.closing_date IS 'Date when the account was closed (if applicable)';
