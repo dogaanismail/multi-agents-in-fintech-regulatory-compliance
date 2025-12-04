@@ -107,6 +107,7 @@ services:
       CMD_ARGS: "--message.format=AVRO --message.sendEnabled=true"
 
 networks:
-  default:
+  aml-network:
     name: aml-network
     driver: bridge
+    external: false

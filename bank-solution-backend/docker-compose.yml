@@ -61,6 +61,7 @@ services:
         condition: service_completed_successfully
     networks:
       - bank-network
+      - aml-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/actuator/health"]
       interval: 30s
@@ -76,4 +77,6 @@ volumes:
 networks:
   bank-network:
     driver: bridge
-
+  aml-network:
+    external: true
+    name: aml-network

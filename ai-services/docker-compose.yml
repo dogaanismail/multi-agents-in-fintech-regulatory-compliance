@@ -69,10 +69,15 @@ services:
       - TRANSACTION_AGENT_URL=http://transaction-pattern-agent:8001
       - CUSTOMER_AGENT_URL=http://customer-risk-agent:8002
       - NETWORK_AGENT_URL=http://network-analysis-agent:8003
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
     depends_on:
       - transaction-pattern-agent
       - customer-risk-agent
       - network-analysis-agent
+    networks:
+      - aml-multi-agent-network
+      - aml-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
@@ -82,5 +87,9 @@ services:
       start_period: 15s
 
 networks:
-  default:
+  aml-multi-agent-network:
     name: aml-multi-agent-network
+    driver: bridge
+  aml-network:
+    external: true
+    name: aml-network
