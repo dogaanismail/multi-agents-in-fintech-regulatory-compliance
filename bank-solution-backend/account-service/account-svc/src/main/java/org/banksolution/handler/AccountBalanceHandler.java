@@ -25,7 +25,8 @@ public class AccountBalanceHandler {
 
     @Transactional
     public void processPaymentCompletedEvent(PaymentCompletedEvent event) {
-        log.info("Processing payment event: eventId={}, paymentId={}, type={}",
+
+        log.info("Processing payment event: eventId:{}, paymentId:{}, type:{}",
                 event.getEventId(), event.getPaymentId(), event.getPaymentType());
 
         PaymentType paymentType = PaymentType.valueOf(event.getPaymentType().name());
@@ -37,7 +38,12 @@ public class AccountBalanceHandler {
         updateBalance(accountId, currency, amount, paymentType);
     }
 
-    private void updateBalance(UUID accountId, Currency currency, BigDecimal amount, PaymentType paymentType) {
+    private void updateBalance(
+            UUID accountId,
+            Currency currency,
+            BigDecimal amount,
+            PaymentType paymentType) {
+
         log.info("Updating balance for account:{}, currency:{}, amount:{}, type:{}",
                 accountId, currency, amount, paymentType);
 
