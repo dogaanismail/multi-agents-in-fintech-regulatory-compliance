@@ -24,11 +24,14 @@ class TransactionAgentClient:
     
     def __init__(self):
         """Initialize HTTP client for Transaction Agent"""
+        
         self.client = httpx.AsyncClient(
             base_url=settings.transaction_agent_url,
             timeout=settings.agent_timeout
         )
+        
         self.agent_name = "transaction"
+        
         logger.info(f"✅ {self.agent_name.capitalize()} Agent client initialized")
     
     async def predict(self, features: Dict) -> AgentObservation:

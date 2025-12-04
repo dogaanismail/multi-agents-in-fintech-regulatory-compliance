@@ -24,11 +24,14 @@ class NetworkAgentClient:
     
     def __init__(self):
         """Initialize HTTP client for Network Agent"""
+        
         self.client = httpx.AsyncClient(
             base_url=settings.network_agent_url,
             timeout=settings.agent_timeout
         )
+        
         self.agent_name = "network"
+        
         logger.info(f"✅ {self.agent_name.capitalize()} Agent client initialized")
     
     async def analyze(self, features: Dict, account_id: str = "ORCHESTRATOR_REQUEST") -> AgentObservation:
