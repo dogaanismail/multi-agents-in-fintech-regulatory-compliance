@@ -63,7 +63,57 @@ services:
       - bank-network
       - aml-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Account Service Database Migration
+  account-db-migration:
+    image: account-svc-db-migration-app:latest
+    container_name: account-svc-db-migration-service
+    build:
+      context: ./account-service/account-svc-db-migration
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/account_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_LIQUIBASE_ENABLED: "true"
+    depends_on:
+      bank-solution-postgres:
+        condition: service_healthy
+    networks:
+      - bank-network
+    restart: on-failure
+
+  # Account Service
+  account-service:
+    image: account-svc-api:latest
+    container_name: account-svc-app
+    build:
+      context: ./account-service/account-svc
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/account_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
+    depends_on:
+      account-db-migration:
+        condition: service_completed_successfully
+    networks:
+      - bank-network
+      - aml-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
