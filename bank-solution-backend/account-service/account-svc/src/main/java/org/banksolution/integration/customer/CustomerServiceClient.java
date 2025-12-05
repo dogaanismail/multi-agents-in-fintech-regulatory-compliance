@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @FeignClient(
         name = "customer-svc",
-        path = "/api/v1/customers"
+        url = "${integration.customer-service.url}"
 )
 @Headers({"Content-Type: application/json"})
 public interface CustomerServiceClient {

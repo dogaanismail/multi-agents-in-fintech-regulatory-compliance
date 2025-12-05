@@ -8,6 +8,8 @@ import org.banksolution.entity.enums.Currency;
 import org.banksolution.exception.AccountAlreadyExistsException;
 import org.banksolution.exception.AccountNotFoundException;
 import org.banksolution.exception.BalanceNotFoundException;
+import org.banksolution.integration.customer.CustomerServiceClient;
+import org.banksolution.integration.customer.dto.CustomerResponse;
 import org.banksolution.mapper.AccountMapper;
 import org.banksolution.mapper.BalanceMapper;
 import org.banksolution.model.request.OpenAccountRequest;
@@ -31,6 +33,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountBalanceRepository accountBalanceRepository;
+    private final CustomerServiceClient customerServiceClient;
 
     @Transactional
     public AccountResponse openAccount(OpenAccountRequest request) {
@@ -40,6 +43,10 @@ public class AccountService {
 
         if (accountRepository.existsByAccountNumber(accountNumber)) {
             throw new AccountAlreadyExistsException(accountNumber);
+        }
+
+        if (!customerExists(request.getCustomerId())) {
+            throw new IllegalArgumentException("Customer with ID " + request.getCustomerId() + " does not exist.");
         }
 
         AccountEntity entity = toEntity(request, accountNumber);
@@ -89,6 +96,16 @@ public class AccountService {
                 .orElseThrow(() -> new BalanceNotFoundException(accountId, currency));
 
         return BalanceMapper.toResponse(balance);
+    }
+
+    private boolean customerExists(UUID customerId) {
+        try {
+            CustomerResponse customerResponse = customerServiceClient.getCustomerById(customerId);
+            return customerResponse != null;
+        } catch (Exception e) {
+            log.error("Error while verifying customer existence: {}", e.getMessage());
+            return false;
+        }
     }
 
 }
