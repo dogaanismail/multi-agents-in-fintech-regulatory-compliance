@@ -3,7 +3,7 @@ package org.banksolution.mapper;
 import lombok.experimental.UtilityClass;
 import org.banksolution.entity.AccountBalanceEntity;
 import org.banksolution.entity.AccountEntity;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 import org.banksolution.model.request.OpenAccountRequest;
 import org.banksolution.model.response.AccountResponse;
 

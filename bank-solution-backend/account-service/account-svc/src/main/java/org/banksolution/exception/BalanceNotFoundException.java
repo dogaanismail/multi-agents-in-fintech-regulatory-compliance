@@ -1,6 +1,6 @@
 package org.banksolution.exception;
 
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 
 import java.util.UUID;
 

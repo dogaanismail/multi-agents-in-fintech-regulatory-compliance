@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 import org.banksolution.model.request.OpenAccountRequest;
 import org.banksolution.model.response.AccountResponse;
 import org.banksolution.model.response.BalanceResponse;

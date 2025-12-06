@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.AccountBalanceEntity;
 import org.banksolution.entity.AccountEntity;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 import org.banksolution.exception.AccountAlreadyExistsException;
 import org.banksolution.exception.AccountNotFoundException;
 import org.banksolution.exception.BalanceNotFoundException;

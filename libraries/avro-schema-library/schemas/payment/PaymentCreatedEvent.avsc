@@ -2,7 +2,7 @@
   "namespace": "com.aml.payment",
   "type": "record",
   "name": "PaymentCreatedEvent",
-  "doc": "Event published when a payment is initiated",
+  "doc": "Event published when a payment request is created",
   "fields": [
     {
       "name": "eventId",
@@ -12,7 +12,12 @@
     {
       "name": "paymentId",
       "type": "string",
-      "doc": "Payment identifier"
+      "doc": "Payment request identifier (matches PaymentRequestEntity.id)"
+    },
+    {
+      "name": "referenceNumber",
+      "type": "string",
+      "doc": "Human-readable reference number for tracking"
     },
     {
       "name": "timestamp",
@@ -23,49 +28,42 @@
     {
       "name": "customerId",
       "type": "string",
-      "doc": "Customer making the payment"
+      "doc": "Customer who initiated the payment"
     },
     {
-      "name": "senderAccountId",
-      "type": "string",
-      "doc": "Sender account identifier"
+      "name": "sourceAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Source account ID (for TRANSFER_OUT, WITHDRAWAL)"
     },
     {
-      "name": "receiverAccountId",
-      "type": "string",
-      "doc": "Receiver account identifier"
+      "name": "destinationAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Destination account ID (for TRANSFER_IN, DEPOSIT)"
     },
     {
       "name": "amount",
-      "type": "double",
-      "doc": "Payment amount"
+      "type": "string",
+      "doc": "Payment amount as string to preserve precision (use BigDecimal)"
     },
     {
       "name": "currency",
       "type": "string",
-      "doc": "Payment currency (USD, EUR, GBP, etc.)"
+      "doc": "Payment currency (ISO 4217 code: TRY, USD, EUR, GBP, JPY, CHF)"
     },
     {
       "name": "paymentType",
-      "type": "string",
-      "doc": "Payment method (Wire, ACH, Card, etc.)"
-    },
-    {
-      "name": "senderCountry",
-      "type": "string",
-      "doc": "Sender country"
-    },
-    {
-      "name": "receiverCountry",
-      "type": "string",
-      "doc": "Receiver country"
+      "type": {
+        "type": "enum",
+        "name": "PaymentType",
+        "symbols": ["TRANSFER_IN", "TRANSFER_OUT", "DEPOSIT", "WITHDRAWAL"]
+      },
+      "doc": "Type of payment operation"
     },
     {
       "name": "description",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
       "doc": "Optional payment description"
     }

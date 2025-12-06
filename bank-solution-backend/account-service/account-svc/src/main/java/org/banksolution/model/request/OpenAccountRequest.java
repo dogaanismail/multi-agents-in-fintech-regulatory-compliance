@@ -3,7 +3,7 @@ package org.banksolution.model.request;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.banksolution.entity.enums.AccountType;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 
 import java.util.List;
 import java.util.UUID;
