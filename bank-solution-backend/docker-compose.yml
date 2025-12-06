@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: default
       POSTGRES_PASSWORD: default
-      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db
+      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db
     ports:
       - "5433:5432"
     volumes:
@@ -55,7 +55,7 @@ services:
       SPRING_DATASOURCE_USERNAME: default
       SPRING_DATASOURCE_PASSWORD: default
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      MANAGEMENT_SERVER_PORT: 5001
+      SERVER_PORT: 5001
     depends_on:
       customer-db-migration:
         condition: service_completed_successfully
@@ -106,6 +106,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
+      SERVER_PORT: 5002
     depends_on:
       account-db-migration:
         condition: service_completed_successfully
@@ -114,6 +115,56 @@ services:
       - aml-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Payment Service Database Migration
+  payment-db-migration:
+    image: payment-svc-db-migration-app:latest
+    container_name: payment-svc-db-migration-service
+    build:
+      context: ./payment-service/payment-svc-db-migration
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/payment_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_LIQUIBASE_ENABLED: "true"
+    depends_on:
+      bank-solution-postgres:
+        condition: service_healthy
+    networks:
+      - bank-network
+    restart: on-failure
+
+  # Payment Service
+  payment-service:
+    image: payment-svc-api:latest
+    container_name: payment-svc-app
+    build:
+      context: ./payment-service/payment-svc
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/payment_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      SERVER_PORT: 5003
+    depends_on:
+      payment-db-migration:
+        condition: service_completed_successfully
+    networks:
+      - bank-network
+      - aml-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5003/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
