@@ -16,10 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "payment_request")
-@Table(name = "payment_request", indexes = {
-        @Index(name = "idx_payment_request_customer_id", columnList = "customer_id"),
-        @Index(name = "idx_payment_request_reference_number", columnList = "reference_number")
-})
+@Table(name = "payment_request")
 public class PaymentRequestEntity extends BaseEntity {
 
     @Id
