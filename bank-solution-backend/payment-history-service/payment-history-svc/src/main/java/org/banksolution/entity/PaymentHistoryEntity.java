@@ -2,7 +2,8 @@ package org.banksolution.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "payment_history")
-public class PaymentHistory {
+public class PaymentHistoryEntity {
 
     @Id
     @Column(name = "payment_id")
@@ -66,18 +67,16 @@ public class PaymentHistory {
     private String riskLevel; // LOW, MEDIUM, HIGH, CRITICAL
 
     @Column(name = "risk_action", length = 20)
-    private String riskAction; // PROCEED, ESCALATE, BLOCK
+    private String riskAction;
 
-    @Type(JsonType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "fraud_indicators", columnDefinition = "jsonb")
     private List<String> fraudIndicators;
 
-    // MARL Assessment (JSON stored as JSONB in PostgreSQL)
-    @Type(JsonType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "marl_assessment", columnDefinition = "jsonb")
     private MarlAssessment marlAssessment;
 
-    // Lifecycle Timestamps
     @Column(name = "initiated_at")
     private Instant initiatedAt;
 
@@ -86,12 +85,6 @@ public class PaymentHistory {
 
     @Column(name = "risk_check_completed_at")
     private Instant riskCheckCompletedAt;
-
-    @Column(name = "marl_escalated_at")
-    private Instant marlEscalatedAt;
-
-    @Column(name = "marl_completed_at")
-    private Instant marlCompletedAt;
 
     @Column(name = "completed_at")
     private Instant completedAt;
@@ -109,8 +102,12 @@ public class PaymentHistory {
     @Column(name = "ml_model_version", length = 50)
     private String mlModelVersion;
 
-    @Column(name = "version")
-    private Integer version; // For tracking updates
+    @Column(name = "aggregate_version")
+    private Integer aggregateVersion;
+
+    @Version
+    @Column(name = "entity_version")
+    private Short entityVersion;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -122,24 +119,19 @@ public class PaymentHistory {
     protected void onCreate() {
         createdAt = Instant.now();
         updatedAt = Instant.now();
-        if (version == null) {
-            version = 1;
-        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = Instant.now();
-        version++;
     }
 
-    // Inner classes for JSON storage
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MarlAssessment {
         private String requestId;
-        private String action; // ALLOW, BLOCK, REVIEW
+        private String action;
         private Double confidence;
         private Double maddpgQValue;
 
@@ -163,4 +155,5 @@ public class PaymentHistory {
         private String confidence;
         private Double responseTimeMs;
     }
+
 }

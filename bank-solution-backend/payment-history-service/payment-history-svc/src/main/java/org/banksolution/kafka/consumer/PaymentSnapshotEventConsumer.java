@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.service.PaymentHistoryAggregationService;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -26,7 +27,8 @@ public class PaymentSnapshotEventConsumer {
             @Payload PaymentSnapshotEvent snapshot,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
-            @Header(KafkaHeaders.OFFSET) long offset
+            @Header(KafkaHeaders.OFFSET) long offset,
+            Acknowledgment acknowledgment
     ) {
         log.info("Consumed PaymentSnapshotEvent from topic: {}, partition: {}, offset: {}, " + "referenceNumber: {}, version: {}, trigger: {}",
                 topic,
@@ -38,6 +40,7 @@ public class PaymentSnapshotEventConsumer {
 
         try {
             historyService.processPaymentSnapshot(snapshot);
+            acknowledgment.acknowledge();
             log.info("Successfully processed PaymentSnapshotEvent for referenceNumber: {}, version: {}",
                     snapshot.getReferenceNumber(),
                     snapshot.getVersion());

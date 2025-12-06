@@ -4,7 +4,6 @@ import com.aml.payment.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventBus;
-import org.axonframework.eventhandling.GenericEventMessage;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.banksolution.domain.payment.event.*;
 import org.banksolution.domain.payment.event.PaymentBlockedEvent;

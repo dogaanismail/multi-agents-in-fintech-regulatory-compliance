@@ -1,39 +1,43 @@
 package org.banksolution.repository;
 
 import lombok.NonNull;
-import org.banksolution.entity.PaymentHistory;
+import org.banksolution.entity.PaymentHistoryEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PaymentHistoryRepository extends JpaRepository<@NonNull PaymentHistory, @NonNull UUID> {
+public interface PaymentHistoryRepository extends JpaRepository<@NonNull PaymentHistoryEntity, @NonNull UUID> {
 
-    Optional<PaymentHistory> findByReferenceNumber(String referenceNumber);
+    Optional<PaymentHistoryEntity> findByReferenceNumber(String referenceNumber);
 
-    List<PaymentHistory> findByCustomerId(UUID customerId);
+    Page<@NonNull PaymentHistoryEntity> findByCustomerId(UUID customerId, Pageable pageable);
 
-    List<PaymentHistory> findByStatus(String status);
+    Page<@NonNull PaymentHistoryEntity> findByStatus(String status, Pageable pageable);
 
-    @Query("SELECT ph FROM PaymentHistory ph WHERE ph.createdAt BETWEEN :startDate AND :endDate")
-    List<PaymentHistory> findByDateRange(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+    @Query("SELECT ph FROM PaymentHistoryEntity ph WHERE ph.createdAt BETWEEN :startDate AND :endDate")
+    Page<@NonNull PaymentHistoryEntity> findByDateRange(
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate,
+            Pageable pageable);
 
-    @Query("SELECT ph FROM PaymentHistory ph WHERE ph.customerId = :customerId AND ph.createdAt BETWEEN :startDate AND :endDate")
-    List<PaymentHistory> findByCustomerIdAndDateRange(
+    @Query("SELECT ph FROM PaymentHistoryEntity ph WHERE ph.customerId = :customerId AND ph.createdAt BETWEEN :startDate AND :endDate")
+    Page<@NonNull PaymentHistoryEntity> findByCustomerIdAndDateRange(
             @Param("customerId") UUID customerId,
             @Param("startDate") Instant startDate,
-            @Param("endDate") Instant endDate
-    );
+            @Param("endDate") Instant endDate,
+            Pageable pageable);
 
-    @Query("SELECT ph FROM PaymentHistory ph WHERE ph.fraudStatus = :fraudStatus")
-    List<PaymentHistory> findByFraudStatus(@Param("fraudStatus") String fraudStatus);
+    @Query("SELECT ph FROM PaymentHistoryEntity ph WHERE ph.fraudStatus = :fraudStatus")
+    Page<@NonNull PaymentHistoryEntity> findByFraudStatus(@Param("fraudStatus") String fraudStatus, Pageable pageable);
 
-    @Query("SELECT ph FROM PaymentHistory ph WHERE ph.riskLevel = :riskLevel")
-    List<PaymentHistory> findByRiskLevel(@Param("riskLevel") String riskLevel);
+    @Query("SELECT ph FROM PaymentHistoryEntity ph WHERE ph.riskLevel = :riskLevel")
+    Page<@NonNull PaymentHistoryEntity> findByRiskLevel(@Param("riskLevel") String riskLevel, Pageable pageable);
 }
