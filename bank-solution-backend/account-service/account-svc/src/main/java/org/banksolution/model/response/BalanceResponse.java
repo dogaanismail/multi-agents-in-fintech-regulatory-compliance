@@ -1,7 +1,7 @@
 package org.banksolution.model.response;
 
 import lombok.*;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 
 import java.math.BigDecimal;
 import java.util.UUID;

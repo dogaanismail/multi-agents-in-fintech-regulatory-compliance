@@ -2,7 +2,7 @@ package org.banksolution.repository;
 
 import lombok.NonNull;
 import org.banksolution.entity.AccountBalanceEntity;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

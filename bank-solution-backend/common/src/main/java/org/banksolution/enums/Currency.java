@@ -1,4 +1,4 @@
-package org.banksolution.entity.enums;
+package org.banksolution.enums;
 
 public enum Currency {
     TRY,
@@ -8,4 +8,3 @@ public enum Currency {
     JPY,
     CHF
 }
-

@@ -3,7 +3,7 @@ package org.banksolution.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.banksolution.entity.enums.Currency;
+import org.banksolution.enums.Currency;
 
 import java.math.BigDecimal;
 import java.util.UUID;

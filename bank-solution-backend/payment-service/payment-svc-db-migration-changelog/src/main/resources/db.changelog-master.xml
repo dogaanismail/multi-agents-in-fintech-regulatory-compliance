@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="2025-12-06-01-00" author="Ismail Dogan">
+        <comment>Add payment_request table</comment>
+        <sqlFile path="changelog/add_payment_request_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>

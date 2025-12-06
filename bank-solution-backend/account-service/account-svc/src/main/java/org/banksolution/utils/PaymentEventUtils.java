@@ -3,8 +3,8 @@ package org.banksolution.utils;
 import com.aml.payment.PaymentCompletedEvent;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.banksolution.entity.enums.Currency;
-import org.banksolution.entity.enums.PaymentType;
+import org.banksolution.enums.Currency;
+import org.banksolution.enums.PaymentType;
 
 import java.math.BigDecimal;
 import java.util.UUID;
