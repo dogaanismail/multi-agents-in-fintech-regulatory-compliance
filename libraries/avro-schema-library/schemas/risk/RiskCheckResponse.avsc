@@ -1,0 +1,70 @@
+{
+  "namespace": "com.aml.risk",
+  "type": "record",
+  "name": "RiskCheckResponse",
+  "fields": [
+    {
+      "name": "requestId",
+      "type": "string",
+      "doc": "Correlates with the original RiskCheckRequest"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Internal payment identifier"
+    },
+    {
+      "name": "referenceNumber",
+      "type": "string",
+      "doc": "Payment reference number"
+    },
+    {
+      "name": "riskScore",
+      "type": "double",
+      "doc": "Overall risk score from risk engine (0.0 to 1.0)"
+    },
+    {
+      "name": "riskLevel",
+      "type": {
+        "type": "enum",
+        "name": "RiskLevel",
+        "symbols": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+      },
+      "doc": "Categorized risk level"
+    },
+    {
+      "name": "action",
+      "type": {
+        "type": "enum",
+        "name": "RiskAction",
+        "symbols": ["PROCEED", "ESCALATE", "BLOCK"]
+      },
+      "doc": "Recommended action based on risk assessment"
+    },
+    {
+      "name": "fraudIndicators",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "default": [],
+      "doc": "List of fraud indicators detected"
+    },
+    {
+      "name": "mlModelVersion",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Version of ML model used for assessment"
+    },
+    {
+      "name": "processingTimeMs",
+      "type": "long",
+      "doc": "Time taken to process the risk check in milliseconds"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Timestamp when the risk check was completed (epoch millis)"
+    }
+  ]
+}
