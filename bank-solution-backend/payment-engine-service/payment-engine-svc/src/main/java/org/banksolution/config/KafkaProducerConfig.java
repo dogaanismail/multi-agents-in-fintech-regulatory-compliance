@@ -1,12 +1,13 @@
 package org.banksolution.config;
 
-import com.aml.fraud.FraudDetectionRequest;
 import com.aml.payment.PaymentBlockedEvent;
 import com.aml.payment.PaymentCompletedEvent;
+import com.aml.payment.PaymentSnapshotEvent;
 import com.aml.risk.RiskCheckRequest;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.NonNull;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,45 +31,26 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull RiskCheckRequest> riskCheckKafkaTemplate() {
-        return new KafkaTemplate<>(riskCheckRequestProducerFactory());
-    }
-
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull FraudDetectionRequest> fraudDetectionRequestKafkaTemplate() {
-        return new KafkaTemplate<>(fraudDetectionRequestProducerFactory());
+        return new KafkaTemplate<>(avroProducerFactory());
     }
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventKafkaTemplate() {
-        return new KafkaTemplate<>(paymentCompletedEventProducerFactory());
+        return new KafkaTemplate<>(avroProducerFactory());
     }
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull PaymentBlockedEvent> paymentBlockedEventKafkaTemplate() {
-        return new KafkaTemplate<>(paymentBlockedEventProducerFactory());
+        return new KafkaTemplate<>(avroProducerFactory());
     }
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull RiskCheckRequest> riskCheckRequestProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(getCommonProducerConfigs());
+    public KafkaTemplate<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotKafkaTemplate() {
+        return new KafkaTemplate<>(avroProducerFactory());
     }
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull FraudDetectionRequest> fraudDetectionRequestProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(getCommonProducerConfigs());
-    }
-
-    @Bean
-    public ProducerFactory<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(getCommonProducerConfigs());
-    }
-
-    @Bean
-    public ProducerFactory<@NonNull String, @NonNull PaymentBlockedEvent> paymentBlockedEventProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(getCommonProducerConfigs());
-    }
-
-    private Map<String, Object> getCommonProducerConfigs() {
+    public <T extends SpecificRecord> ProducerFactory<@NonNull String, @NonNull T> avroProducerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -78,6 +60,6 @@ public class KafkaProducerConfig {
         props.put(ProducerConfig.RETRIES_CONFIG, 3);
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
-        return props;
+        return new DefaultKafkaProducerFactory<>(props);
     }
 }
