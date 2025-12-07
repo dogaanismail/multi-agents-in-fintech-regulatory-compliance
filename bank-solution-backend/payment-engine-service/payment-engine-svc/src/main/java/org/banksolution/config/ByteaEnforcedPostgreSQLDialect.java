@@ -6,14 +6,13 @@ import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.SqlTypes;
 import org.hibernate.type.descriptor.jdbc.BinaryJdbcType;
-import org.hibernate.type.descriptor.jdbc.JdbcTypeIndicators;
 
 import java.sql.Types;
 
 /**
  * Custom PostgreSQL dialect to enforce BYTEA type for @Lob columns instead of OID.
  * This prevents PostgreSQL from using Large Object Storage which has performance overhead.
- * 
+ *
  * @see <a href="https://docs.axoniq.io/reference-guide/axon-framework/tuning/event-processing">Axon Framework Event Processing Tuning</a>
  */
 public class ByteaEnforcedPostgreSQLDialect extends PostgreSQLDialect {
@@ -38,10 +37,10 @@ public class ByteaEnforcedPostgreSQLDialect extends PostgreSQLDialect {
     public void contributeTypes(TypeContributions typeContributions,
                                 ServiceRegistry serviceRegistry) {
         super.contributeTypes(typeContributions, serviceRegistry);
-        
+
         // Register BLOB type descriptor as BYTEA
         var jdbcTypeRegistry = typeContributions.getTypeConfiguration()
-                                                .getJdbcTypeRegistry();
+                .getJdbcTypeRegistry();
         jdbcTypeRegistry.addDescriptor(Types.BLOB, BinaryJdbcType.INSTANCE);
     }
 }

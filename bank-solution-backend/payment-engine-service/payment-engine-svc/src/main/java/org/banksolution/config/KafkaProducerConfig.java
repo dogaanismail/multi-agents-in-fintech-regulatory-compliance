@@ -1,7 +1,5 @@
 package org.banksolution.config;
 
-import com.aml.payment.PaymentBlockedEvent;
-import com.aml.payment.PaymentCompletedEvent;
 import com.aml.payment.PaymentSnapshotEvent;
 import com.aml.risk.RiskCheckRequest;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -20,6 +18,16 @@ import org.springframework.kafka.core.ProducerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Kafka Producer Configuration - Pure Snapshot Architecture
+ * <p>
+ * Only two producers needed:
+ * 1. RiskCheckRequest - outgoing risk check requests to risk-engine
+ * 2. PaymentSnapshotEvent - snapshots to payment-history service
+ * <p>
+ * Individual event publishers (PaymentCompleted, PaymentBlocked) removed
+ * as snapshots contain all state changes.
+ */
 @Configuration
 public class KafkaProducerConfig {
 
@@ -31,16 +39,6 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull RiskCheckRequest> riskCheckKafkaTemplate() {
-        return new KafkaTemplate<>(avroProducerFactory());
-    }
-
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventKafkaTemplate() {
-        return new KafkaTemplate<>(avroProducerFactory());
-    }
-
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull PaymentBlockedEvent> paymentBlockedEventKafkaTemplate() {
         return new KafkaTemplate<>(avroProducerFactory());
     }
 

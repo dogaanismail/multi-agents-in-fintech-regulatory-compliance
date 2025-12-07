@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentCreatedEventConsumer {
 
-    private final PaymentCreatedEventHandler handler;
+    private final PaymentCreatedEventHandler paymentCreatedEventHandler;
 
     @KafkaListener(
             topics = "${kafka.topics.payment-created}",
@@ -36,7 +36,7 @@ public class PaymentCreatedEventConsumer {
                 offset);
 
         try {
-            handler.handle(event);
+            paymentCreatedEventHandler.handle(event);
             acknowledgment.acknowledge();
             log.info("Successfully processed PaymentCreatedEvent: {}", event.getEventId());
         } catch (Exception e) {

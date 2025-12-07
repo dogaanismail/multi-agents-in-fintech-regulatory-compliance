@@ -48,8 +48,6 @@ include 'network-topology-service:network-topology-svc-db-migration-changelog'
 // payment engine service modules
 include 'payment-engine-service'
 include 'payment-engine-service:payment-engine-svc'
-include 'payment-engine-service:payment-engine-svc-db-migration'
-include 'payment-engine-service:payment-engine-svc-db-migration-changelog'
 
 // risk engine service modules
 include 'risk-engine-service'

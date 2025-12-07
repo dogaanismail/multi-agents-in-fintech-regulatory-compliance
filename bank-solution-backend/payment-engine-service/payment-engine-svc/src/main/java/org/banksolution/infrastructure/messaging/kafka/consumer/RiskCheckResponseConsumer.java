@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RiskCheckResponseConsumer {
 
-    private final RiskCheckResponseHandler handler;
+    private final RiskCheckResponseHandler riskCheckResponseHandler;
 
     @KafkaListener(
             topics = "${kafka.topics.risk-check-response}",
@@ -37,7 +37,7 @@ public class RiskCheckResponseConsumer {
                 offset);
 
         try {
-            handler.handle(response);
+            riskCheckResponseHandler.handle(response);
             acknowledgment.acknowledge();
             log.info("Successfully processed RiskCheckResponse: {}", response.getRequestId());
         } catch (Exception e) {

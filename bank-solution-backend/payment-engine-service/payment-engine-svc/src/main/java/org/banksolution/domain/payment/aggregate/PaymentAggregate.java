@@ -1,5 +1,6 @@
 package org.banksolution.domain.payment.aggregate;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
@@ -20,7 +21,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Aggregate
+@Getter
+@Aggregate(
+        snapshotTriggerDefinition = "snapshotTriggerDefinition",
+        cache = "paymentCache"
+)
 @NoArgsConstructor
 @Slf4j
 public class PaymentAggregate {
@@ -96,9 +101,7 @@ public class PaymentAggregate {
         }
 
         // Directly complete payment - RiskCheckCompletedEvent already has full assessment
-        AggregateLifecycle.apply(new PaymentCompletedEvent(
-                command.getPaymentId()
-        ));
+        AggregateLifecycle.apply(new PaymentCompletedEvent(command.getPaymentId()));
     }
 
     @CommandHandler

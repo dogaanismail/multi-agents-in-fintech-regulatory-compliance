@@ -39,7 +39,6 @@ dependencies {
     implementation project(':avro-schema-library-java')
 
     implementation project(':common')
-    implementation project(':payment-engine-service:payment-engine-svc-db-migration-changelog')
 
     // vulnerabilities
     implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"

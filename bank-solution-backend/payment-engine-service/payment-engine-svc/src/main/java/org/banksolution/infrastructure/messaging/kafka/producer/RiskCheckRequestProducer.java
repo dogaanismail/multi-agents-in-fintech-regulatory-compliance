@@ -43,7 +43,7 @@ public class RiskCheckRequestProducer {
             log.info("Successfully published RiskCheckRequest for payment: {}", event.getPaymentId());
         } catch (Exception e) {
             log.error("Error publishing RiskCheckRequest for payment: {}", event.getPaymentId(), e);
-            throw new RuntimeException("Failed to publish risk check request", e);
+            throw e;
         }
     }
 }
