@@ -1,0 +1,13 @@
+package org.banksolution.enums;
+
+public enum PaymentStatus {
+    INITIATED,
+    FRAUD_CHECK_PENDING,
+    FRAUD_CHECK_APPROVED,
+    FRAUD_CHECK_FAILED,
+    MANUAL_REVIEW_REQUIRED,
+    ACCOUNT_CHARGING,
+    COMPLETED,
+    BLOCKED,
+    FAILED
+}

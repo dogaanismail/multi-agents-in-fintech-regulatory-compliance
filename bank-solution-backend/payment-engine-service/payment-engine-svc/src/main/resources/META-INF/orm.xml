@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings version="2.0" xmlns="http://java.sun.com/xml/ns/persistence/orm">
+    
+    <!-- Override sequence generator for DomainEventEntry to avoid gaps -->
+    <mapped-superclass access="FIELD" metadata-complete="false" 
+                       class="org.axonframework.eventhandling.AbstractSequencedDomainEventEntry">
+        <attributes>
+            <id name="globalIndex">
+                <generated-value strategy="SEQUENCE" generator="domainEventSequenceGenerator"/>
+                <sequence-generator name="domainEventSequenceGenerator" 
+                                    sequence-name="domain_event_sequence" 
+                                    allocation-size="1"/>
+            </id>
+        </attributes>
+    </mapped-superclass>
+
+    <!-- PostgreSQL-specific: Override @Lob columns to use BYTEA instead of OID -->
+    
+    <!-- DomainEventEntry - payload and meta_data as BYTEA -->
+    <entity class="org.axonframework.eventsourcing.eventstore.jpa.DomainEventEntry">
+        <attributes>
+            <basic name="payload">
+                <column name="payload" column-definition="BYTEA"/>
+            </basic>
+            <basic name="metaData">
+                <column name="meta_data" column-definition="BYTEA"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <!-- SnapshotEventEntry - payload and meta_data as BYTEA -->
+    <entity class="org.axonframework.eventsourcing.eventstore.jpa.SnapshotEventEntry">
+        <attributes>
+            <basic name="payload">
+                <column name="payload" column-definition="BYTEA"/>
+            </basic>
+            <basic name="metaData">
+                <column name="meta_data" column-definition="BYTEA"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <!-- TokenEntry - token as BYTEA (critical for frequent updates) -->
+    <entity class="org.axonframework.eventhandling.tokenstore.jpa.TokenEntry">
+        <attributes>
+            <basic name="token">
+                <column name="token" column-definition="BYTEA"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <!-- SagaEntry - serializedSaga as BYTEA -->
+    <entity class="org.axonframework.modelling.saga.repository.jpa.SagaEntry">
+        <attributes>
+            <basic name="serializedSaga">
+                <column name="serializedSaga" column-definition="BYTEA"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <!-- DeadLetterEntry - diagnostics, payload, metadata, token as BYTEA -->
+    <entity class="org.axonframework.eventhandling.deadletter.jpa.DeadLetterEntry">
+        <attributes>
+            <basic name="diagnostics">
+                <column name="diagnostics" column-definition="BYTEA"/>
+            </basic>
+            <basic name="payload">
+                <column name="payload" column-definition="BYTEA"/>
+            </basic>
+            <basic name="metaData">
+                <column name="meta_data" column-definition="BYTEA"/>
+            </basic>
+            <basic name="processingStarted">
+                <column name="processing_started" column-definition="TIMESTAMP"/>
+            </basic>
+        </attributes>
+    </entity>
+
+</entity-mappings>

@@ -1,0 +1,42 @@
+package org.banksolution.infrastructure.messaging.kafka.handler;
+
+import com.aml.risk.RiskCheckResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.axonframework.eventhandling.gateway.EventGateway;
+import org.banksolution.domain.payment.event.RiskCheckCompletedEvent;
+import org.banksolution.domain.payment.valueobject.PaymentId;
+import org.banksolution.domain.payment.valueobject.RiskAssessment;
+import org.springframework.stereotype.Component;
+
+import static org.banksolution.infrastructure.messaging.kafka.mapper.RiskAssessmentMapper.toRiskAssessment;
+
+/**
+ * Handler for Kafka risk check responses.
+ * <p>
+ * This handler publishes the RiskCheckCompletedEvent using the paymentId from the response.
+ * The PaymentRiskSaga will handle the orchestration and command dispatching
+ * based on the risk action, following proper Axon Saga patterns.
+ */
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class RiskCheckResponseHandler {
+
+    private final EventGateway eventGateway;
+
+    public void handle(RiskCheckResponse response) {
+        PaymentId paymentId = new PaymentId(response.getPaymentId());
+
+        log.info("Risk check response received for payment: {}, action: {}",
+                paymentId,
+                response.getAction());
+
+        RiskAssessment riskAssessment = toRiskAssessment(response);
+
+        // Publish RiskCheckCompletedEvent - the PaymentRiskSaga will handle the rest
+        eventGateway.publish(new RiskCheckCompletedEvent(paymentId, riskAssessment));
+
+        log.info("RiskCheckCompletedEvent published for payment: {}, saga will handle workflow", paymentId);
+    }
+}

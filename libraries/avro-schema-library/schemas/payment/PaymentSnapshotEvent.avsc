@@ -1,0 +1,288 @@
+{
+  "namespace": "com.aml.payment",
+  "type": "record",
+  "name": "PaymentSnapshotEvent",
+  "doc": "Complete payment snapshot event representing the full payment lifecycle state. Published by Payment-Engine for audit trail and history tracking.",
+  "fields": [
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Internal payment aggregate identifier"
+    },
+    {
+      "name": "externalPaymentId",
+      "type": "string",
+      "doc": "External payment identifier from Payment-SVC"
+    },
+    {
+      "name": "referenceNumber",
+      "type": "string",
+      "doc": "Unique payment reference number"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Customer identifier"
+    },
+    {
+      "name": "sourceAccountId",
+      "type": "string",
+      "doc": "Source account identifier"
+    },
+    {
+      "name": "destinationAccountId",
+      "type": "string",
+      "doc": "Destination account identifier"
+    },
+    {
+      "name": "amount",
+      "type": "string",
+      "doc": "Payment amount as string to preserve precision"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Currency code (e.g., USD, EUR)"
+    },
+    {
+      "name": "paymentType",
+      "type": "string",
+      "doc": "Type of payment (e.g., TRANSFER, PAYMENT)"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Payment description"
+    },
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "PaymentStatus",
+        "symbols": [
+          "INITIATED",
+          "FRAUD_CHECK_PENDING",
+          "FRAUD_CHECK_APPROVED",
+          "BLOCKED",
+          "MANUAL_REVIEW_REQUIRED",
+          "COMPLETED"
+        ]
+      },
+      "doc": "Current payment status"
+    },
+    {
+      "name": "fraudStatus",
+      "type": {
+        "type": "enum",
+        "name": "FraudCheckStatus",
+        "symbols": [
+          "PENDING",
+          "APPROVED",
+          "BLOCKED",
+          "REVIEW_REQUIRED"
+        ]
+      },
+      "doc": "Fraud check status"
+    },
+    {
+      "name": "riskAssessment",
+      "type": ["null", {
+        "type": "record",
+        "name": "RiskAssessmentSnapshot",
+        "doc": "Risk assessment details from Risk-Engine",
+        "fields": [
+          {
+            "name": "riskScore",
+            "type": "double",
+            "doc": "Overall risk score (0.0 to 1.0)"
+          },
+          {
+            "name": "riskLevel",
+            "type": "string",
+            "doc": "Risk level: LOW, MEDIUM, HIGH, CRITICAL"
+          },
+          {
+            "name": "riskAction",
+            "type": "string",
+            "doc": "Risk action: PROCEED, ESCALATE, BLOCK"
+          },
+          {
+            "name": "fraudIndicators",
+            "type": {
+              "type": "array",
+              "items": "string"
+            },
+            "default": [],
+            "doc": "List of fraud indicators detected"
+          },
+          {
+            "name": "mlModelVersion",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "ML model version used"
+          },
+          {
+            "name": "processingTimeMs",
+            "type": "long",
+            "doc": "Risk processing time in milliseconds"
+          },
+          {
+            "name": "marlAssessment",
+            "type": ["null", {
+              "type": "record",
+              "name": "MarlAssessmentSnapshot",
+              "doc": "MARL assessment if escalated",
+              "fields": [
+                {
+                  "name": "requestId",
+                  "type": "string",
+                  "doc": "MARL request identifier"
+                },
+                {
+                  "name": "action",
+                  "type": "string",
+                  "doc": "MARL action: ALLOW, BLOCK, REVIEW"
+                },
+                {
+                  "name": "confidence",
+                  "type": "double",
+                  "doc": "Decision confidence (0.0 to 1.0)"
+                },
+                {
+                  "name": "maddpgQValue",
+                  "type": "double",
+                  "doc": "MADDPG Q-value"
+                },
+                {
+                  "name": "transactionAgentObservation",
+                  "type": {
+                    "type": "record",
+                    "name": "TransactionAgentObservationSnapshot",
+                    "fields": [
+                      {"name": "agentName", "type": "string"},
+                      {"name": "isSuspicious", "type": "boolean"},
+                      {"name": "probability", "type": "double"},
+                      {"name": "riskScore", "type": "double"},
+                      {"name": "confidence", "type": "string"},
+                      {"name": "responseTimeMs", "type": "double"}
+                    ]
+                  }
+                },
+                {
+                  "name": "customerAgentObservation",
+                  "type": {
+                    "type": "record",
+                    "name": "CustomerAgentObservationSnapshot",
+                    "fields": [
+                      {"name": "agentName", "type": "string"},
+                      {"name": "isSuspicious", "type": "boolean"},
+                      {"name": "probability", "type": "double"},
+                      {"name": "riskScore", "type": "double"},
+                      {"name": "confidence", "type": "string"},
+                      {"name": "responseTimeMs", "type": "double"}
+                    ]
+                  }
+                },
+                {
+                  "name": "networkAgentObservation",
+                  "type": {
+                    "type": "record",
+                    "name": "NetworkAgentObservationSnapshot",
+                    "fields": [
+                      {"name": "agentName", "type": "string"},
+                      {"name": "isSuspicious", "type": "boolean"},
+                      {"name": "probability", "type": "double"},
+                      {"name": "riskScore", "type": "double"},
+                      {"name": "confidence", "type": "string"},
+                      {"name": "responseTimeMs", "type": "double"}
+                    ]
+                  }
+                },
+                {
+                  "name": "agentContributions",
+                  "type": {
+                    "type": "map",
+                    "values": "double"
+                  }
+                },
+                {
+                  "name": "processingTimeMs",
+                  "type": "double",
+                  "doc": "MARL processing time in milliseconds"
+                },
+                {
+                  "name": "mode",
+                  "type": "string",
+                  "doc": "Execution mode: inference or training"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "MARL assessment if payment was escalated"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "Complete risk assessment including MARL if escalated"
+    },
+    {
+      "name": "initiatedAt",
+      "type": ["null", "long"],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Payment initiation timestamp"
+    },
+    {
+      "name": "riskCheckRequestedAt",
+      "type": ["null", "long"],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Risk check request timestamp"
+    },
+    {
+      "name": "riskCheckCompletedAt",
+      "type": ["null", "long"],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Risk check completion timestamp"
+    },
+    {
+      "name": "completedAt",
+      "type": ["null", "long"],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Payment completion timestamp"
+    },
+    {
+      "name": "blockedAt",
+      "type": ["null", "long"],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Payment blocked timestamp"
+    },
+    {
+      "name": "manualReviewRequestedAt",
+      "type": ["null", "long"],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Manual review request timestamp"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "doc": "Aggregate version for chronological tracking"
+    },
+    {
+      "name": "snapshotTimestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "When this snapshot was created"
+    },
+    {
+      "name": "eventTrigger",
+      "type": "string",
+      "doc": "What triggered this snapshot: PAYMENT_INITIATED, RISK_CHECK_REQUESTED, RISK_CHECK_COMPLETED, FRAUD_CHECK_APPROVED, PAYMENT_BLOCKED, MANUAL_REVIEW_REQUESTED, PAYMENT_COMPLETED"
+    }
+  ]
+}

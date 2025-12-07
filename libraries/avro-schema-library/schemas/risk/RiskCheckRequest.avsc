@@ -1,0 +1,69 @@
+{
+  "namespace": "com.aml.risk",
+  "type": "record",
+  "name": "RiskCheckRequest",
+  "fields": [
+    {
+      "name": "requestId",
+      "type": "string",
+      "doc": "Unique identifier for this risk check request"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Internal payment identifier from payment engine"
+    },
+    {
+      "name": "referenceNumber",
+      "type": "string",
+      "doc": "Payment reference number for correlation"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Customer identifier"
+    },
+    {
+      "name": "sourceAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Source account identifier (optional for cash deposits)"
+    },
+    {
+      "name": "destinationAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Destination account identifier (optional for cash withdrawals)"
+    },
+    {
+      "name": "amount",
+      "type": "string",
+      "doc": "Transaction amount as string to preserve precision"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "paymentType",
+      "type": {
+        "type": "enum",
+        "name": "PaymentType",
+        "symbols": ["TRANSFER", "DEPOSIT", "WITHDRAWAL", "PAYMENT"]
+      },
+      "doc": "Type of payment transaction"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Timestamp when the payment was created (epoch millis)"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional payment description"
+    }
+  ]
+}
