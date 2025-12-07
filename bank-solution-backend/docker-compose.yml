@@ -17,7 +17,7 @@ services:
     networks:
       - bank-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U default"]
+      test: [ "CMD-SHELL", "pg_isready -U default" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,7 +63,7 @@ services:
       - bank-network
       - aml-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5001/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -114,7 +114,7 @@ services:
       - bank-network
       - aml-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5002/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5002/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -171,25 +171,6 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-  # Payment Engine Service Database Migration
-  payment-engine-db-migration:
-    image: payment-engine-svc-db-migration-app:latest
-    container_name: payment-engine-svc-db-migration-service
-    build:
-      context: ./payment-engine-service/payment-engine-svc-db-migration
-      dockerfile: Dockerfile
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/payment_engine_db
-      SPRING_DATASOURCE_USERNAME: default
-      SPRING_DATASOURCE_PASSWORD: default
-      SPRING_LIQUIBASE_ENABLED: "true"
-    depends_on:
-      bank-solution-postgres:
-        condition: service_healthy
-    networks:
-      - bank-network
-    restart: on-failure
-
   # Payment Engine Service
   payment-engine-service:
     image: payment-engine-svc-api:latest
@@ -207,9 +188,6 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       SERVER_PORT: 5004
-    depends_on:
-      payment-engine-db-migration:
-        condition: service_completed_successfully
     networks:
       - bank-network
       - aml-network
