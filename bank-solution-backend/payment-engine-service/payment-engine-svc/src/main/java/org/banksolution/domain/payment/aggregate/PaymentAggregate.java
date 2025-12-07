@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.modelling.command.AggregateVersion;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.banksolution.domain.payment.command.*;
@@ -20,6 +19,8 @@ import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+
+import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
 @Getter
 @Aggregate(
@@ -66,7 +67,7 @@ public class PaymentAggregate {
     public PaymentAggregate(InitiatePaymentCommand command) {
         log.info("Handling InitiatePaymentCommand for payment: {}", command.getPaymentId());
 
-        AggregateLifecycle.apply(new PaymentInitiatedEvent(
+        apply(new PaymentInitiatedEvent(
                 command.getPaymentId(),
                 command.getExternalPaymentId(),
                 command.getReferenceNumber(),
@@ -79,7 +80,7 @@ public class PaymentAggregate {
                 command.getDescription()
         ));
 
-        AggregateLifecycle.apply(new RiskCheckRequestedEvent(
+        apply(new RiskCheckRequestedEvent(
                 command.getPaymentId(),
                 command.getReferenceNumber(),
                 command.getCustomerId(),
@@ -101,7 +102,7 @@ public class PaymentAggregate {
         }
 
         // Directly complete payment - RiskCheckCompletedEvent already has full assessment
-        AggregateLifecycle.apply(new PaymentCompletedEvent(command.getPaymentId()));
+        apply(new PaymentCompletedEvent(command.getPaymentId()));
     }
 
     @CommandHandler
@@ -115,7 +116,7 @@ public class PaymentAggregate {
         String reason = "Risk level: " + command.getRiskAssessment().getRiskLevel() +
                 ", Risk score: " + command.getRiskAssessment().getRiskScore();
 
-        AggregateLifecycle.apply(new PaymentBlockedEvent(
+        apply(new PaymentBlockedEvent(
                 command.getPaymentId(),
                 reason,
                 command.getRiskAssessment().getRiskScore(),
@@ -132,7 +133,7 @@ public class PaymentAggregate {
             throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_PENDING status");
         }
 
-        AggregateLifecycle.apply(new ManualReviewRequestedEvent(
+        apply(new ManualReviewRequestedEvent(
                 command.getPaymentId(),
                 command.getRiskAssessment().getRiskScore(),
                 command.getRiskAssessment().getMarlAssessment() != null ?
