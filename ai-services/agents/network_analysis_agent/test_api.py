@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 # API base URL
-BASE_URL = "http://localhost:8003"
+BASE_URL = "http://localhost:1003"
 API_URL = f"{BASE_URL}/api/v1"
 
 

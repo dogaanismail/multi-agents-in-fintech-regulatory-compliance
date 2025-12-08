@@ -10,7 +10,7 @@ import json
 from pprint import pprint
 
 # Base URL
-BASE_URL = "http://localhost:8004"
+BASE_URL = "http://localhost:1004"
 
 def test_health():
     """Test health endpoint"""
@@ -125,6 +125,6 @@ if __name__ == "__main__":
         test_coordinated_prediction()
     except requests.exceptions.ConnectionError:
         print("\n❌ Error: Could not connect to MARL Orchestrator")
-        print("Make sure the service is running on http://localhost:8004")
+        print("Make sure the service is running on http://localhost:1004")
     except Exception as e:
         print(f"\n❌ Error: {str(e)}")

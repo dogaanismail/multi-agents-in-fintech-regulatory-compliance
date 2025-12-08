@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     
     # Server
     host: str = "0.0.0.0"
-    port: int = 8002
+    port: int = 1002
     workers: int = 1
     log_level: str = "info"
     

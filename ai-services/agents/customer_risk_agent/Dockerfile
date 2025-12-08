@@ -16,11 +16,11 @@ COPY . .
 RUN mkdir -p logs
 
 # Expose port
-EXPOSE 8002
+EXPOSE 1002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:8002/api/v1/health')"
+  CMD python -c "import requests; requests.get('http://localhost:1002/api/v1/health')"
 
 # Run the application
 CMD ["python", "main.py"]

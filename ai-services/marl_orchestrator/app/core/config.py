@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     
     # Server
     host: str = "0.0.0.0"
-    port: int = 8004
+    port: int = 1004
     workers: int = 1
     log_level: str = "info"
     
@@ -35,12 +35,12 @@ class Settings(BaseSettings):
     cors_headers: List[str] = ["*"]
     
     # Detection Agents
-    transaction_agent_url: str = "http://localhost:8001"
-    transaction_agent_port: int = 8001
-    customer_agent_url: str = "http://localhost:8002"
-    customer_agent_port: int = 8002
-    network_agent_url: str = "http://localhost:8003"
-    network_agent_port: int = 8003
+    transaction_agent_url: str = "http://localhost:1001"
+    transaction_agent_port: int = 1001
+    customer_agent_url: str = "http://localhost:1002"
+    customer_agent_port: int = 1002
+    network_agent_url: str = "http://localhost:1003"
+    network_agent_port: int = 1003
     agent_timeout: int = 30  # seconds
     
     # MADDPG Settings

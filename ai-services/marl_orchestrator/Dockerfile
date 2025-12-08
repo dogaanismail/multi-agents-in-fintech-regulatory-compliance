@@ -24,11 +24,11 @@ COPY . .
 RUN mkdir -p logs trained_models
 
 # Expose port
-EXPOSE 8004
+EXPOSE 1004
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
-    CMD curl -f http://localhost:8004/health || exit 1
+    CMD curl -f http://localhost:1004/health || exit 1
 
 # Run application
 CMD ["python", "main.py"]

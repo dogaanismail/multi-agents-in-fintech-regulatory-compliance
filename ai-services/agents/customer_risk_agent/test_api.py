@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE_URL = "http://localhost:8002"
+BASE_URL = "http://localhost:1002"
 API_PREFIX = "/api/v1"
 
 def test_health():

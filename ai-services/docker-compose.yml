@@ -8,13 +8,14 @@ services:
       dockerfile: Dockerfile
     container_name: transaction-pattern-agent
     ports:
-      - "8001:8001"
+      - "1001:1001"
     environment:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
+      - PORT=1001
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:1001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,13 +27,14 @@ services:
       dockerfile: Dockerfile
     container_name: customer-risk-agent
     ports:
-      - "8002:8002"
+      - "1002:1002"
     environment:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
+      - PORT=1002
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:1002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,13 +46,14 @@ services:
       dockerfile: Dockerfile
     container_name: network-analysis-agent
     ports:
-      - "8003:8003"
+      - "1003:1003"
     environment:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
+      - PORT=1003
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:1003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -62,14 +65,15 @@ services:
       dockerfile: Dockerfile
     container_name: marl-orchestrator
     ports:
-      - "8004:8004"
+      - "1004:1004"
     environment:
       - MADDPG_MODE=inference
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
-      - TRANSACTION_AGENT_URL=http://transaction-pattern-agent:8001
-      - CUSTOMER_AGENT_URL=http://customer-risk-agent:8002
-      - NETWORK_AGENT_URL=http://network-analysis-agent:8003
+      - PORT=1004
+      - TRANSACTION_AGENT_URL=http://transaction-pattern-agent:1001
+      - CUSTOMER_AGENT_URL=http://customer-risk-agent:1002
+      - NETWORK_AGENT_URL=http://network-analysis-agent:1003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SCHEMA_REGISTRY_URL=http://schema-registry:8081
     depends_on:
@@ -81,7 +85,7 @@ services:
       - aml-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:1004/health"]
       interval: 30s
       timeout: 10s
       retries: 3
