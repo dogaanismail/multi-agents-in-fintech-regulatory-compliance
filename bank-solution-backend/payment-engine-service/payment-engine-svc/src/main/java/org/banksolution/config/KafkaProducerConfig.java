@@ -4,8 +4,6 @@ import com.aml.payment.PaymentSnapshotEvent;
 import com.aml.risk.RiskCheckRequest;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import lombok.NonNull;
-import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,18 +35,7 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.schema-registry.url}")
     private String schemaRegistryUrl;
 
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull RiskCheckRequest> riskCheckKafkaTemplate() {
-        return new KafkaTemplate<>(avroProducerFactory());
-    }
-
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotKafkaTemplate() {
-        return new KafkaTemplate<>(avroProducerFactory());
-    }
-
-    @Bean
-    public <T extends SpecificRecord> ProducerFactory<@NonNull String, @NonNull T> avroProducerFactory() {
+    private Map<String, Object> getCommonProducerProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -57,7 +44,27 @@ public class KafkaProducerConfig {
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.RETRIES_CONFIG, 3);
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, "payment-engine-service-producer");
+        return props;
+    }
 
-        return new DefaultKafkaProducerFactory<>(props);
+    @Bean
+    public ProducerFactory<String, RiskCheckRequest> riskCheckProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
+    }
+
+    @Bean
+    public ProducerFactory<String, PaymentSnapshotEvent> paymentSnapshotProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
+    }
+
+    @Bean
+    public KafkaTemplate<String, RiskCheckRequest> riskCheckKafkaTemplate() {
+        return new KafkaTemplate<>(riskCheckProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, PaymentSnapshotEvent> paymentSnapshotKafkaTemplate() {
+        return new KafkaTemplate<>(paymentSnapshotProducerFactory());
     }
 }

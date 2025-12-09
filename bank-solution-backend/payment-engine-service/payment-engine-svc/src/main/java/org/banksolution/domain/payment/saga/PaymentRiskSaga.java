@@ -1,7 +1,10 @@
 package org.banksolution.domain.payment.saga;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.deadline.DeadlineManager;
+import org.axonframework.deadline.annotation.DeadlineHandler;
 import org.axonframework.modelling.saga.EndSaga;
 import org.axonframework.modelling.saga.SagaEventHandler;
 import org.axonframework.modelling.saga.SagaLifecycle;
@@ -18,61 +21,53 @@ import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.banksolution.infrastructure.messaging.kafka.producer.RiskCheckRequestProducer;
 
-import static org.axonframework.modelling.saga.SagaLifecycle.associateWith;
+import java.time.Duration;
 
-/**
- * Saga that orchestrates the payment risk check workflow.
- * <p>
- * This saga:
- * 1. Starts when the RiskCheckRequestedEvent is published
- * 2. Publishes RiskCheckRequest to Kafka for risk-engine processing
- * 3. Waits for RiskCheckCompletedEvent (triggered by Kafka response)
- * 4. Dispatches the appropriate command based on risk action (Approve/Block/Review)
- * 5. Ends when payment reaches a terminal state (Completed, Blocked, or Manual Review)
- * <p>
- * This replaces the scattered "Process Manager" logic previously in RiskCheckResponseHandler.
- */
-@Saga
+@Saga(sagaStore = "sagaStore")
 @Slf4j
 public class PaymentRiskSaga {
 
     private static final String PAYMENT_ID_ASSOCIATION = "paymentId";
+    private static final String RISK_CHECK_TIMEOUT_DEADLINE = "risk-check-timeout";
+    private static final Duration RISK_CHECK_TIMEOUT = Duration.ofSeconds(5);
 
-    private final CommandGateway commandGateway;
-    private final RiskCheckRequestProducer riskCheckRequestProducer;
     private PaymentId paymentId;
-
-    public PaymentRiskSaga(
-            CommandGateway commandGateway,
-            RiskCheckRequestProducer riskCheckRequestProducer) {
-        this.commandGateway = commandGateway;
-        this.riskCheckRequestProducer = riskCheckRequestProducer;
-    }
+    private String deadlineId;
+    private boolean riskCheckCompleted = false;
 
     @StartSaga
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
-    public void on(RiskCheckRequestedEvent event) {
-        log.info("PaymentRiskSaga started for payment: {}, reference: {}",
-                event.getPaymentId(),
-                event.getReferenceNumber());
+    public void on(RiskCheckRequestedEvent event,
+                   DeadlineManager deadlineManager,
+                   RiskCheckRequestProducer riskCheckRequestProducer) {
+        log.info("Risk check started for payment id {}", event.paymentId());
 
-        this.paymentId = event.getPaymentId();
+        this.paymentId = event.paymentId();
+        this.riskCheckCompleted = false;
 
-        // Associate saga with payment ID for future events
-        associateWith(PAYMENT_ID_ASSOCIATION, paymentId.toString());
-
-        // Publish a risk check request to Kafka for risk-engine processing
-        log.info("Publishing RiskCheckRequest to Kafka for payment: {}", paymentId);
+        log.info("Publishing RiskCheckRequest to Kafka for payment: {}", this.paymentId);
         riskCheckRequestProducer.publishRiskCheckRequest(event);
 
-        log.info("Saga associated with paymentId: {}, awaiting risk check completion", paymentId);
+        this.deadlineId = deadlineManager.schedule(RISK_CHECK_TIMEOUT, RISK_CHECK_TIMEOUT_DEADLINE);
+        log.info("Scheduled risk check timeout deadline for payment: {} with deadlineId: {}", this.paymentId, this.deadlineId);
+
+        log.info("Saga setup complete, awaiting risk check completion or timeout");
     }
 
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
-    public void on(RiskCheckCompletedEvent event) {
-        log.info("Risk check completed for payment: {}, processing action", paymentId);
+    public void on(RiskCheckCompletedEvent event,
+                   DeadlineManager deadlineManager,
+                   CommandGateway commandGateway) {
+        log.info("Risk check completed for payment id {}", event.paymentId());
 
-        RiskAssessment riskAssessment = event.getRiskAssessment();
+        if (deadlineId != null && !riskCheckCompleted) {
+            deadlineManager.cancelSchedule(RISK_CHECK_TIMEOUT_DEADLINE, deadlineId);
+            log.info("Cancelled risk check timeout deadline for payment: {}", paymentId);
+        }
+
+        riskCheckCompleted = true;
+
+        RiskAssessment riskAssessment = event.riskAssessment();
 
         if (riskAssessment == null) {
             log.error("Risk assessment is null for payment: {}, ending saga", paymentId);
@@ -80,7 +75,6 @@ public class PaymentRiskSaga {
             return;
         }
 
-        // The dispatch appropriate command based on risk action
         String riskAction = riskAssessment.getRiskAction();
 
         try {
@@ -108,23 +102,29 @@ public class PaymentRiskSaga {
         }
     }
 
+    @DeadlineHandler(deadlineName = RISK_CHECK_TIMEOUT_DEADLINE)
+    public void on() {
+        log.info("========== DEADLINE HANDLER INVOKED! Payment: {}, Completed: {} ==========",
+                this.paymentId,
+                this.riskCheckCompleted);
+    }
+
     @EndSaga
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
     public void on(PaymentCompletedEvent event) {
-        log.info("Payment completed, ending PaymentRiskSaga for payment: {}", event.getPaymentId());
+        log.info("Payment completed, ending PaymentRiskSaga for payment: {}", event.paymentId());
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
     public void on(PaymentBlockedEvent event) {
-        log.info("Payment blocked, ending PaymentRiskSaga for payment: {}", event.getPaymentId());
+        log.info("Payment blocked, ending PaymentRiskSaga for payment: {}", event.paymentId());
     }
 
-    // Note: ManualReviewRequestedEvent also ends the saga as the payment is now in a terminal state
-    // requiring human intervention
     @EndSaga
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
     public void on(org.banksolution.domain.payment.event.ManualReviewRequestedEvent event) {
-        log.info("Manual review requested, ending PaymentRiskSaga for payment: {}", event.getPaymentId());
+        log.info("Manual review requested, ending PaymentRiskSaga for payment: {}", event.paymentId());
     }
+
 }

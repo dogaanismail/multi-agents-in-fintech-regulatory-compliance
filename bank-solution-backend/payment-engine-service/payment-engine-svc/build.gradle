@@ -29,8 +29,9 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
 
-    implementation "org.axonframework:axon-spring-boot-starter:${axonKafkaVersion}"
+    implementation "org.axonframework:axon-spring-boot-starter:${axonVersion}"
     implementation "org.axonframework.extensions.kafka:axon-kafka-spring-boot-starter:${axonKafkaVersion}"
+    implementation 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:14.0.0'
 
     implementation 'org.springframework.kafka:spring-kafka'
     implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
@@ -43,6 +44,9 @@ dependencies {
     // vulnerabilities
     implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
     implementation 'io.grpc:grpc-netty-shaded:1.75.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    implementation 'org.liquibase:liquibase-core'
 
     implementation 'org.postgresql:postgresql'
 }
