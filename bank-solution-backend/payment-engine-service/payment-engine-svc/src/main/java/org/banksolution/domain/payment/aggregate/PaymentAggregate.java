@@ -24,7 +24,8 @@ import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
 @Getter
 @Aggregate(
-        snapshotTriggerDefinition = "snapshotTriggerDefinition"
+        snapshotTriggerDefinition = "snapshotTriggerDefinition",
+        cache = "paymentCache"
 )
 @NoArgsConstructor
 @Slf4j

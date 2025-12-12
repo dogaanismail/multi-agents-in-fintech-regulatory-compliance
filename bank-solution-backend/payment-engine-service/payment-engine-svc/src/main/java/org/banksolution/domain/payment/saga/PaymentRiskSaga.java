@@ -1,6 +1,5 @@
 package org.banksolution.domain.payment.saga;
 
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.deadline.DeadlineManager;
@@ -29,7 +28,7 @@ public class PaymentRiskSaga {
 
     private static final String PAYMENT_ID_ASSOCIATION = "paymentId";
     private static final String RISK_CHECK_TIMEOUT_DEADLINE = "risk-check-timeout";
-    private static final Duration RISK_CHECK_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration RISK_CHECK_TIMEOUT = Duration.ofMinutes(1);
 
     private PaymentId paymentId;
     private String deadlineId;
@@ -48,7 +47,7 @@ public class PaymentRiskSaga {
         log.info("Publishing RiskCheckRequest to Kafka for payment: {}", this.paymentId);
         riskCheckRequestProducer.publishRiskCheckRequest(event);
 
-        this.deadlineId = deadlineManager.schedule(RISK_CHECK_TIMEOUT, RISK_CHECK_TIMEOUT_DEADLINE);
+        this.deadlineId = deadlineManager.schedule(RISK_CHECK_TIMEOUT, RISK_CHECK_TIMEOUT_DEADLINE, this.paymentId);
         log.info("Scheduled risk check timeout deadline for payment: {} with deadlineId: {}", this.paymentId, this.deadlineId);
 
         log.info("Saga setup complete, awaiting risk check completion or timeout");
@@ -103,10 +102,8 @@ public class PaymentRiskSaga {
     }
 
     @DeadlineHandler(deadlineName = RISK_CHECK_TIMEOUT_DEADLINE)
-    public void on() {
-        log.info("========== DEADLINE HANDLER INVOKED! Payment: {}, Completed: {} ==========",
-                this.paymentId,
-                this.riskCheckCompleted);
+    public void on(PaymentId paymentId) {
+        log.info("Risk check timeout for payment: {}", paymentId);
     }
 
     @EndSaga

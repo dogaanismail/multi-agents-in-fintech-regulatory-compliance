@@ -26,6 +26,7 @@ import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.SnapshotTriggerDefinition;
 import org.axonframework.eventsourcing.Snapshotter;
 import org.axonframework.eventsourcing.eventstore.EventStorageEngine;
+import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.axonframework.eventsourcing.eventstore.jpa.JpaEventStorageEngine;
 import org.axonframework.messaging.ScopeAwareProvider;
 import org.axonframework.modelling.saga.repository.SagaStore;
@@ -44,7 +45,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 
 /**
  * Axon Framework Configuration
@@ -89,7 +89,7 @@ public class AxonConfig {
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
         // Include only non-null values to reduce JSON size
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
 
         return objectMapper;
     }
@@ -164,7 +164,7 @@ public class AxonConfig {
 
         return JpaEventStorageEngine.builder()
                 .snapshotSerializer(serializer)
-                .upcasterChain(parameter -> Stream.empty())
+                .upcasterChain(parameter -> parameter)
                 .eventSerializer(eventSerializer)
                 .entityManagerProvider(entityManagerProvider)
                 .transactionManager(transactionManager)
@@ -172,17 +172,22 @@ public class AxonConfig {
     }
 
     @Bean
-    public SpringAggregateSnapshotterFactoryBean snapshotter() {
-        SpringAggregateSnapshotterFactoryBean springAggregateSnapshotterFactoryBean = new SpringAggregateSnapshotterFactoryBean();
-        springAggregateSnapshotterFactoryBean.setExecutor(Executors.newSingleThreadExecutor());
+    public SpringAggregateSnapshotterFactoryBean snapshotter(
+            EventStore eventStore,
+            PlatformTransactionManager transactionManager) {
 
-        return springAggregateSnapshotterFactoryBean;
+        SpringAggregateSnapshotterFactoryBean factoryBean = new SpringAggregateSnapshotterFactoryBean();
+        factoryBean.setExecutor(Executors.newSingleThreadExecutor());
+        factoryBean.setEventStore(eventStore);
+        factoryBean.setTransactionManager(transactionManager);
+
+        return factoryBean;
     }
 
     @Bean
     public SnapshotTriggerDefinition snapshotTriggerDefinition(
             Snapshotter snapshotter) {
-        return new EventCountSnapshotTriggerDefinition(snapshotter, 5);
+        return new EventCountSnapshotTriggerDefinition(snapshotter, 10);
     }
 
     @Bean
@@ -212,10 +217,6 @@ public class AxonConfig {
                 .build();
     }
 
-    /**
-     * Configure saga to use Subscribing Event Processor
-     * This ensures saga receives events immediately after they're published from the aggregate
-     */
     @Autowired
     public void configureSaga(EventProcessingConfigurer configurer) {
         configurer.registerSaga(PaymentRiskSaga.class);
