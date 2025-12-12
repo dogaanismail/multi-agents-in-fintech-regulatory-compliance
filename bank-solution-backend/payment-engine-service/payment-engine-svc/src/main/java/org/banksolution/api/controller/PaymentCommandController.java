@@ -1,5 +1,6 @@
 package org.banksolution.api.controller;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -7,18 +8,11 @@ import org.banksolution.api.dto.InitiatePaymentRequest;
 import org.banksolution.api.dto.InitiatePaymentResponse;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
+import org.banksolution.domain.payment.valueobject.UUIDProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
-/**
- * REST controller for payment commands (CQRS write side).
- * <p>
- * This service only handles commands - no queries.
- * For querying payment status, use the payment-history service.
- */
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
@@ -27,16 +21,12 @@ public class PaymentCommandController {
 
     private final CommandGateway commandGateway;
 
-    /**
-     * Initiate a new payment.
-     * This creates a new aggregate and starts the payment workflow.
-     */
     @PostMapping
-    public ResponseEntity<InitiatePaymentResponse> initiatePayment(@RequestBody InitiatePaymentRequest request) {
+    public ResponseEntity<@NonNull InitiatePaymentResponse> initiatePayment(@RequestBody InitiatePaymentRequest request) {
 
         log.info("Received payment initiation request for customer: {}", request.getCustomerId());
 
-        PaymentId paymentId = new PaymentId();
+        PaymentId paymentId = UUIDProvider.generatePaymentId();
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(
                 paymentId,

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
+import org.banksolution.domain.payment.valueobject.UUIDProvider;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -23,7 +24,7 @@ public class PaymentCreatedEventHandler {
                 event.getEventId(),
                 event.getPaymentId());
 
-        PaymentId paymentId = new PaymentId();
+        PaymentId paymentId = UUIDProvider.generatePaymentId();
         UUID externalPaymentId = UUID.fromString(event.getPaymentId());
         UUID sourceAccountId = event.getSourceAccountId() != null ?
                 UUID.fromString(event.getSourceAccountId()) : null;

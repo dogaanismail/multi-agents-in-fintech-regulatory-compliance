@@ -9,6 +9,8 @@ import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 import static org.banksolution.infrastructure.messaging.kafka.mapper.RiskAssessmentMapper.toRiskAssessment;
 
 /**
@@ -26,7 +28,7 @@ public class RiskCheckResponseHandler {
     private final EventGateway eventGateway;
 
     public void handle(RiskCheckResponse response) {
-        PaymentId paymentId = new PaymentId(response.getPaymentId());
+        PaymentId paymentId = new PaymentId(UUID.fromString(response.getPaymentId()));
 
         log.info("Risk check response received for payment: {}, action: {}",
                 paymentId,
