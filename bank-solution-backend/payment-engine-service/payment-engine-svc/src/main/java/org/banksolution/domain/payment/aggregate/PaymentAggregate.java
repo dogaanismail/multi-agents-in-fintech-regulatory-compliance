@@ -34,7 +34,6 @@ public class PaymentAggregate {
     @AggregateIdentifier
     private PaymentId paymentId;
 
-    private UUID externalPaymentId;
     private String referenceNumber;
     private UUID customerId;
     private UUID sourceAccountId;
@@ -69,7 +68,6 @@ public class PaymentAggregate {
 
         apply(new PaymentInitiatedEvent(
                 command.paymentId(),
-                command.externalPaymentId(),
                 command.referenceNumber(),
                 command.customerId(),
                 command.sourceAccountId(),
@@ -144,7 +142,6 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(PaymentInitiatedEvent event) {
         this.paymentId = event.paymentId();
-        this.externalPaymentId = event.externalPaymentId();
         this.referenceNumber = event.referenceNumber();
         this.customerId = event.customerId();
         this.sourceAccountId = event.sourceAccountId();

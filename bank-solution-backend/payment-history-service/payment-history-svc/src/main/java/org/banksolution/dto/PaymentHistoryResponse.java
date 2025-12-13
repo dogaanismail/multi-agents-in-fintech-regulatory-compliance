@@ -22,7 +22,6 @@ import java.util.UUID;
 public class PaymentHistoryResponse {
 
     private UUID paymentId;
-    private UUID externalPaymentId;
     private String referenceNumber;
 
     // Payment Details

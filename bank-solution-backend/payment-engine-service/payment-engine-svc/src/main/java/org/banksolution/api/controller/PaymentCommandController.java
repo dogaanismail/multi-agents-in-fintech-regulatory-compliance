@@ -8,7 +8,6 @@ import org.banksolution.api.dto.InitiatePaymentRequest;
 import org.banksolution.api.dto.InitiatePaymentResponse;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.domain.payment.valueobject.UUIDProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +25,10 @@ public class PaymentCommandController {
 
         log.info("Received payment initiation request for customer: {}", request.getCustomerId());
 
-        PaymentId paymentId = UUIDProvider.generatePaymentId();
+        PaymentId paymentId = new PaymentId(request.getPaymentId());
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(
                 paymentId,
-                request.getExternalPaymentId(),
                 request.getReferenceNumber(),
                 request.getCustomerId(),
                 request.getSourceAccountId(),

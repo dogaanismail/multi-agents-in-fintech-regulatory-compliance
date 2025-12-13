@@ -39,7 +39,7 @@ public class PaymentSnapshotEventConsumer {
                 snapshot.getEventTrigger());
 
         try {
-            historyService.processPaymentSnapshot(snapshot);
+            historyService.processPaymentSnapshotEvent(snapshot);
             acknowledgment.acknowledge();
             log.info("Successfully processed PaymentSnapshotEvent for referenceNumber: {}, version: {}",
                     snapshot.getReferenceNumber(),

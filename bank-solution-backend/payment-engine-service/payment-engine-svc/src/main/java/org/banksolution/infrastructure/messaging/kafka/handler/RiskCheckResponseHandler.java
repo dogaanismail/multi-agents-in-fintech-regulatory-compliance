@@ -28,15 +28,11 @@ public class RiskCheckResponseHandler {
     private final EventGateway eventGateway;
 
     public void handle(RiskCheckResponse response) {
+        log.info("Risk check response received for payment: {}, action: {}", response.getPaymentId(), response.getAction());
+
         PaymentId paymentId = new PaymentId(UUID.fromString(response.getPaymentId()));
-
-        log.info("Risk check response received for payment: {}, action: {}",
-                paymentId,
-                response.getAction());
-
         RiskAssessment riskAssessment = toRiskAssessment(response);
 
-        // Publish RiskCheckCompletedEvent - the PaymentRiskSaga will handle the rest
         eventGateway.publish(new RiskCheckCompletedEvent(paymentId, riskAssessment));
 
         log.info("RiskCheckCompletedEvent published for payment: {}, saga will handle workflow", paymentId);

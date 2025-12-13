@@ -16,7 +16,6 @@ public class PaymentSnapshotMapper {
     public static void mapSnapshotToHistory(PaymentSnapshotEvent snapshot, PaymentHistoryEntity history) {
         // Basic payment information
         history.setPaymentId(UUID.fromString(snapshot.getPaymentId()));
-        history.setExternalPaymentId(UUID.fromString(snapshot.getExternalPaymentId()));
         history.setReferenceNumber(snapshot.getReferenceNumber());
         history.setCustomerId(UUID.fromString(snapshot.getCustomerId()));
         history.setSourceAccountId(UUID.fromString(snapshot.getSourceAccountId()));

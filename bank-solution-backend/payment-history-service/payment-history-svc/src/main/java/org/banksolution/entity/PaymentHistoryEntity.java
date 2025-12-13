@@ -24,9 +24,6 @@ public class PaymentHistoryEntity {
     @Column(name = "payment_id")
     private UUID paymentId;
 
-    @Column(name = "external_payment_id")
-    private UUID externalPaymentId;
-
     @Column(name = "reference_number", unique = true, nullable = false)
     private String referenceNumber;
 

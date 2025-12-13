@@ -45,7 +45,7 @@ public class PaymentRiskSaga {
         this.riskCheckCompleted = false;
 
         log.info("Publishing RiskCheckRequest to Kafka for payment: {}", this.paymentId);
-        riskCheckRequestProducer.publishRiskCheckRequest(event);
+        riskCheckRequestProducer.publishRiskCheckRequestedEvent(event);
 
         this.deadlineId = deadlineManager.schedule(RISK_CHECK_TIMEOUT, RISK_CHECK_TIMEOUT_DEADLINE, this.paymentId);
         log.info("Scheduled risk check timeout deadline for payment: {} with deadlineId: {}", this.paymentId, this.deadlineId);

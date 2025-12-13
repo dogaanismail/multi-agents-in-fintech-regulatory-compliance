@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.PaymentRequestEntity;
 import org.banksolution.exception.PaymentNotFoundException;
-import org.banksolution.mapper.PaymentRequestMapper;
 import org.banksolution.model.request.PaymentRequestRequest;
 import org.banksolution.model.response.PaymentRequestResponse;
 import org.banksolution.producer.PaymentEventProducer;
@@ -15,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.banksolution.mapper.PaymentRequestMapper.toEntity;
+import static org.banksolution.mapper.PaymentRequestMapper.toResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -37,15 +39,15 @@ public class PaymentService {
 
         String referenceNumber = generateReferenceNumber();
 
-        PaymentRequestEntity entity = PaymentRequestMapper.toEntity(request, referenceNumber);
+        PaymentRequestEntity entity = toEntity(request, referenceNumber);
         PaymentRequestEntity savedEntity = paymentRequestRepository.save(entity);
 
-        paymentEventProducer.publishPaymentCreated(savedEntity);
+        //TODO: Investigate and implement outbox pattern
+        paymentEventProducer.publishPaymentCreatedEvent(savedEntity);
 
         log.info("Payment request created: id:{}, referenceNumber:{}", savedEntity.getId(), referenceNumber);
 
-        return PaymentRequestMapper.toResponse(savedEntity,
-                "Payment request submitted successfully and is being processed");
+        return toResponse(savedEntity, "Payment request submitted successfully and is being processed");
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +57,7 @@ public class PaymentService {
         PaymentRequestEntity entity = paymentRequestRepository.findByReferenceNumber(referenceNumber)
                 .orElseThrow(() -> new PaymentNotFoundException(referenceNumber));
 
-        return PaymentRequestMapper.toResponse(entity, "Payment request found");
+        return toResponse(entity, "Payment request found");
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +67,7 @@ public class PaymentService {
         List<PaymentRequestEntity> payments = paymentRequestRepository.findByCustomerId(customerId);
 
         return payments.stream()
-                .map(entity -> PaymentRequestMapper.toResponse(entity, null))
+                .map(entity -> toResponse(entity, null))
                 .toList();
     }
 

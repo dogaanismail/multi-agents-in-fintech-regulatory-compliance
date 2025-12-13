@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.banksolution.domain.payment.event.RiskCheckRequestedEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import static org.banksolution.infrastructure.messaging.kafka.mapper.RiskCheckRequestMapper.toAvroRequest;
@@ -22,8 +21,7 @@ public class RiskCheckRequestProducer {
     @Value("${kafka.topics.risk-check-request}")
     private String riskCheckRequestTopic;
 
-    @Async
-    public void publishRiskCheckRequest(RiskCheckRequestedEvent event) {
+    public void publishRiskCheckRequestedEvent(RiskCheckRequestedEvent event) {
         try {
             RiskCheckRequest request = toAvroRequest(event);
             riskCheckKafkaTemplate.send(riskCheckRequestTopic, event.referenceNumber(), request);

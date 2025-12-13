@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class InitiatePaymentRequest {
     
-    private UUID externalPaymentId;
+    private UUID paymentId;
     private String referenceNumber;
     private UUID customerId;
     private UUID sourceAccountId;

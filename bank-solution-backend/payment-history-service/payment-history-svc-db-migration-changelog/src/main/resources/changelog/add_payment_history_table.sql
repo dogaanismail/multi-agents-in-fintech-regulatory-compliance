@@ -3,7 +3,6 @@
 CREATE TABLE payment_history
 (
     payment_id               UUID PRIMARY KEY,
-    external_payment_id      UUID,
     reference_number         VARCHAR(255) NOT NULL UNIQUE,
     
     -- Payment Details
@@ -58,7 +57,6 @@ CREATE TABLE payment_history
 -- Create indexes for frequent query patterns
 CREATE INDEX idx_payment_history_customer_id ON payment_history (customer_id);
 CREATE INDEX idx_payment_history_reference_number ON payment_history (reference_number);
-CREATE INDEX idx_payment_history_external_payment_id ON payment_history (external_payment_id);
 CREATE INDEX idx_payment_history_status ON payment_history (status);
 CREATE INDEX idx_payment_history_fraud_status ON payment_history (fraud_status);
 CREATE INDEX idx_payment_history_risk_level ON payment_history (risk_level);
@@ -74,10 +72,9 @@ CREATE INDEX idx_payment_history_status_created ON payment_history (status, crea
 CREATE INDEX idx_payment_history_fraud_indicators_gin ON payment_history USING GIN (fraud_indicators);
 CREATE INDEX idx_payment_history_marl_assessment_gin ON payment_history USING GIN (marl_assessment);
 
--- Add comments for payment_history table
+-- Add comments for the payment_history table
 COMMENT ON TABLE payment_history IS 'Complete payment audit trail with risk assessments and MARL agent observations';
 COMMENT ON COLUMN payment_history.payment_id IS 'Primary key - aggregate identifier from event sourcing';
-COMMENT ON COLUMN payment_history.external_payment_id IS 'External system payment reference';
 COMMENT ON COLUMN payment_history.reference_number IS 'Unique human-readable payment reference';
 COMMENT ON COLUMN payment_history.customer_id IS 'Customer who initiated the payment';
 COMMENT ON COLUMN payment_history.source_account_id IS 'Source account for the payment';

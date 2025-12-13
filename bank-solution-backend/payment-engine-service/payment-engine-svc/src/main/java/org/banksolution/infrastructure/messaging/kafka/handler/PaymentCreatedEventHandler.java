@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.domain.payment.valueobject.UUIDProvider;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,20 +19,14 @@ public class PaymentCreatedEventHandler {
     private final CommandGateway commandGateway;
 
     public void handle(PaymentCreatedEvent event) {
-        log.info("Handling PaymentCreatedEvent: eventId:{}, paymentId:{}",
-                event.getEventId(),
-                event.getPaymentId());
+        log.info("Handling PaymentCreatedEvent: eventId:{}, paymentId:{}", event.getEventId(), event.getPaymentId());
 
-        PaymentId paymentId = UUIDProvider.generatePaymentId();
-        UUID externalPaymentId = UUID.fromString(event.getPaymentId());
-        UUID sourceAccountId = event.getSourceAccountId() != null ?
-                UUID.fromString(event.getSourceAccountId()) : null;
-        UUID destinationAccountId = event.getDestinationAccountId() != null ?
-                UUID.fromString(event.getDestinationAccountId()) : null;
+        PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
+        UUID sourceAccountId = UUID.fromString(event.getSourceAccountId());
+        UUID destinationAccountId = UUID.fromString(event.getDestinationAccountId());
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(
                 paymentId,
-                externalPaymentId,
                 event.getReferenceNumber(),
                 UUID.fromString(event.getCustomerId()),
                 sourceAccountId,
@@ -44,10 +37,8 @@ public class PaymentCreatedEventHandler {
                 event.getDescription()
         );
 
-        commandGateway.sendAndWait(command);
+        commandGateway.send(command);
 
-        log.info("Payment initiated successfully: internalId:{}, externalId:{}",
-                paymentId,
-                externalPaymentId);
+        log.info("Payment initiated for paymentId:{} successfully", paymentId);
     }
 }

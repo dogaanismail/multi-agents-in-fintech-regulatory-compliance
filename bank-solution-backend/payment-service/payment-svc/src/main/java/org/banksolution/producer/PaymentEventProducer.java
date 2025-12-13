@@ -5,10 +5,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.PaymentRequestEntity;
-import org.banksolution.mapper.PaymentCreatedEventMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import static org.banksolution.mapper.PaymentCreatedEventMapper.toPaymentCreatedEvent;
 
 @Component
 @RequiredArgsConstructor
@@ -20,10 +21,10 @@ public class PaymentEventProducer {
     @Value("${kafka.topics.payment-created}")
     private String paymentCreatedTopic;
 
-    public void publishPaymentCreated(PaymentRequestEntity paymentRequest) {
+    public void publishPaymentCreatedEvent(PaymentRequestEntity paymentRequest) {
         log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequest.getId());
 
-        PaymentCreatedEvent event = PaymentCreatedEventMapper.toPaymentCreatedEvent(paymentRequest);
+        PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest);
 
         paymentCreatedEventKafkaTemplate.send(paymentCreatedTopic, paymentRequest.getId().toString(), event);
 

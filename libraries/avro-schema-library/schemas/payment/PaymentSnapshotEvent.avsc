@@ -10,11 +10,6 @@
       "doc": "Internal payment aggregate identifier"
     },
     {
-      "name": "externalPaymentId",
-      "type": "string",
-      "doc": "External payment identifier from Payment-SVC"
-    },
-    {
       "name": "referenceNumber",
       "type": "string",
       "doc": "Unique payment reference number"
@@ -51,7 +46,10 @@
     },
     {
       "name": "description",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Payment description"
     },
@@ -87,183 +85,264 @@
     },
     {
       "name": "riskAssessment",
-      "type": ["null", {
-        "type": "record",
-        "name": "RiskAssessmentSnapshot",
-        "doc": "Risk assessment details from Risk-Engine",
-        "fields": [
-          {
-            "name": "riskScore",
-            "type": "double",
-            "doc": "Overall risk score (0.0 to 1.0)"
-          },
-          {
-            "name": "riskLevel",
-            "type": "string",
-            "doc": "Risk level: LOW, MEDIUM, HIGH, CRITICAL"
-          },
-          {
-            "name": "riskAction",
-            "type": "string",
-            "doc": "Risk action: PROCEED, ESCALATE, BLOCK"
-          },
-          {
-            "name": "fraudIndicators",
-            "type": {
-              "type": "array",
-              "items": "string"
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "RiskAssessmentSnapshot",
+          "doc": "Risk assessment details from Risk-Engine",
+          "fields": [
+            {
+              "name": "riskScore",
+              "type": "double",
+              "doc": "Overall risk score (0.0 to 1.0)"
             },
-            "default": [],
-            "doc": "List of fraud indicators detected"
-          },
-          {
-            "name": "mlModelVersion",
-            "type": ["null", "string"],
-            "default": null,
-            "doc": "ML model version used"
-          },
-          {
-            "name": "processingTimeMs",
-            "type": "long",
-            "doc": "Risk processing time in milliseconds"
-          },
-          {
-            "name": "marlAssessment",
-            "type": ["null", {
-              "type": "record",
-              "name": "MarlAssessmentSnapshot",
-              "doc": "MARL assessment if escalated",
-              "fields": [
+            {
+              "name": "riskLevel",
+              "type": "string",
+              "doc": "Risk level: LOW, MEDIUM, HIGH, CRITICAL"
+            },
+            {
+              "name": "riskAction",
+              "type": "string",
+              "doc": "Risk action: PROCEED, ESCALATE, BLOCK"
+            },
+            {
+              "name": "fraudIndicators",
+              "type": {
+                "type": "array",
+                "items": "string"
+              },
+              "default": [],
+              "doc": "List of fraud indicators detected"
+            },
+            {
+              "name": "mlModelVersion",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null,
+              "doc": "ML model version used"
+            },
+            {
+              "name": "processingTimeMs",
+              "type": "long",
+              "doc": "Risk processing time in milliseconds"
+            },
+            {
+              "name": "marlAssessment",
+              "type": [
+                "null",
                 {
-                  "name": "requestId",
-                  "type": "string",
-                  "doc": "MARL request identifier"
-                },
-                {
-                  "name": "action",
-                  "type": "string",
-                  "doc": "MARL action: ALLOW, BLOCK, REVIEW"
-                },
-                {
-                  "name": "confidence",
-                  "type": "double",
-                  "doc": "Decision confidence (0.0 to 1.0)"
-                },
-                {
-                  "name": "maddpgQValue",
-                  "type": "double",
-                  "doc": "MADDPG Q-value"
-                },
-                {
-                  "name": "transactionAgentObservation",
-                  "type": {
-                    "type": "record",
-                    "name": "TransactionAgentObservationSnapshot",
-                    "fields": [
-                      {"name": "agentName", "type": "string"},
-                      {"name": "isSuspicious", "type": "boolean"},
-                      {"name": "probability", "type": "double"},
-                      {"name": "riskScore", "type": "double"},
-                      {"name": "confidence", "type": "string"},
-                      {"name": "responseTimeMs", "type": "double"}
-                    ]
-                  }
-                },
-                {
-                  "name": "customerAgentObservation",
-                  "type": {
-                    "type": "record",
-                    "name": "CustomerAgentObservationSnapshot",
-                    "fields": [
-                      {"name": "agentName", "type": "string"},
-                      {"name": "isSuspicious", "type": "boolean"},
-                      {"name": "probability", "type": "double"},
-                      {"name": "riskScore", "type": "double"},
-                      {"name": "confidence", "type": "string"},
-                      {"name": "responseTimeMs", "type": "double"}
-                    ]
-                  }
-                },
-                {
-                  "name": "networkAgentObservation",
-                  "type": {
-                    "type": "record",
-                    "name": "NetworkAgentObservationSnapshot",
-                    "fields": [
-                      {"name": "agentName", "type": "string"},
-                      {"name": "isSuspicious", "type": "boolean"},
-                      {"name": "probability", "type": "double"},
-                      {"name": "riskScore", "type": "double"},
-                      {"name": "confidence", "type": "string"},
-                      {"name": "responseTimeMs", "type": "double"}
-                    ]
-                  }
-                },
-                {
-                  "name": "agentContributions",
-                  "type": {
-                    "type": "map",
-                    "values": "double"
-                  }
-                },
-                {
-                  "name": "processingTimeMs",
-                  "type": "double",
-                  "doc": "MARL processing time in milliseconds"
-                },
-                {
-                  "name": "mode",
-                  "type": "string",
-                  "doc": "Execution mode: inference or training"
+                  "type": "record",
+                  "name": "MarlAssessmentSnapshot",
+                  "doc": "MARL assessment if escalated",
+                  "fields": [
+                    {
+                      "name": "requestId",
+                      "type": "string",
+                      "doc": "MARL request identifier"
+                    },
+                    {
+                      "name": "action",
+                      "type": "string",
+                      "doc": "MARL action: ALLOW, BLOCK, REVIEW"
+                    },
+                    {
+                      "name": "confidence",
+                      "type": "double",
+                      "doc": "Decision confidence (0.0 to 1.0)"
+                    },
+                    {
+                      "name": "maddpgQValue",
+                      "type": "double",
+                      "doc": "MADDPG Q-value"
+                    },
+                    {
+                      "name": "transactionAgentObservation",
+                      "type": {
+                        "type": "record",
+                        "name": "TransactionAgentObservationSnapshot",
+                        "fields": [
+                          {
+                            "name": "agentName",
+                            "type": "string"
+                          },
+                          {
+                            "name": "isSuspicious",
+                            "type": "boolean"
+                          },
+                          {
+                            "name": "probability",
+                            "type": "double"
+                          },
+                          {
+                            "name": "riskScore",
+                            "type": "double"
+                          },
+                          {
+                            "name": "confidence",
+                            "type": "string"
+                          },
+                          {
+                            "name": "responseTimeMs",
+                            "type": "double"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "customerAgentObservation",
+                      "type": {
+                        "type": "record",
+                        "name": "CustomerAgentObservationSnapshot",
+                        "fields": [
+                          {
+                            "name": "agentName",
+                            "type": "string"
+                          },
+                          {
+                            "name": "isSuspicious",
+                            "type": "boolean"
+                          },
+                          {
+                            "name": "probability",
+                            "type": "double"
+                          },
+                          {
+                            "name": "riskScore",
+                            "type": "double"
+                          },
+                          {
+                            "name": "confidence",
+                            "type": "string"
+                          },
+                          {
+                            "name": "responseTimeMs",
+                            "type": "double"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "networkAgentObservation",
+                      "type": {
+                        "type": "record",
+                        "name": "NetworkAgentObservationSnapshot",
+                        "fields": [
+                          {
+                            "name": "agentName",
+                            "type": "string"
+                          },
+                          {
+                            "name": "isSuspicious",
+                            "type": "boolean"
+                          },
+                          {
+                            "name": "probability",
+                            "type": "double"
+                          },
+                          {
+                            "name": "riskScore",
+                            "type": "double"
+                          },
+                          {
+                            "name": "confidence",
+                            "type": "string"
+                          },
+                          {
+                            "name": "responseTimeMs",
+                            "type": "double"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "agentContributions",
+                      "type": {
+                        "type": "map",
+                        "values": "double"
+                      }
+                    },
+                    {
+                      "name": "processingTimeMs",
+                      "type": "double",
+                      "doc": "MARL processing time in milliseconds"
+                    },
+                    {
+                      "name": "mode",
+                      "type": "string",
+                      "doc": "Execution mode: inference or training"
+                    }
+                  ]
                 }
-              ]
-            }],
-            "default": null,
-            "doc": "MARL assessment if payment was escalated"
-          }
-        ]
-      }],
+              ],
+              "default": null,
+              "doc": "MARL assessment if payment was escalated"
+            }
+          ]
+        }
+      ],
       "default": null,
       "doc": "Complete risk assessment including MARL if escalated"
     },
     {
       "name": "initiatedAt",
-      "type": ["null", "long"],
+      "type": [
+        "null",
+        "long"
+      ],
       "default": null,
       "logicalType": "timestamp-millis",
       "doc": "Payment initiation timestamp"
     },
     {
       "name": "riskCheckRequestedAt",
-      "type": ["null", "long"],
+      "type": [
+        "null",
+        "long"
+      ],
       "default": null,
       "logicalType": "timestamp-millis",
       "doc": "Risk check request timestamp"
     },
     {
       "name": "riskCheckCompletedAt",
-      "type": ["null", "long"],
+      "type": [
+        "null",
+        "long"
+      ],
       "default": null,
       "logicalType": "timestamp-millis",
       "doc": "Risk check completion timestamp"
     },
     {
       "name": "completedAt",
-      "type": ["null", "long"],
+      "type": [
+        "null",
+        "long"
+      ],
       "default": null,
       "logicalType": "timestamp-millis",
       "doc": "Payment completion timestamp"
     },
     {
       "name": "blockedAt",
-      "type": ["null", "long"],
+      "type": [
+        "null",
+        "long"
+      ],
       "default": null,
       "logicalType": "timestamp-millis",
       "doc": "Payment blocked timestamp"
     },
     {
       "name": "manualReviewRequestedAt",
-      "type": ["null", "long"],
+      "type": [
+        "null",
+        "long"
+      ],
       "default": null,
       "logicalType": "timestamp-millis",
       "doc": "Manual review request timestamp"

@@ -13,24 +13,24 @@ public class RiskAssessmentSnapshotMapper {
 
     public static void mapRiskAssessment(
             RiskAssessmentSnapshot riskAssessment,
-            PaymentHistoryEntity history) {
+            PaymentHistoryEntity paymentHistoryEntity) {
 
-        history.setRiskScore(riskAssessment.getRiskScore());
-        history.setRiskLevel(riskAssessment.getRiskLevel());
-        history.setRiskAction(riskAssessment.getRiskAction());
+        paymentHistoryEntity.setRiskScore(riskAssessment.getRiskScore());
+        paymentHistoryEntity.setRiskLevel(riskAssessment.getRiskLevel());
+        paymentHistoryEntity.setRiskAction(riskAssessment.getRiskAction());
 
-        history.setFraudIndicators(riskAssessment.getFraudIndicators() != null ?
+        paymentHistoryEntity.setFraudIndicators(riskAssessment.getFraudIndicators() != null ?
                 new ArrayList<>(riskAssessment.getFraudIndicators()) : new ArrayList<>());
 
-        history.setMlModelVersion(riskAssessment.getMlModelVersion() != null ?
+        paymentHistoryEntity.setMlModelVersion(riskAssessment.getMlModelVersion() != null ?
                 riskAssessment.getMlModelVersion() : null);
 
-        history.setRiskProcessingTimeMs(riskAssessment.getProcessingTimeMs());
+        paymentHistoryEntity.setRiskProcessingTimeMs(riskAssessment.getProcessingTimeMs());
 
         if (riskAssessment.getMarlAssessment() != null) {
             PaymentHistoryEntity.MarlAssessment marlAssessment = mapMarlAssessment(riskAssessment.getMarlAssessment());
-            history.setMarlAssessment(marlAssessment);
-            history.setMarlProcessingTimeMs((long) riskAssessment.getMarlAssessment().getProcessingTimeMs());
+            paymentHistoryEntity.setMarlAssessment(marlAssessment);
+            paymentHistoryEntity.setMarlProcessingTimeMs((long) riskAssessment.getMarlAssessment().getProcessingTimeMs());
         }
     }
 }

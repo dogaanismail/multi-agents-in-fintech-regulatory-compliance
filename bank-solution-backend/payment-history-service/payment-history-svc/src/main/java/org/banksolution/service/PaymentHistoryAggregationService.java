@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static org.banksolution.mapper.PaymentSnapshotMapper.mapSnapshotToHistory;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -19,7 +21,7 @@ public class PaymentHistoryAggregationService {
     private final PaymentHistoryRepository paymentHistoryRepository;
 
     @Transactional
-    public void processPaymentSnapshot(PaymentSnapshotEvent snapshot) {
+    public void processPaymentSnapshotEvent(PaymentSnapshotEvent snapshot) {
         log.info("Processing payment snapshot: referenceNumber:{}, version:{}, trigger:{}",
                 snapshot.getReferenceNumber(),
                 snapshot.getVersion(),
@@ -40,9 +42,9 @@ public class PaymentHistoryAggregationService {
             log.info("Creating new payment history: referenceNumber={}", snapshot.getReferenceNumber());
         }
 
-        PaymentSnapshotMapper.mapSnapshotToHistory(snapshot, history);
-
+        mapSnapshotToHistory(snapshot, history);
         paymentHistoryRepository.save(history);
+
         log.info("Payment history saved: referenceNumber:{}, version:{}",
                 snapshot.getReferenceNumber(),
                 history.getEntityVersion());

@@ -12,7 +12,6 @@ public class PaymentHistoryResponseMapper {
 
         return PaymentHistoryResponse.builder()
                 .paymentId(history.getPaymentId())
-                .externalPaymentId(history.getExternalPaymentId())
                 .referenceNumber(history.getReferenceNumber())
                 .customerId(history.getCustomerId())
                 .sourceAccountId(history.getSourceAccountId())

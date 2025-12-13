@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public record PaymentInitiatedEvent(
         PaymentId paymentId,
-        UUID externalPaymentId,
         String referenceNumber,
         UUID customerId,
         UUID sourceAccountId,

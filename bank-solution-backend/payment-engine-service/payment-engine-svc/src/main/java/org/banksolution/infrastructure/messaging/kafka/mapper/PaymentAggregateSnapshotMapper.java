@@ -16,7 +16,6 @@ public class PaymentAggregateSnapshotMapper {
     public static PaymentSnapshotEvent toSnapshot(PaymentAggregate aggregate) {
         PaymentSnapshotEvent.Builder builder = PaymentSnapshotEvent.newBuilder()
                 .setPaymentId(aggregate.getPaymentId().toString())
-                .setExternalPaymentId(aggregate.getExternalPaymentId().toString())
                 .setReferenceNumber(aggregate.getReferenceNumber())
                 .setCustomerId(aggregate.getCustomerId().toString())
                 .setSourceAccountId(aggregate.getSourceAccountId().toString())
