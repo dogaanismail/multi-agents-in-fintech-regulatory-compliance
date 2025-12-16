@@ -12,10 +12,7 @@ import org.axonframework.spring.stereotype.Saga;
 import org.banksolution.domain.payment.command.ApproveFraudCheckCommand;
 import org.banksolution.domain.payment.command.BlockPaymentCommand;
 import org.banksolution.domain.payment.command.RequestManualReviewCommand;
-import org.banksolution.domain.payment.event.PaymentBlockedEvent;
-import org.banksolution.domain.payment.event.PaymentCompletedEvent;
-import org.banksolution.domain.payment.event.RiskCheckCompletedEvent;
-import org.banksolution.domain.payment.event.RiskCheckRequestedEvent;
+import org.banksolution.domain.payment.event.*;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.banksolution.infrastructure.messaging.kafka.producer.RiskCheckRequestProducer;
@@ -64,7 +61,7 @@ public class PaymentRiskSaga {
             log.info("Cancelled risk check timeout deadline for payment: {}", paymentId);
         }
 
-        riskCheckCompleted = true;
+        this.riskCheckCompleted = true;
 
         RiskAssessment riskAssessment = event.riskAssessment();
 
@@ -120,7 +117,7 @@ public class PaymentRiskSaga {
 
     @EndSaga
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
-    public void on(org.banksolution.domain.payment.event.ManualReviewRequestedEvent event) {
+    public void on(ManualReviewRequestedEvent event) {
         log.info("Manual review requested, ending PaymentRiskSaga for payment: {}", event.paymentId());
     }
 

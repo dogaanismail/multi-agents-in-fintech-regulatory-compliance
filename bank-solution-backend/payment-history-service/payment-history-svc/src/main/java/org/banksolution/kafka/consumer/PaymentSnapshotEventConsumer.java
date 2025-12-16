@@ -19,7 +19,7 @@ public class PaymentSnapshotEventConsumer {
     private final PaymentHistoryAggregationService historyService;
 
     @KafkaListener(
-            topics = "${kafka.topics.payment-snapshot-events}",
+            topics = "${spring.kafka.topics.incoming.payment-snapshot-events}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "paymentSnapshotKafkaListenerContainerFactory"
     )

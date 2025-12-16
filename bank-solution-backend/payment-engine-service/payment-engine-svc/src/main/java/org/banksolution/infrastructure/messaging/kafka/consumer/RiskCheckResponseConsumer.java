@@ -19,7 +19,7 @@ public class RiskCheckResponseConsumer {
     private final RiskCheckResponseHandler riskCheckResponseHandler;
 
     @KafkaListener(
-            topics = "${kafka.topics.risk-check-response}",
+            topics = "${spring.kafka.topics.incoming.risk-check-response}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )

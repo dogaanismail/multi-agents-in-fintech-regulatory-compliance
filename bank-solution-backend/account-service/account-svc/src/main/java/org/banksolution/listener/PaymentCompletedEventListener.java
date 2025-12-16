@@ -19,7 +19,7 @@ public class PaymentCompletedEventListener {
     private final AccountBalanceHandler accountBalanceHandler;
 
     @KafkaListener(
-            topics = "${kafka.topics.payment-completed}",
+            topics = "${spring.kafka.topics.incoming.payment-completed}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )

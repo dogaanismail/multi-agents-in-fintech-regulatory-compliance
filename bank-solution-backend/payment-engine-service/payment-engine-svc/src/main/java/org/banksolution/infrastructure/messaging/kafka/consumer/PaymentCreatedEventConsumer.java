@@ -19,7 +19,7 @@ public class PaymentCreatedEventConsumer {
     private final PaymentCreatedEventHandler paymentCreatedEventHandler;
 
     @KafkaListener(
-            topics = "${kafka.topics.payment-created}",
+            topics = "${spring.kafka.topics.incoming.payment-created}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )

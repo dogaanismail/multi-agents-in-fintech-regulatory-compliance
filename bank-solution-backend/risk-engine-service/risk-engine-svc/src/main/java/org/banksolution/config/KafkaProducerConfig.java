@@ -1,7 +1,6 @@
 package org.banksolution.config;
 
-import com.aml.payment.PaymentSnapshotEvent;
-import com.aml.risk.RiskCheckRequest;
+import com.aml.fraud.FraudDetectionRequest;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.NonNull;
@@ -24,23 +23,13 @@ public class KafkaProducerConfig {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull RiskCheckRequest> riskCheckProducerFactory() {
+    public KafkaTemplate<@NonNull String, @NonNull FraudDetectionRequest> fraudDetectionRequestKafkaTemplate() {
+        return new KafkaTemplate<>(fraudDetectionRequestProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<@NonNull String, @NonNull FraudDetectionRequest> fraudDetectionRequestProducerFactory() {
         return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
-    }
-
-    @Bean
-    public ProducerFactory<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
-    }
-
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull RiskCheckRequest> riskCheckKafkaTemplate() {
-        return new KafkaTemplate<>(riskCheckProducerFactory());
-    }
-
-    @Bean
-    public KafkaTemplate<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotKafkaTemplate() {
-        return new KafkaTemplate<>(paymentSnapshotProducerFactory());
     }
 
     private Map<String, Object> getCommonProducerProps() {
@@ -52,8 +41,10 @@ public class KafkaProducerConfig {
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.RETRIES_CONFIG, 3);
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "payment-engine-service-producer");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, "risk-engine-service-producer");
 
         return props;
     }
+
+
 }
