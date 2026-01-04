@@ -9,12 +9,12 @@ public class CustomerAgentObservationSnapshotMapper {
 
     public static CustomerAgentObservationSnapshot toSnapshot(AgentObservation agentObservation) {
         return CustomerAgentObservationSnapshot.newBuilder()
-                .setAgentName(agentObservation.getAgentName())
-                .setIsSuspicious(agentObservation.getIsSuspicious())
-                .setProbability(agentObservation.getProbability())
-                .setRiskScore(agentObservation.getRiskScore())
-                .setConfidence(agentObservation.getConfidence())
-                .setResponseTimeMs(agentObservation.getResponseTimeMs())
+                .setAgentName(agentObservation.agentName())
+                .setIsSuspicious(agentObservation.isSuspicious())
+                .setProbability(agentObservation.probability())
+                .setRiskScore(agentObservation.riskScore())
+                .setConfidence(agentObservation.confidence())
+                .setResponseTimeMs(agentObservation.responseTimeMs())
                 .build();
     }
 }

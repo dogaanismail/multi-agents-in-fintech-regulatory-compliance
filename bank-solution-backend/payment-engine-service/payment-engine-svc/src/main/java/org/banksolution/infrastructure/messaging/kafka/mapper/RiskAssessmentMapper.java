@@ -10,20 +10,16 @@ import java.util.ArrayList;
 public class RiskAssessmentMapper {
 
     public static RiskAssessment toRiskAssessment(RiskCheckResponse response) {
-        RiskAssessment riskAssessment = new RiskAssessment();
-        riskAssessment.setRiskScore(response.getRiskScore());
-        riskAssessment.setRiskLevel(response.getRiskLevel().toString());
-        riskAssessment.setRiskAction(response.getAction().toString());
-        riskAssessment.setFraudIndicators(new ArrayList<>(response.getFraudIndicators()));
-        riskAssessment.setMlModelVersion(response.getMlModelVersion() != null ? response.getMlModelVersion() : null);
-        riskAssessment.setProcessingTimeMs(response.getProcessingTimeMs());
-
-        if (response.getMarlAssessment() != null) {
-            riskAssessment.setMarlAssessment(MarlAssessmentMapper.toDomain(response.getMarlAssessment()));
-        } else {
-            riskAssessment.setMarlAssessment(null);
-        }
-
-        return riskAssessment;
+        return new RiskAssessment(
+                response.getRiskScore(),
+                response.getRiskLevel().toString(),
+                response.getAction().toString(),
+                new ArrayList<>(response.getFraudIndicators()),
+                response.getMlModelVersion(),
+                response.getProcessingTimeMs(),
+                response.getMarlAssessment() != null
+                        ? MarlAssessmentMapper.toDomain(response.getMarlAssessment())
+                        : null
+        );
     }
 }

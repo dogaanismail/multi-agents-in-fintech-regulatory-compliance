@@ -11,23 +11,23 @@ public class MarlAssessmentSnapshotMapper {
 
     public static MarlAssessmentSnapshot toSnapshot(MarlAssessment marlAssessment) {
         return MarlAssessmentSnapshot.newBuilder()
-                .setRequestId(marlAssessment.getRequestId())
-                .setAction(marlAssessment.getAction())
-                .setConfidence(marlAssessment.getConfidence())
-                .setMaddpgQValue(marlAssessment.getMaddpgQValue())
+                .setRequestId(marlAssessment.requestId())
+                .setAction(marlAssessment.action())
+                .setConfidence(marlAssessment.confidence())
+                .setMaddpgQValue(marlAssessment.maddpgQValue())
                 .setTransactionAgentObservation(
-                        TransactionAgentObservationSnapshotMapper.toSnapshot(marlAssessment.getTransactionAgentObservation())
+                        TransactionAgentObservationSnapshotMapper.toSnapshot(marlAssessment.transactionAgentObservation())
                 )
                 .setCustomerAgentObservation(
-                        CustomerAgentObservationSnapshotMapper.toSnapshot(marlAssessment.getCustomerAgentObservation())
+                        CustomerAgentObservationSnapshotMapper.toSnapshot(marlAssessment.customerAgentObservation())
                 )
                 .setNetworkAgentObservation(
-                        NetworkAgentObservationSnapshotMapper.toSnapshot(marlAssessment.getNetworkAgentObservation())
+                        NetworkAgentObservationSnapshotMapper.toSnapshot(marlAssessment.networkAgentObservation())
                 )
-                .setAgentContributions(marlAssessment.getAgentContributions() != null ?
-                        new HashMap<>(marlAssessment.getAgentContributions()) : new HashMap<>())
-                .setProcessingTimeMs(marlAssessment.getProcessingTimeMs())
-                .setMode(marlAssessment.getMode())
+                .setAgentContributions(marlAssessment.agentContributions() != null ?
+                        new HashMap<>(marlAssessment.agentContributions()) : new HashMap<>())
+                .setProcessingTimeMs(marlAssessment.processingTimeMs())
+                .setMode(marlAssessment.mode())
                 .build();
     }
 }

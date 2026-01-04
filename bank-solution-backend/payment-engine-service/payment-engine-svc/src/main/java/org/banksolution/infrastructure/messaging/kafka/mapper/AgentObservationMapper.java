@@ -6,20 +6,21 @@ import org.banksolution.domain.payment.valueobject.AgentObservation;
 @UtilityClass
 public class AgentObservationMapper {
 
-    public AgentObservation toAgentObservation(String agentName,
-                                               boolean isSuspicious,
-                                               double probability,
-                                               double riskScore,
-                                               String confidence,
-                                               double responseTimeMs) {
-        AgentObservation observation = new AgentObservation();
-        observation.setAgentName(agentName);
-        observation.setIsSuspicious(isSuspicious);
-        observation.setProbability(probability);
-        observation.setRiskScore(riskScore);
-        observation.setConfidence(confidence);
-        observation.setResponseTimeMs(responseTimeMs);
+    public AgentObservation toAgentObservation(
+            String agentName,
+            boolean isSuspicious,
+            double probability,
+            double riskScore,
+            String confidence,
+            double responseTimeMs) {
 
-        return observation;
+        return new AgentObservation(
+                agentName,
+                isSuspicious,
+                probability,
+                riskScore,
+                confidence,
+                responseTimeMs
+        );
     }
 }

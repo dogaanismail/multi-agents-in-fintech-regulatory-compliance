@@ -5,7 +5,8 @@ import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 
 public record RequestManualReviewCommand(
-        @TargetAggregateIdentifier PaymentId paymentId,
+        @TargetAggregateIdentifier
+        PaymentId paymentId,
         RiskAssessment riskAssessment) {
 
 }

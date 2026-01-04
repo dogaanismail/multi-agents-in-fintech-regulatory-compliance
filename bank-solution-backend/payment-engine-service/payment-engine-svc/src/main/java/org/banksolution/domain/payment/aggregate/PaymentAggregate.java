@@ -111,15 +111,16 @@ public class PaymentAggregate {
             throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_PENDING status");
         }
 
-        String reason = "Risk level: " + command.riskAssessment().getRiskLevel() +
-                ", Risk score: " + command.riskAssessment().getRiskScore();
+        String riskLevel = command.riskAssessment().riskLevel();
+        Double riskScore = command.riskAssessment().riskScore();
+        String reason = String.format("Risk level: %s, Risk score: %s", riskLevel, riskScore);
 
         apply(new PaymentBlockedEvent(
                 command.paymentId(),
                 reason,
-                command.riskAssessment().getRiskScore(),
-                command.riskAssessment().getMarlAssessment() != null ?
-                        command.riskAssessment().getMarlAssessment().getMaddpgQValue() : null
+                command.riskAssessment().riskScore(),
+                command.riskAssessment().marlAssessment() != null ?
+                        command.riskAssessment().marlAssessment().maddpgQValue() : null
         ));
     }
 
@@ -133,9 +134,9 @@ public class PaymentAggregate {
 
         apply(new ManualReviewRequestedEvent(
                 command.paymentId(),
-                command.riskAssessment().getRiskScore(),
-                command.riskAssessment().getMarlAssessment() != null ?
-                        command.riskAssessment().getMarlAssessment().getMaddpgQValue() : null
+                command.riskAssessment().riskScore(),
+                command.riskAssessment().marlAssessment() != null ?
+                        command.riskAssessment().marlAssessment().maddpgQValue() : null
         ));
     }
 
@@ -168,7 +169,7 @@ public class PaymentAggregate {
         this.riskAssessment = event.riskAssessment();
         this.riskCheckCompletedAt = Instant.now();
         log.info("Risk check completed for payment: {}, action: {}",
-                this.paymentId, event.riskAssessment().getRiskAction());
+                this.paymentId, event.riskAssessment().riskAction());
     }
 
     @EventSourcingHandler

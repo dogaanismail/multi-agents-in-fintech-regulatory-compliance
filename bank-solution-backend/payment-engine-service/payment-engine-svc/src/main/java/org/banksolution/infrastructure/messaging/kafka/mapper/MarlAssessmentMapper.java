@@ -9,29 +9,17 @@ import java.util.HashMap;
 public class MarlAssessmentMapper {
 
     public static MarlAssessment toDomain(com.aml.risk.MarlAssessment avroMarlAssessment) {
-        MarlAssessment marlAssessment = new MarlAssessment();
-        marlAssessment.setRequestId(avroMarlAssessment.getRequestId());
-        marlAssessment.setAction(avroMarlAssessment.getAction().toString());
-        marlAssessment.setConfidence(avroMarlAssessment.getConfidence());
-        marlAssessment.setMaddpgQValue(avroMarlAssessment.getMaddpgQValue());
-
-        marlAssessment.setTransactionAgentObservation(
-                TransactionAgentObservationMapper.toDomain(avroMarlAssessment.getTransactionAgentObservation())
+        return new MarlAssessment(
+                avroMarlAssessment.getRequestId(),
+                avroMarlAssessment.getAction().toString(),
+                avroMarlAssessment.getConfidence(),
+                avroMarlAssessment.getMaddpgQValue(),
+                TransactionAgentObservationMapper.toDomain(avroMarlAssessment.getTransactionAgentObservation()),
+                CustomerAgentObservationMapper.toDomain(avroMarlAssessment.getCustomerAgentObservation()),
+                NetworkAgentObservationMapper.toDomain(avroMarlAssessment.getNetworkAgentObservation()),
+                new HashMap<>(avroMarlAssessment.getAgentContributions()),
+                (long) avroMarlAssessment.getProcessingTimeMs(),
+                avroMarlAssessment.getMode()
         );
-
-        marlAssessment.setCustomerAgentObservation(
-                CustomerAgentObservationMapper.toDomain(avroMarlAssessment.getCustomerAgentObservation())
-        );
-
-        marlAssessment.setNetworkAgentObservation(
-                NetworkAgentObservationMapper.toDomain(avroMarlAssessment.getNetworkAgentObservation())
-        );
-
-        marlAssessment.setAgentContributions(new HashMap<>(avroMarlAssessment.getAgentContributions()));
-
-        marlAssessment.setProcessingTimeMs((long) avroMarlAssessment.getProcessingTimeMs());
-        marlAssessment.setMode(avroMarlAssessment.getMode());
-
-        return marlAssessment;
     }
 }

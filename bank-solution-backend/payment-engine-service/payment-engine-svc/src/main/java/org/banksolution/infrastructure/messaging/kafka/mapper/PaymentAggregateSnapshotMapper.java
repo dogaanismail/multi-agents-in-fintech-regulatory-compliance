@@ -6,10 +6,6 @@ import org.banksolution.domain.payment.aggregate.PaymentAggregate;
 
 import java.time.Instant;
 
-/**
- * Mapper for converting PaymentAggregate to PaymentSnapshotEvent.
- * Uses getter methods instead of reflection (cleaner, faster, no warnings).
- */
 @UtilityClass
 public class PaymentAggregateSnapshotMapper {
 

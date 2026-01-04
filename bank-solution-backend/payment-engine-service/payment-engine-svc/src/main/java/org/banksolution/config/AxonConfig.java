@@ -77,18 +77,11 @@ public class AxonConfig {
     public ObjectMapper axonObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // Java 8 date/time support
         objectMapper.registerModule(new JavaTimeModule());
-
-        // Deserialization settings
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-
-        // Serialization settings
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-
-        // Include only non-null values to reduce JSON size
         objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
 
         return objectMapper;

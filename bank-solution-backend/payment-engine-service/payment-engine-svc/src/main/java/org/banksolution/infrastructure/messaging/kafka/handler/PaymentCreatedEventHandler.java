@@ -24,11 +24,12 @@ public class PaymentCreatedEventHandler {
         PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
         UUID sourceAccountId = UUID.fromString(event.getSourceAccountId());
         UUID destinationAccountId = UUID.fromString(event.getDestinationAccountId());
+        UUID customerId = UUID.fromString(event.getCustomerId());
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(
                 paymentId,
                 event.getReferenceNumber(),
-                UUID.fromString(event.getCustomerId()),
+                customerId,
                 sourceAccountId,
                 destinationAccountId,
                 new BigDecimal(event.getAmount()),

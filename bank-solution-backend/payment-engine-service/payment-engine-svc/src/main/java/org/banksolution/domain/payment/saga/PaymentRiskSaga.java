@@ -71,7 +71,7 @@ public class PaymentRiskSaga {
             return;
         }
 
-        String riskAction = riskAssessment.getRiskAction();
+        String riskAction = riskAssessment.riskAction();
 
         try {
             switch (riskAction) {
