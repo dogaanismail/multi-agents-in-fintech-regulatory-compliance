@@ -21,6 +21,7 @@ public class AccountMapper {
         AccountEntity account = AccountEntity.builder()
                 .customerId(request.getCustomerId())
                 .accountNumber(accountNumber)
+                .bankLocation(request.getBankLocation())
                 .accountType(request.getAccountType())
                 .openingDate(LocalDate.now())
                 .build();
@@ -52,6 +53,7 @@ public class AccountMapper {
                 .id(entity.getId())
                 .customerId(entity.getCustomerId())
                 .accountNumber(entity.getAccountNumber())
+                .bankLocation(entity.getBankLocation())
                 .accountType(entity.getAccountType())
                 .accountStatus(entity.getAccountStatus())
                 .openingDate(entity.getOpeningDate())

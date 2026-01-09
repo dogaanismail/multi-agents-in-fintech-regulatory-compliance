@@ -9,7 +9,6 @@ import java.util.UUID;
 public record InitiatePaymentCommand(
         @TargetAggregateIdentifier
         PaymentId paymentId,
-        String referenceNumber,
         UUID customerId,
         UUID sourceAccountId,
         UUID destinationAccountId,

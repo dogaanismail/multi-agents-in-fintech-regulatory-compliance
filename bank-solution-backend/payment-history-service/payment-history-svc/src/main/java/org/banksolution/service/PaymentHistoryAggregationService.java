@@ -22,8 +22,8 @@ public class PaymentHistoryAggregationService {
 
     @Transactional
     public void processPaymentSnapshotEvent(PaymentSnapshotEvent snapshot) {
-        log.info("Processing payment snapshot: referenceNumber:{}, version:{}, trigger:{}",
-                snapshot.getReferenceNumber(),
+        log.info("Processing payment snapshot: paymentId:{}, version:{}, trigger:{}",
+                snapshot.getPaymentId(),
                 snapshot.getVersion(),
                 snapshot.getEventTrigger());
 

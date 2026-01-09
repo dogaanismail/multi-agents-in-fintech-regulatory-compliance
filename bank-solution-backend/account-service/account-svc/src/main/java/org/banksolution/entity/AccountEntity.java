@@ -35,6 +35,9 @@ public class AccountEntity extends BaseEntity {
     @Column(name = "account_number", nullable = false, unique = true, length = 20)
     private String accountNumber;
 
+    @Column(name = "bank_location", nullable = false, length = 50)
+    private String bankLocation;
+
     @Column(name = "account_type", nullable = false, length = 50)
     @Builder.Default
     @Enumerated(EnumType.STRING)

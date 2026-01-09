@@ -22,8 +22,9 @@ public class RiskCheckRequestProducer {
     public void publishRiskCheckRequestedEvent(RiskCheckRequestedEvent event) {
         try {
             String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getRiskCheckRequest();
+            String messageKey = event.paymentId().toString();
             RiskCheckRequest request = toAvroRequest(event);
-            riskCheckKafkaTemplate.send(topic, event.referenceNumber(), request);
+            riskCheckKafkaTemplate.send(topic, messageKey, request);
             log.info("Successfully published RiskCheckRequest for payment: {}", event.paymentId());
         } catch (Exception e) {
             log.error("Error publishing RiskCheckRequest for payment: {}", event.paymentId(), e);

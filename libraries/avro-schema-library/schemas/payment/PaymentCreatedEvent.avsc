@@ -15,11 +15,6 @@
       "doc": "Payment request identifier (matches PaymentRequestEntity.id)"
     },
     {
-      "name": "referenceNumber",
-      "type": "string",
-      "doc": "Human-readable reference number for tracking"
-    },
-    {
       "name": "timestamp",
       "type": "long",
       "logicalType": "timestamp-millis",
@@ -32,13 +27,19 @@
     },
     {
       "name": "sourceAccountId",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Source account ID (for TRANSFER_OUT, WITHDRAWAL)"
     },
     {
       "name": "destinationAccountId",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Destination account ID (for TRANSFER_IN, DEPOSIT)"
     },
@@ -57,13 +58,21 @@
       "type": {
         "type": "enum",
         "name": "PaymentType",
-        "symbols": ["TRANSFER_IN", "TRANSFER_OUT", "DEPOSIT", "WITHDRAWAL"]
+        "symbols": [
+          "TRANSFER_IN",
+          "TRANSFER_OUT",
+          "DEPOSIT",
+          "WITHDRAWAL"
+        ]
       },
       "doc": "Type of payment operation"
     },
     {
       "name": "description",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Optional payment description"
     }

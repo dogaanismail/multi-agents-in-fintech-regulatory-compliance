@@ -23,13 +23,13 @@ public class PaymentEventProducer {
         log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequest.getId());
 
         String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCreated();
+        String messageKey = paymentRequest.getId().toString();
         PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest);
-        paymentCreatedEventKafkaTemplate.send(topic, paymentRequest.getId().toString(), event);
+        paymentCreatedEventKafkaTemplate.send(topic, messageKey, event);
 
-        log.info("Published PaymentCreatedEvent: eventId:{}, paymentId:{}, referenceNumber:{}, type:{}",
+        log.info("Published PaymentCreatedEvent: eventId:{}, paymentId:{}, type:{}",
                 event.getEventId(),
                 event.getPaymentId(),
-                event.getReferenceNumber(),
                 event.getPaymentType());
     }
 }

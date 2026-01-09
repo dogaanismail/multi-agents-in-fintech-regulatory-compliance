@@ -13,7 +13,6 @@ import java.util.UUID;
 public class InitiatePaymentRequest {
     
     private UUID paymentId;
-    private String referenceNumber;
     private UUID customerId;
     private UUID sourceAccountId;
     private UUID destinationAccountId;

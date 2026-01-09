@@ -5,14 +5,9 @@
   "doc": "Transaction-level features for fraud detection",
   "fields": [
     {
-      "name": "transactionId",
+      "name": "paymentId",
       "type": "string",
-      "doc": "Unique transaction identifier"
-    },
-    {
-      "name": "date",
-      "type": "string",
-      "doc": "Transaction date (YYYY-MM-DD)"
+      "doc": "Internal payment identifier from payment engine"
     },
     {
       "name": "time",
@@ -20,39 +15,24 @@
       "doc": "Transaction time (HH:MM:SS)"
     },
     {
-      "name": "fromBank",
+      "name": "date",
       "type": "string",
-      "doc": "Sender bank name"
+      "doc": "Transaction date (YYYY-MM-DD)"
     },
     {
-      "name": "fromAccount",
+      "name": "senderAccount",
       "type": "string",
       "doc": "Sender account identifier"
     },
     {
-      "name": "toBank",
-      "type": "string",
-      "doc": "Receiver bank name"
-    },
-    {
-      "name": "toAccount",
+      "name": "receiverAccount",
       "type": "string",
       "doc": "Receiver account identifier"
     },
     {
-      "name": "amountReceived",
+      "name": "amount",
       "type": "double",
-      "doc": "Amount received by recipient"
-    },
-    {
-      "name": "receivingCurrency",
-      "type": "string",
-      "doc": "Currency received (USD, EUR, GBP, etc.)"
-    },
-    {
-      "name": "amountPaid",
-      "type": "double",
-      "doc": "Amount paid by sender"
+      "doc": "Transaction amount"
     },
     {
       "name": "paymentCurrency",
@@ -60,9 +40,9 @@
       "doc": "Currency paid (USD, EUR, GBP, etc.)"
     },
     {
-      "name": "paymentType",
+      "name": "receivedCurrency",
       "type": "string",
-      "doc": "Payment method (Wire, ACH, Card, etc.)"
+      "doc": "Currency received (USD, EUR, GBP, etc.)"
     },
     {
       "name": "senderBankLocation",
@@ -73,6 +53,11 @@
       "name": "receiverBankLocation",
       "type": "string",
       "doc": "Receiver bank country/location"
+    },
+    {
+      "name": "paymentType",
+      "type": "string",
+      "doc": "Payment method (ACH, Cash Deposit, Cheque, Credit card, Debit card, Cross-border)"
     }
   ]
 }

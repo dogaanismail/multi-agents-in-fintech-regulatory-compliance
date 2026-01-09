@@ -20,6 +20,7 @@ public class AccountResponse {
     private UUID customerId;
     private String accountNumber;
     private AccountType accountType;
+    private String bankLocation;
     private AccountStatus accountStatus;
     private LocalDate openingDate;
     private LocalDate closingDate;

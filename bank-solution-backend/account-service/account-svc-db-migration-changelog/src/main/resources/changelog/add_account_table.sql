@@ -5,6 +5,7 @@ CREATE TABLE account
     customer_id     UUID         NOT NULL,
     account_number  VARCHAR(20)  NOT NULL UNIQUE,
     account_type    VARCHAR(50)  NOT NULL DEFAULT 'CHECKING',
+    bank_location   VARCHAR(50)  NOT NULL,
     account_status  VARCHAR(50)  NOT NULL DEFAULT 'ACTIVE',
     opening_date    DATE         NOT NULL,
     closing_date    DATE,
@@ -32,6 +33,7 @@ COMMENT ON COLUMN account.id IS 'Unique identifier for account';
 COMMENT ON COLUMN account.customer_id IS 'Reference to customer who owns the account';
 COMMENT ON COLUMN account.account_number IS 'Unique account number';
 COMMENT ON COLUMN account.account_type IS 'Type of account: CHECKING, SAVINGS, or BUSINESS';
+COMMENT ON COLUMN account.bank_location IS 'Bank Location'
 COMMENT ON COLUMN account.account_status IS 'Account status: ACTIVE, SUSPENDED, or CLOSED';
 COMMENT ON COLUMN account.opening_date IS 'Date when the account was opened';
 COMMENT ON COLUMN account.closing_date IS 'Date when the account was closed (if applicable)';

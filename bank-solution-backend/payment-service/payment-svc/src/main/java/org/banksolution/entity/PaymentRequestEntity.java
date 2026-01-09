@@ -24,9 +24,6 @@ public class PaymentRequestEntity extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "reference_number", nullable = false, unique = true, length = 50)
-    private String referenceNumber;
-
     @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 

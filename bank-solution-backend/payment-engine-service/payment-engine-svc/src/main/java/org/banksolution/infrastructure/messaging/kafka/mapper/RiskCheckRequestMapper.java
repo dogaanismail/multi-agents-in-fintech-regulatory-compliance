@@ -15,7 +15,6 @@ public class RiskCheckRequestMapper {
         return RiskCheckRequest.newBuilder()
                 .setRequestId(UUID.randomUUID().toString())
                 .setPaymentId(event.paymentId().toString())
-                .setReferenceNumber(event.referenceNumber())
                 .setCustomerId(event.customerId().toString())
                 .setSourceAccountId(event.sourceAccountId() != null ? event.sourceAccountId().toString() : null)
                 .setDestinationAccountId(event.destinationAccountId() != null ? event.destinationAccountId().toString() : null)

@@ -14,24 +14,25 @@
       "doc": "Internal payment identifier from payment engine"
     },
     {
-      "name": "referenceNumber",
-      "type": "string",
-      "doc": "Payment reference number for correlation"
-    },
-    {
       "name": "customerId",
       "type": "string",
       "doc": "Customer identifier"
     },
     {
       "name": "sourceAccountId",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Source account identifier (optional for cash deposits)"
     },
     {
       "name": "destinationAccountId",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Destination account identifier (optional for cash withdrawals)"
     },
@@ -50,7 +51,12 @@
       "type": {
         "type": "enum",
         "name": "PaymentType",
-        "symbols": ["TRANSFER", "DEPOSIT", "WITHDRAWAL", "PAYMENT"]
+        "symbols": [
+          "TRANSFER",
+          "DEPOSIT",
+          "WITHDRAWAL",
+          "PAYMENT"
+        ]
       },
       "doc": "Type of payment transaction"
     },
@@ -61,7 +67,10 @@
     },
     {
       "name": "description",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Optional payment description"
     }

@@ -10,9 +10,9 @@
       "doc": "Original request identifier"
     },
     {
-      "name": "transactionId",
+      "name": "paymentId",
       "type": "string",
-      "doc": "Business transaction identifier"
+      "doc": "Internal payment identifier from payment engine"
     },
     {
       "name": "action",

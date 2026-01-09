@@ -28,7 +28,6 @@ public class PaymentCreatedEventHandler {
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(
                 paymentId,
-                event.getReferenceNumber(),
                 customerId,
                 sourceAccountId,
                 destinationAccountId,
