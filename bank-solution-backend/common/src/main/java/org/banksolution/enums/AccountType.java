@@ -1,4 +1,4 @@
-package org.banksolution.entity.enums;
+package org.banksolution.enums;
 
 public enum AccountType {
     CHECKING,

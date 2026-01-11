@@ -1,7 +1,7 @@
 package org.banksolution.config;
 
 import com.aml.payment.PaymentSnapshotEvent;
-import com.aml.risk.RiskCheckRequest;
+import com.aml.risk.RiskAssessmentRequestedEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.NonNull;
@@ -24,7 +24,7 @@ public class KafkaProducerConfig {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull RiskCheckRequest> riskCheckProducerFactory() {
+    public ProducerFactory<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentProducerFactory() {
         return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
     }
 
@@ -34,8 +34,8 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<@NonNull String, @NonNull RiskCheckRequest> riskCheckKafkaTemplate() {
-        return new KafkaTemplate<>(riskCheckProducerFactory());
+    public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentKafkaTemplate() {
+        return new KafkaTemplate<>(riskAssessmentProducerFactory());
     }
 
     @Bean

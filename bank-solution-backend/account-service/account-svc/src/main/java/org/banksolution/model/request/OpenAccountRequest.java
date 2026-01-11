@@ -2,7 +2,7 @@ package org.banksolution.model.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.banksolution.entity.enums.AccountType;
+import org.banksolution.enums.AccountType;
 import org.banksolution.enums.Currency;
 
 import java.util.List;

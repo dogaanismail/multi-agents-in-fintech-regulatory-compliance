@@ -38,6 +38,12 @@ public class AccountController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/ids")
+    public ResponseEntity<@NonNull List<AccountResponse>> getByAccountIds(@RequestParam List<UUID> ids) {
+        log.info("GET /api/v1/accounts - Fetching accounts with ids: {}", ids);
+        return ResponseEntity.ok(accountService.getByAccountIds(ids));
+    }
+
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<@NonNull List<AccountResponse>> getAccountsByCustomerId(@PathVariable UUID customerId) {
         log.info("GET /api/v1/accounts/customer/{} - Fetching accounts for customer", customerId);

@@ -26,8 +26,8 @@ public class PaymentAggregateSnapshotMapper {
 
         // Map timestamps
         mapTimestamp(builder, "initiatedAt", aggregate.getInitiatedAt());
-        mapTimestamp(builder, "riskCheckRequestedAt", aggregate.getRiskCheckRequestedAt());
-        mapTimestamp(builder, "riskCheckCompletedAt", aggregate.getRiskCheckCompletedAt());
+        mapTimestamp(builder, "riskCheckRequestedAt", aggregate.getRiskAssessmentRequestedAt());
+        mapTimestamp(builder, "riskCheckCompletedAt", aggregate.getRiskAssessmentCompletedAt());
         mapTimestamp(builder, "completedAt", aggregate.getCompletedAt());
         mapTimestamp(builder, "blockedAt", aggregate.getBlockedAt());
         mapTimestamp(builder, "manualReviewRequestedAt", aggregate.getManualReviewRequestedAt());

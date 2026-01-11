@@ -1,9 +1,10 @@
 package org.banksolution.service;
 
-import com.aml.risk.RiskCheckRequest;
+import com.aml.risk.RiskAssessmentRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.RiskCheckRequestEntity;
+import org.banksolution.exception.RiskAssessmentProcessingException;
 import org.banksolution.mapper.RiskCheckRequestEntityMapper;
 import org.banksolution.repository.RiskCheckRequestRepository;
 import org.springframework.stereotype.Service;
@@ -19,28 +20,23 @@ public class RiskCheckService {
     private final RiskCheckRequestRepository riskCheckRequestRepository;
 
     @Transactional
-    public void processRiskCheckRequest(RiskCheckRequest event) {
-        log.info("Processing risk check request for paymentId: {}", event.getPaymentId());
+    public void processRiskAssessmentRequest(RiskAssessmentRequestedEvent event) {
+        log.info("Processing risk assessment request for paymentId: {}", event.getPaymentId());
 
         if (riskCheckRequestRepository.existsByPaymentId(event.getPaymentId())) {
-            log.warn("Duplicate risk check request received for paymentId: {}, skipping", event.getPaymentId());
+            log.warn("Duplicate risk assessment request received for paymentId: {}, skipping", event.getPaymentId());
             return;
         }
 
-        RiskCheckRequestEntity entity = RiskCheckRequestEntityMapper.toEntity(event);
-        entity.setStatus(PROCESSING);
-
-        RiskCheckRequestEntity savedEntity = riskCheckRequestRepository.save(entity);
-        log.info("Saved risk check request to database: id:{}, paymentId:{}", savedEntity.getId(), savedEntity.getPaymentId());
-
+        RiskCheckRequestEntity riskCheckRequestEntity = RiskCheckRequestEntityMapper.toEntity(event);
         try {
-            savedEntity.setStatus(AWAITING_MARL);
-            riskCheckRequestRepository.save(savedEntity);
+            RiskCheckRequestEntity saved = riskCheckRequestRepository.save(riskCheckRequestEntity);
         } catch (Exception e) {
-            log.error("Failed to publish FraudDetectionRequest for paymentId: {}", event.getPaymentId(), e);
-            savedEntity.setStatus(FAILED);
-            riskCheckRequestRepository.save(savedEntity);
-            throw e;
+            log.error("Failed to save risk check request for paymentId: {}", event.getPaymentId(), e);
+            riskCheckRequestEntity.setStatus(FAILED);
+            riskCheckRequestRepository.save(riskCheckRequestEntity);
+            throw new RiskAssessmentProcessingException(event.getPaymentId(), "Failed to save risk check request for paymentId: " + event.getPaymentId(), e
+            );
         }
     }
 

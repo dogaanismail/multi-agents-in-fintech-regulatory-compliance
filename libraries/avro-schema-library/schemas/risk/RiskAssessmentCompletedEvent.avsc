@@ -1,12 +1,12 @@
 {
   "namespace": "com.aml.risk",
   "type": "record",
-  "name": "RiskCheckResponse",
+  "name": "RiskAssessmentCompletedEvent",
   "fields": [
     {
       "name": "requestId",
       "type": "string",
-      "doc": "Correlates with the original RiskCheckRequest"
+      "doc": "Correlates with the original Risk Assessment Request"
     },
     {
       "name": "paymentId",

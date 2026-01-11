@@ -3,6 +3,7 @@ package org.banksolution.infrastructure.messaging.kafka.consumer;
 import com.aml.payment.PaymentCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.banksolution.exception.PaymentCreatedEventException;
 import org.banksolution.infrastructure.messaging.kafka.handler.PaymentCreatedEventHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -41,7 +42,7 @@ public class PaymentCreatedEventConsumer {
             log.info("Successfully processed PaymentCreatedEvent: {}", event.getEventId());
         } catch (Exception e) {
             log.error("Failed to process PaymentCreatedEvent: {}", event.getEventId(), e);
-            throw e;
+            throw new PaymentCreatedEventException("Failed to process PaymentCreatedEvent for paymentId: %s", e, event.getPaymentId());
         }
     }
 }

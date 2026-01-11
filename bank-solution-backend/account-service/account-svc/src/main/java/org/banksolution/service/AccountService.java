@@ -67,6 +67,16 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
+    public List<AccountResponse> getByAccountIds(List<UUID> ids) {
+        log.info("Fetching accounts with ids: {}", ids);
+
+        return accountRepository.findAllByIdIn(ids)
+                .stream()
+                .map(AccountMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<AccountResponse> getAccountsByCustomerId(UUID customerId) {
         log.info("Fetching accounts for customer: {}", customerId);
 

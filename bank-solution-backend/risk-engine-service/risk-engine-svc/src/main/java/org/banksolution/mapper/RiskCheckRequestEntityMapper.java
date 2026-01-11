@@ -1,6 +1,6 @@
 package org.banksolution.mapper;
 
-import com.aml.risk.RiskCheckRequest;
+import com.aml.risk.RiskAssessmentRequestedEvent;
 import lombok.experimental.UtilityClass;
 import org.banksolution.entity.RiskCheckRequestEntity;
 import org.banksolution.enums.PaymentType;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @UtilityClass
 public class RiskCheckRequestEntityMapper {
 
-    public static RiskCheckRequestEntity toEntity(RiskCheckRequest event) {
+    public static RiskCheckRequestEntity toEntity(RiskAssessmentRequestedEvent event) {
         return RiskCheckRequestEntity.builder()
                 .paymentId(event.getPaymentId())
                 .customerId(event.getCustomerId())

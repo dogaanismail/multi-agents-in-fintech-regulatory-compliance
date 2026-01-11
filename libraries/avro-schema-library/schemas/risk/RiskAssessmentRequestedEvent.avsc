@@ -1,13 +1,8 @@
 {
   "namespace": "com.aml.risk",
   "type": "record",
-  "name": "RiskCheckRequest",
+  "name": "RiskAssessmentRequestedEvent",
   "fields": [
-    {
-      "name": "requestId",
-      "type": "string",
-      "doc": "Unique identifier for this risk check request"
-    },
     {
       "name": "paymentId",
       "type": "string",

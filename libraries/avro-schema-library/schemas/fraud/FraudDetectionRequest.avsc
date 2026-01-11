@@ -45,12 +45,12 @@
           {
             "name": "senderAccount",
             "type": "string",
-            "doc": "Sender account identifier"
+            "doc": "Sender account identifier/number"
           },
           {
             "name": "receiverAccount",
             "type": "string",
-            "doc": "Receiver account identifier"
+            "doc": "Receiver account identifier/number"
           },
           {
             "name": "amount",

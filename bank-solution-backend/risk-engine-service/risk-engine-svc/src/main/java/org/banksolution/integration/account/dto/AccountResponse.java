@@ -1,4 +1,4 @@
-package org.banksolution.model.response;
+package org.banksolution.integration.account.dto;
 
 import lombok.*;
 import org.banksolution.enums.AccountStatus;
@@ -29,4 +29,3 @@ public class AccountResponse {
     private Instant updatedAt;
 
 }
-

@@ -1,6 +1,6 @@
 package org.banksolution.infrastructure.messaging.kafka.mapper;
 
-import com.aml.risk.RiskCheckResponse;
+import com.aml.risk.RiskAssessmentCompletedEvent;
 import lombok.experimental.UtilityClass;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 
@@ -9,16 +9,16 @@ import java.util.ArrayList;
 @UtilityClass
 public class RiskAssessmentMapper {
 
-    public static RiskAssessment toRiskAssessment(RiskCheckResponse response) {
+    public static RiskAssessment toRiskAssessment(RiskAssessmentCompletedEvent event) {
         return new RiskAssessment(
-                response.getRiskScore(),
-                response.getRiskLevel().toString(),
-                response.getAction().toString(),
-                new ArrayList<>(response.getFraudIndicators()),
-                response.getMlModelVersion(),
-                response.getProcessingTimeMs(),
-                response.getMarlAssessment() != null
-                        ? MarlAssessmentMapper.toDomain(response.getMarlAssessment())
+                event.getRiskScore(),
+                event.getRiskLevel().toString(),
+                event.getAction().toString(),
+                new ArrayList<>(event.getFraudIndicators()),
+                event.getMlModelVersion(),
+                event.getProcessingTimeMs(),
+                event.getMarlAssessment() != null
+                        ? MarlAssessmentMapper.toDomain(event.getMarlAssessment())
                         : null
         );
     }

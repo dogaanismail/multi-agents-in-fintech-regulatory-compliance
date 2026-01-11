@@ -32,12 +32,12 @@ public class KafkaConfigurationProperties {
         @Data
         public static class Incoming {
             private String paymentCreated;
-            private String riskCheckResponse;
+            private String riskAssessmentCompleted;
         }
 
         @Data
         public static class Outgoing {
-            private String riskCheckRequest;
+            private String riskAssessmentRequested;
             private String paymentSnapshotEvents;
         }
     }

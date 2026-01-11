@@ -1,19 +1,17 @@
 package org.banksolution.infrastructure.messaging.kafka.mapper;
 
 import com.aml.risk.PaymentType;
-import com.aml.risk.RiskCheckRequest;
+import com.aml.risk.RiskAssessmentRequestedEvent;
 import lombok.experimental.UtilityClass;
-import org.banksolution.domain.payment.event.RiskCheckRequestedEvent;
+import org.banksolution.domain.payment.event.RiskAssessmentInitiatedEvent;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @UtilityClass
-public class RiskCheckRequestMapper {
+public class RiskAssessmentRequestedEventMapper {
 
-    public static RiskCheckRequest toAvroRequest(RiskCheckRequestedEvent event) {
-        return RiskCheckRequest.newBuilder()
-                .setRequestId(UUID.randomUUID().toString())
+    public static RiskAssessmentRequestedEvent toAvroRequest(RiskAssessmentInitiatedEvent event) {
+        return RiskAssessmentRequestedEvent.newBuilder()
                 .setPaymentId(event.paymentId().toString())
                 .setCustomerId(event.customerId().toString())
                 .setSourceAccountId(event.sourceAccountId() != null ? event.sourceAccountId().toString() : null)

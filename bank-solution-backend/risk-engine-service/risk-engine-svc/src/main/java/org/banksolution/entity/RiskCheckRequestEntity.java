@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import static org.banksolution.enums.RiskCheckStatus.PENDING;
+import static org.banksolution.enums.RiskCheckStatus.AWAITING_MARL;
 
 @Entity
 @Table(name = "risk_check_request")
@@ -55,7 +55,7 @@ public class RiskCheckRequestEntity {
     @Column(name = "status", nullable = false, length = 30)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private RiskCheckStatus status = PENDING;
+    private RiskCheckStatus status = AWAITING_MARL;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
