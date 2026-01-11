@@ -27,7 +27,9 @@ public class AccountBalanceHandler {
     public void processPaymentCompletedEvent(PaymentCompletedEvent event) {
 
         log.info("Processing payment event: eventId:{}, paymentId:{}, type:{}",
-                event.getEventId(), event.getPaymentId(), event.getPaymentType());
+                event.getEventId(),
+                event.getPaymentId(),
+                event.getPaymentType());
 
         PaymentType paymentType = PaymentType.valueOf(event.getPaymentType().name());
         Currency currency = Currency.valueOf(event.getCurrency());
@@ -45,7 +47,10 @@ public class AccountBalanceHandler {
             PaymentType paymentType) {
 
         log.info("Updating balance for account:{}, currency:{}, amount:{}, type:{}",
-                accountId, currency, amount, paymentType);
+                accountId,
+                currency,
+                amount,
+                paymentType);
 
         AccountBalanceEntity balance = accountBalanceRepository.findByAccountIdAndCurrency(accountId, currency)
                 .orElseThrow(() -> new BalanceNotFoundException(accountId, currency));

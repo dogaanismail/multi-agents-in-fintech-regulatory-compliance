@@ -30,8 +30,8 @@ public class RiskAssessmentCompletedEventConsumer {
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
-        log.info("Consumed RiskAssessmentCompletedEvent: requestId:{}, paymentId:{}, action:{}, partition:{}, offset:{}",
-                event.getRequestId(),
+        log.info("Consumed RiskAssessmentCompletedEvent: riskCheckRequestId:{}, paymentId:{}, action:{}, partition:{}, offset:{}",
+                event.getRiskCheckRequestId(),
                 event.getPaymentId(),
                 event.getAction(),
                 partition,
@@ -40,10 +40,18 @@ public class RiskAssessmentCompletedEventConsumer {
         try {
             riskAssessmentCompletedEventHandler.handle(event);
             acknowledgment.acknowledge();
-            log.info("Successfully processed RiskAssessmentCompletedEvent: {}", event.getRequestId());
+            log.info("Successfully processed RiskAssessmentCompletedEvent for paymentId:{} and riskCheckRequestId:{}",
+                    event.getPaymentId(),
+                    event.getRiskCheckRequestId());
         } catch (Exception e) {
-            log.error("Failed to process RiskAssessmentCompletedEvent: {}", event.getRequestId(), e);
-            throw new RiskAssessmentCompletedEventException("Failed to process RiskAssessmentCompletedEvent for paymentId: %s", e, event.getPaymentId());
+            log.error("Failed to process RiskAssessmentCompletedEvent for paymentId:{} and riskCheckRequestId:{}",
+                    event.getRiskCheckRequestId(),
+                    event.getPaymentId(),
+                    e);
+            throw new RiskAssessmentCompletedEventException("Failed to process RiskAssessmentCompletedEvent for paymentId: %s and riskCheckRequestId: %s",
+                    e,
+                    event.getPaymentId(),
+                    event.getRiskCheckRequestId());
         }
     }
 }

@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.MarlAssessmentEntity;
+import org.banksolution.entity.RiskAssessmentEntity;
 import org.banksolution.entity.RiskCheckRequestEntity;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class FraudAnalysisCompleteService {
     private final RiskAssessmentService riskAssessmentService;
     private final MarlAssessmentService marlAssessmentService;
     private final AgentObservationService agentObservationService;
+    private final RiskAssessmentCompleteService riskAssessmentCompleteService;
 
     @Transactional
     public void processFraudAnalysisCompleted(FraudAnalysisCompletedEvent event) {
@@ -37,12 +39,15 @@ public class FraudAnalysisCompleteService {
             return;
         }
 
-        riskAssessmentService.create(event, riskCheckRequestEntity);
+        RiskAssessmentEntity riskAssessmentEntity = riskAssessmentService.create(event, riskCheckRequestEntity);
         MarlAssessmentEntity marlAssessment = marlAssessmentService.create(event, riskCheckRequestEntity);
         agentObservationService.create(event, marlAssessment);
 
         riskCheckRequestEntity.setStatus(COMPLETED);
         riskCheckRequestService.save(riskCheckRequestEntity);
+
+        //TODO: Investigate and implement outbox pattern here
+        riskAssessmentCompleteService.publishRiskAssessmentCompletedEvent(event, riskCheckRequestEntity, riskAssessmentEntity);
 
         log.info("Successfully processed fraud analysis for paymentId: {}, riskCheckRequestId: {} and action: {}",
                 event.getPaymentId(),

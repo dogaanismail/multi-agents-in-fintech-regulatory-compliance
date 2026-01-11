@@ -30,17 +30,23 @@ public class FraudAnalysisCompletedEventConsumer {
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
-        log.info("Consumed FraudAnalysisCompletedEventConsumer event: paymentId:{}, partition:{}, offset:{}",
+        log.info("Consumed FraudAnalysisCompletedEventConsumer event: paymentId:{}, riskCheckRequestId:{}, partition:{}, offset:{}",
                 event.getPaymentId(),
+                event.getRiskCheckRequestId(),
                 partition,
                 offset);
 
         try {
             fraudAnalysisCompleteService.processFraudAnalysisCompleted(event);
             acknowledgment.acknowledge();
-            log.info("Successfully processed FraudAnalysisCompletedEventConsumer event for paymentId: {}", event.getPaymentId());
+            log.info("Successfully processed FraudAnalysisCompletedEventConsumer event for paymentId: {} and riskCheckRequestId: {}",
+                    event.getPaymentId(),
+                    event.getRiskCheckRequestId());
         } catch (Exception e) {
-            log.error("Failed to process FraudAnalysisCompletedEventConsumer event for paymentId: {}", event.getPaymentId(), e);
+            log.error("Failed to process FraudAnalysisCompletedEventConsumer event for paymentId: {} and riskCheckRequestId: {}",
+                    event.getPaymentId(),
+                    event.getRiskCheckRequestId(),
+                    e);
             throw new FraudAnalysisCompletedEventException(
                     "Failed to process FraudAnalysisCompletedEvent for paymentId: %s, riskCheckRequestId: %s",
                     e,

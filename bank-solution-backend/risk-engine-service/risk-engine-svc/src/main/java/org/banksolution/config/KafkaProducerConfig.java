@@ -1,6 +1,7 @@
 package org.banksolution.config;
 
 import com.aml.fraud.FraudAnalysisRequestedEvent;
+import com.aml.risk.RiskAssessmentCompletedEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.NonNull;
@@ -29,6 +30,16 @@ public class KafkaProducerConfig {
 
     @Bean
     public ProducerFactory<@NonNull String, @NonNull FraudAnalysisRequestedEvent> fraudAnalysisRequestedProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
+    }
+
+    @Bean
+    public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentCompletedEvent> riskAssessmentCompletedEventKafkaTemplate() {
+        return new KafkaTemplate<>(riskAssessmentCompletedEventProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<@NonNull String, @NonNull RiskAssessmentCompletedEvent> riskAssessmentCompletedEventProducerFactory() {
         return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
     }
 

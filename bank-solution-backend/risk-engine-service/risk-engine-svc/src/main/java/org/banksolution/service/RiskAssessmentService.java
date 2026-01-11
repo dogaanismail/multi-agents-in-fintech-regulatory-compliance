@@ -19,8 +19,8 @@ public class RiskAssessmentService {
     private final RiskAssessmentRepository riskAssessmentRepository;
 
     @Transactional
-    public void create(FraudAnalysisCompletedEvent event, RiskCheckRequestEntity riskCheckRequest) {
+    public RiskAssessmentEntity create(FraudAnalysisCompletedEvent event, RiskCheckRequestEntity riskCheckRequest) {
         RiskAssessmentEntity entity = toRiskAssessmentEntity(event, riskCheckRequest);
-        riskAssessmentRepository.save(entity);
+        return riskAssessmentRepository.save(entity);
     }
 }

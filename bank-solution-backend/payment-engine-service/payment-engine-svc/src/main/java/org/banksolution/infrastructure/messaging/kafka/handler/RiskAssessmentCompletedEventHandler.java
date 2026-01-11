@@ -20,8 +20,9 @@ public class RiskAssessmentCompletedEventHandler {
     private final EventGateway eventGateway;
 
     public void handle(com.aml.risk.RiskAssessmentCompletedEvent event) {
-        log.info("Received risk assessment completed event for payment: {}, action: {}",
+        log.info("Received risk assessment completed event for payment: {}, riskCheckRequestId: {}. action: {}",
                 event.getPaymentId(),
+                event.getRiskCheckRequestId(),
                 event.getAction());
 
         PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
@@ -29,6 +30,6 @@ public class RiskAssessmentCompletedEventHandler {
 
         eventGateway.publish(new RiskAssessmentCompletedEvent(paymentId, riskAssessment));
 
-        log.info("RiskAssessmentCompletedEvent published for payment: {}, saga will handle workflow", paymentId);
+        log.info("RiskAssessmentCompletedEvent published for paymentId: {}, saga will handle workflow", paymentId);
     }
 }

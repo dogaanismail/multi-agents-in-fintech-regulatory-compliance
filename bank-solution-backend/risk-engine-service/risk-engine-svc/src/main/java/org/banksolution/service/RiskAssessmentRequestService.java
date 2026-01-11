@@ -15,7 +15,7 @@ import static org.banksolution.mapper.RiskCheckRequestEntityMapper.toEntity;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RiskCheckService {
+public class RiskAssessmentRequestService {
 
     private final RiskCheckRequestRepository riskCheckRequestRepository;
     private final FraudAnalysisRequestService fraudAnalysisRequestService;

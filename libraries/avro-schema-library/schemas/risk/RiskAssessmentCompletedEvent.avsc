@@ -4,19 +4,14 @@
   "name": "RiskAssessmentCompletedEvent",
   "fields": [
     {
-      "name": "requestId",
+      "name": "riskCheckRequestId",
       "type": "string",
-      "doc": "Correlates with the original Risk Assessment Request"
+      "doc": "Unique request identifier (UUID) stored in risk-engine"
     },
     {
       "name": "paymentId",
       "type": "string",
       "doc": "Internal payment identifier"
-    },
-    {
-      "name": "referenceNumber",
-      "type": "string",
-      "doc": "Payment reference number"
     },
     {
       "name": "riskScore",

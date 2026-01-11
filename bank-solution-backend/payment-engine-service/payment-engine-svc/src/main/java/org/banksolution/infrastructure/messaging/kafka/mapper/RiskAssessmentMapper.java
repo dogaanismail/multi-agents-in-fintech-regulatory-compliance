@@ -11,6 +11,7 @@ public class RiskAssessmentMapper {
 
     public static RiskAssessment toRiskAssessment(RiskAssessmentCompletedEvent event) {
         return new RiskAssessment(
+                event.getRiskCheckRequestId(),
                 event.getRiskScore(),
                 event.getRiskLevel().toString(),
                 event.getAction().toString(),

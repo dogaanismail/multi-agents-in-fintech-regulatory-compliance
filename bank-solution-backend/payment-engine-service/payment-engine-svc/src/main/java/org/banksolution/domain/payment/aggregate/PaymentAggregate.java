@@ -162,9 +162,7 @@ public class PaymentAggregate {
     public void on(RiskAssessmentCompletedEvent event) {
         this.riskAssessment = event.riskAssessment();
         this.riskAssessmentCompletedAt = Instant.now();
-        log.info("Risk assessment completed event for payment: {}, action: {}",
-                this.paymentId,
-                event.riskAssessment().riskAction());
+        log.info("Risk assessment completed event for payment: {}, action: {}", this.paymentId, event.riskAssessment().riskAction());
     }
 
     @EventSourcingHandler

@@ -4,7 +4,7 @@ import com.aml.risk.RiskAssessmentRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.exception.RiskAssessmentRequestedEventException;
-import org.banksolution.service.RiskCheckService;
+import org.banksolution.service.RiskAssessmentRequestService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RiskAssessmentRequestedEventConsumer {
 
-    private final RiskCheckService riskCheckService;
+    private final RiskAssessmentRequestService riskAssessmentRequestService;
 
     @KafkaListener(
             topics = "${spring.kafka.topics.incoming.risk-assessment-requested}",
@@ -36,7 +36,7 @@ public class RiskAssessmentRequestedEventConsumer {
                 offset);
 
         try {
-            riskCheckService.processRiskAssessmentRequest(event);
+            riskAssessmentRequestService.processRiskAssessmentRequest(event);
             acknowledgment.acknowledge();
             log.info("Successfully processed RiskAssessmentRequestedEvent event for paymentId: {}", event.getPaymentId());
         } catch (Exception e) {
