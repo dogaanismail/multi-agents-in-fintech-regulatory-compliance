@@ -24,11 +24,11 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull FraudAnalysisRequestedEvent> fraudAnalysisRequestedEventKafkaTemplate() {
-        return new KafkaTemplate<>(fraudAnalysisRequestProducerFactory());
+        return new KafkaTemplate<>(fraudAnalysisRequestedProducerFactory());
     }
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull FraudAnalysisRequestedEvent> fraudAnalysisRequestProducerFactory() {
+    public ProducerFactory<@NonNull String, @NonNull FraudAnalysisRequestedEvent> fraudAnalysisRequestedProducerFactory() {
         return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
     }
 

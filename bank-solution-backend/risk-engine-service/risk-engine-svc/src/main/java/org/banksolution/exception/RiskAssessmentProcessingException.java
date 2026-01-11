@@ -5,11 +5,8 @@ import lombok.Getter;
 @Getter
 public class RiskAssessmentProcessingException extends RuntimeException {
 
-    private final String paymentId;
-
-    public RiskAssessmentProcessingException(String paymentId, String message, Throwable cause) {
-        super(message, cause);
-        this.paymentId = paymentId;
+    public RiskAssessmentProcessingException(String message, Throwable cause, Object... args) {
+        super(String.format(message, args), cause);
     }
 
 }

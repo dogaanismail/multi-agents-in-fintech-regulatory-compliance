@@ -37,8 +37,7 @@ public class RiskCheckService {
             log.error("Failed to save risk check request for paymentId: {}", event.getPaymentId(), e);
             riskCheckRequestEntity.setStatus(FAILED);
             riskCheckRequestRepository.save(riskCheckRequestEntity);
-            throw new RiskAssessmentProcessingException(event.getPaymentId(), "Failed to save risk check request for paymentId: " + event.getPaymentId(), e
-            );
+            throw new RiskAssessmentProcessingException("Failed to save risk check request for paymentId: %s", e, event.getPaymentId());
         }
     }
 

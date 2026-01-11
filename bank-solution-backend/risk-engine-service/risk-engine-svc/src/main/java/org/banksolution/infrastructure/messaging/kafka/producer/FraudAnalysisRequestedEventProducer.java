@@ -1,7 +1,6 @@
 package org.banksolution.infrastructure.messaging.kafka.producer;
 
 import com.aml.fraud.FraudAnalysisRequestedEvent;
-import com.aml.risk.RiskAssessmentRequestedEvent;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

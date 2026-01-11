@@ -27,7 +27,7 @@ CREATE INDEX idx_account_opening_date ON account (opening_date);
 CREATE INDEX idx_account_deleted_at ON account (deleted_at);
 CREATE INDEX idx_account_created_at ON account (created_at);
 
--- Add comments for account table
+-- Add comments for the account table
 COMMENT ON TABLE account IS 'Stores account information for customers';
 COMMENT ON COLUMN account.id IS 'Unique identifier for account';
 COMMENT ON COLUMN account.customer_id IS 'Reference to customer who owns the account';

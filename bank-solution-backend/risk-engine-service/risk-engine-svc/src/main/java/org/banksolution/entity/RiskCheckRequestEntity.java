@@ -73,4 +73,9 @@ public class RiskCheckRequestEntity {
     protected void onUpdate() {
         updatedAt = Instant.now();
     }
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private short version;
+    
 }

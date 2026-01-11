@@ -31,11 +31,14 @@ public class PaymentRequestRequest {
     @NotNull(message = "Currency is required")
     private Currency currency;
 
+    // TODO: Implement multi-currency support, we will keep it simple for conversion
+
     @NotNull(message = "Payment type is required")
     private PaymentType paymentType;
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
+
 }
 
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="2025-01-11-01-00" author="Ismail Dogan">
+        <comment>Add risk_check_request table</comment>
+        <sqlFile path="changelog/add_risk_check_request_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2025-01-11-02-00" author="Ismail Dogan">
+        <comment>Add risk_assessment table</comment>
+        <sqlFile path="changelog/add_risk_assessment_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2025-01-11-03-00" author="Ismail Dogan">
+        <comment>Add marl_assessment table</comment>
+        <sqlFile path="changelog/add_marl_assessment_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2025-01-11-04-00" author="Ismail Dogan">
+        <comment>Add agent_observation table</comment>
+        <sqlFile path="changelog/add_agent_observation_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>
