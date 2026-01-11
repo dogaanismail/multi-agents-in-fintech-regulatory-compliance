@@ -3,6 +3,7 @@ package org.banksolution.domain.payment.valueobject;
 import java.util.List;
 
 public record RiskAssessment(
+        String riskCheckRequestId,
         Double riskScore,
         String riskLevel,
         String riskAction,

@@ -15,7 +15,6 @@ import java.util.UUID;
 @Builder
 public class PaymentRequestResponse {
     private UUID id;
-    private String referenceNumber;
     private UUID customerId;
     private UUID sourceAccountId;
     private UUID destinationAccountId;

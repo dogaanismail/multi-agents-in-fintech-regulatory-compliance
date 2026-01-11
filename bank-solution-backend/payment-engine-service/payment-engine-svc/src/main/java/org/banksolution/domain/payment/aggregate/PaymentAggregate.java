@@ -10,7 +10,7 @@ import org.axonframework.modelling.command.AggregateVersion;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.banksolution.domain.payment.command.*;
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.enums.FraudCheckStatus;
+import org.banksolution.enums.FraudAnalysisStatus;
 import org.banksolution.enums.PaymentStatus;
 import org.banksolution.domain.payment.event.*;
 import org.banksolution.exception.InvalidPaymentStateException;
@@ -34,7 +34,6 @@ public class PaymentAggregate {
     @AggregateIdentifier
     private PaymentId paymentId;
 
-    private String referenceNumber;
     private UUID customerId;
     private UUID sourceAccountId;
     private UUID destinationAccountId;
@@ -45,20 +44,19 @@ public class PaymentAggregate {
 
     // Status
     private PaymentStatus status;
-    private FraudCheckStatus fraudStatus;
+    private FraudAnalysisStatus fraudStatus;
 
     // Risk Assessment (includes MARL assessment if escalated)
     private RiskAssessment riskAssessment;
 
     // Lifecycle Timestamps
     private Instant initiatedAt;
-    private Instant riskCheckRequestedAt;
-    private Instant riskCheckCompletedAt;
+    private Instant riskAssessmentRequestedAt;
+    private Instant riskAssessmentCompletedAt;
     private Instant completedAt;
     private Instant blockedAt;
     private Instant manualReviewRequestedAt;
 
-    // Aggregate version for snapshot tracking
     @AggregateVersion
     private Long version;
 
@@ -68,7 +66,6 @@ public class PaymentAggregate {
 
         apply(new PaymentInitiatedEvent(
                 command.paymentId(),
-                command.referenceNumber(),
                 command.customerId(),
                 command.sourceAccountId(),
                 command.destinationAccountId(),
@@ -78,9 +75,8 @@ public class PaymentAggregate {
                 command.description()
         ));
 
-        apply(new RiskCheckRequestedEvent(
+        apply(new RiskAssessmentInitiatedEvent(
                 command.paymentId(),
-                command.referenceNumber(),
                 command.customerId(),
                 command.sourceAccountId(),
                 command.destinationAccountId(),
@@ -99,7 +95,6 @@ public class PaymentAggregate {
             throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_PENDING status");
         }
 
-        // Directly complete payment - RiskCheckCompletedEvent already has full assessment
         apply(new PaymentCompletedEvent(command.paymentId()));
     }
 
@@ -143,7 +138,6 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(PaymentInitiatedEvent event) {
         this.paymentId = event.paymentId();
-        this.referenceNumber = event.referenceNumber();
         this.customerId = event.customerId();
         this.sourceAccountId = event.sourceAccountId();
         this.destinationAccountId = event.destinationAccountId();
@@ -152,30 +146,29 @@ public class PaymentAggregate {
         this.paymentType = event.paymentType();
         this.description = event.description();
         this.status = PaymentStatus.INITIATED;
-        this.fraudStatus = FraudCheckStatus.PENDING;
+        this.fraudStatus = FraudAnalysisStatus.PENDING;
         this.initiatedAt = Instant.now();
         log.info("Payment initiated: {}", this.paymentId);
     }
 
     @EventSourcingHandler
-    public void on(RiskCheckRequestedEvent event) {
+    public void on(RiskAssessmentInitiatedEvent event) {
         this.status = PaymentStatus.FRAUD_CHECK_PENDING;
-        this.riskCheckRequestedAt = Instant.now();
-        log.info("Risk check requested for payment: {}", event.paymentId());
+        this.riskAssessmentRequestedAt = Instant.now();
+        log.info("Risk assessment initiated event for payment: {}", event.paymentId());
     }
 
     @EventSourcingHandler
-    public void on(RiskCheckCompletedEvent event) {
+    public void on(RiskAssessmentCompletedEvent event) {
         this.riskAssessment = event.riskAssessment();
-        this.riskCheckCompletedAt = Instant.now();
-        log.info("Risk check completed for payment: {}, action: {}",
-                this.paymentId, event.riskAssessment().riskAction());
+        this.riskAssessmentCompletedAt = Instant.now();
+        log.info("Risk assessment completed event for payment: {}, action: {}", this.paymentId, event.riskAssessment().riskAction());
     }
 
     @EventSourcingHandler
     public void on(PaymentBlockedEvent event) {
         this.status = PaymentStatus.BLOCKED;
-        this.fraudStatus = FraudCheckStatus.BLOCKED;
+        this.fraudStatus = FraudAnalysisStatus.BLOCKED;
         this.blockedAt = Instant.now();
         log.info("Payment blocked: {} - Reason: {}", event.paymentId(), event.reason());
     }
@@ -183,7 +176,7 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(ManualReviewRequestedEvent event) {
         this.status = PaymentStatus.MANUAL_REVIEW_REQUIRED;
-        this.fraudStatus = FraudCheckStatus.REVIEW_REQUIRED;
+        this.fraudStatus = FraudAnalysisStatus.REVIEW_REQUIRED;
         this.manualReviewRequestedAt = Instant.now();
         log.info("Manual review requested for payment: {}", event.paymentId());
     }

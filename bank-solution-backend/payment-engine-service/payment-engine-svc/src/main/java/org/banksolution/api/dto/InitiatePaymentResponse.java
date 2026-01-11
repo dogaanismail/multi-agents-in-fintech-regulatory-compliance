@@ -10,6 +10,5 @@ import lombok.NoArgsConstructor;
 public class InitiatePaymentResponse {
     
     private String paymentId;
-    private String referenceNumber;
     private String message;
 }

@@ -29,7 +29,6 @@ public class PaymentCommandController {
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(
                 paymentId,
-                request.getReferenceNumber(),
                 request.getCustomerId(),
                 request.getSourceAccountId(),
                 request.getDestinationAccountId(),
@@ -43,12 +42,9 @@ public class PaymentCommandController {
 
         log.info("Payment initiated successfully: {}", paymentId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                new InitiatePaymentResponse(
-                        paymentId.toString(),
-                        request.getReferenceNumber(),
-                        "Payment initiated successfully"
-                ));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new InitiatePaymentResponse(paymentId.toString(), "Payment initiated successfully"));
     }
 
 }

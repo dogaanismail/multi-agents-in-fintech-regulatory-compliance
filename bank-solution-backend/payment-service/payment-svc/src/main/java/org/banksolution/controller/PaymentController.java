@@ -37,16 +37,6 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/reference/{referenceNumber}")
-    public ResponseEntity<@NonNull PaymentRequestResponse> getPaymentByReference(
-            @PathVariable String referenceNumber) {
-        log.info("GET /api/v1/payments/reference/{}", referenceNumber);
-
-        PaymentRequestResponse response = paymentService.getPaymentByReference(referenceNumber);
-
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<@NonNull List<PaymentRequestResponse>> getPaymentsByCustomerId(
             @PathVariable UUID customerId) {

@@ -103,7 +103,7 @@ class FraudDetectionResponsePublisher:
             response: CoordinatedDecisionResponse object or dict (pre-formatted by handler)
         
         Returns:
-            Avro-compatible dictionary matching FraudDetectionResponse.avsc
+            Avro-compatible dictionary matching FraudAnalysisCompletedEvent.avsc
         """
         # If already a dict (from handler), return as-is
         if isinstance(response, dict):

@@ -3,16 +3,16 @@ package org.banksolution.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.banksolution.entity.enums.AccountStatus;
-import org.banksolution.entity.enums.AccountType;
+import org.banksolution.enums.AccountStatus;
+import org.banksolution.enums.AccountType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.banksolution.entity.enums.AccountStatus.ACTIVE;
-import static org.banksolution.entity.enums.AccountType.CHECKING;
+import static org.banksolution.enums.AccountStatus.ACTIVE;
+import static org.banksolution.enums.AccountType.CHECKING;
 
 @Getter
 @Setter
@@ -35,6 +35,9 @@ public class AccountEntity extends BaseEntity {
     @Column(name = "account_number", nullable = false, unique = true, length = 20)
     private String accountNumber;
 
+    @Column(name = "bank_location", nullable = false, length = 50)
+    private String bankLocation;
+
     @Column(name = "account_type", nullable = false, length = 50)
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -54,5 +57,6 @@ public class AccountEntity extends BaseEntity {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<AccountBalanceEntity> balances = new ArrayList<>();
+
 }
 

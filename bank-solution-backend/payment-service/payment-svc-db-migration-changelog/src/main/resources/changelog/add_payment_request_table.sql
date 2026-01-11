@@ -2,7 +2,6 @@
 CREATE TABLE payment_request
 (
     id                     UUID PRIMARY KEY,
-    reference_number       VARCHAR(50)    NOT NULL UNIQUE,
     customer_id            UUID           NOT NULL,
     source_account_id      UUID,
     destination_account_id UUID,
@@ -20,14 +19,12 @@ CREATE TABLE payment_request
 
 -- Create indexes
 CREATE INDEX idx_payment_request_customer_id ON payment_request (customer_id);
-CREATE INDEX idx_payment_request_reference_number ON payment_request (reference_number);
 CREATE INDEX idx_payment_request_source_account ON payment_request (source_account_id);
 CREATE INDEX idx_payment_request_destination_account ON payment_request (destination_account_id);
 
 -- Add comments
 COMMENT ON TABLE payment_request IS 'Stores immutable payment requests (event sourcing pattern - no status field)';
 COMMENT ON COLUMN payment_request.id IS 'Unique identifier for payment request';
-COMMENT ON COLUMN payment_request.reference_number IS 'Unique human-readable reference for tracking';
 COMMENT ON COLUMN payment_request.customer_id IS 'Customer who initiated the payment';
 COMMENT ON COLUMN payment_request.source_account_id IS 'Source account for TRANSFER_OUT/WITHDRAWAL';
 COMMENT ON COLUMN payment_request.destination_account_id IS 'Destination account for TRANSFER_IN/DEPOSIT';

@@ -15,7 +15,7 @@ import org.banksolution.domain.payment.command.RequestManualReviewCommand;
 import org.banksolution.domain.payment.event.*;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
-import org.banksolution.infrastructure.messaging.kafka.producer.RiskCheckRequestProducer;
+import org.banksolution.infrastructure.messaging.kafka.producer.RiskAssessmentRequestedEventProducer;
 
 import java.time.Duration;
 
@@ -24,44 +24,44 @@ import java.time.Duration;
 public class PaymentRiskSaga {
 
     private static final String PAYMENT_ID_ASSOCIATION = "paymentId";
-    private static final String RISK_CHECK_TIMEOUT_DEADLINE = "risk-check-timeout";
+    private static final String RISK_ASSESSMENT_TIMEOUT_DEADLINE = "risk-assessment-timeout";
     private static final Duration RISK_CHECK_TIMEOUT = Duration.ofMinutes(1);
 
     private PaymentId paymentId;
     private String deadlineId;
-    private boolean riskCheckCompleted = false;
+    private boolean riskAssessmentCompleted = false;
 
     @StartSaga
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
-    public void on(RiskCheckRequestedEvent event,
+    public void on(RiskAssessmentInitiatedEvent event,
                    DeadlineManager deadlineManager,
-                   RiskCheckRequestProducer riskCheckRequestProducer) {
+                   RiskAssessmentRequestedEventProducer riskAssessmentRequestedEventProducer) {
         log.info("Risk check started for payment id {}", event.paymentId());
 
         this.paymentId = event.paymentId();
-        this.riskCheckCompleted = false;
+        this.riskAssessmentCompleted = false;
 
         log.info("Publishing RiskCheckRequest to Kafka for payment: {}", this.paymentId);
-        riskCheckRequestProducer.publishRiskCheckRequestedEvent(event);
+        riskAssessmentRequestedEventProducer.publishRiskAssessmentRequestedEvent(event);
 
-        this.deadlineId = deadlineManager.schedule(RISK_CHECK_TIMEOUT, RISK_CHECK_TIMEOUT_DEADLINE, this.paymentId);
+        this.deadlineId = deadlineManager.schedule(RISK_CHECK_TIMEOUT, RISK_ASSESSMENT_TIMEOUT_DEADLINE, this.paymentId);
         log.info("Scheduled risk check timeout deadline for payment: {} with deadlineId: {}", this.paymentId, this.deadlineId);
 
         log.info("Saga setup complete, awaiting risk check completion or timeout");
     }
 
     @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
-    public void on(RiskCheckCompletedEvent event,
+    public void on(RiskAssessmentCompletedEvent event,
                    DeadlineManager deadlineManager,
                    CommandGateway commandGateway) {
         log.info("Risk check completed for payment id {}", event.paymentId());
 
-        if (deadlineId != null && !riskCheckCompleted) {
-            deadlineManager.cancelSchedule(RISK_CHECK_TIMEOUT_DEADLINE, deadlineId);
+        if (deadlineId != null && !riskAssessmentCompleted) {
+            deadlineManager.cancelSchedule(RISK_ASSESSMENT_TIMEOUT_DEADLINE, deadlineId);
             log.info("Cancelled risk check timeout deadline for payment: {}", paymentId);
         }
 
-        this.riskCheckCompleted = true;
+        this.riskAssessmentCompleted = true;
 
         RiskAssessment riskAssessment = event.riskAssessment();
 
@@ -98,7 +98,7 @@ public class PaymentRiskSaga {
         }
     }
 
-    @DeadlineHandler(deadlineName = RISK_CHECK_TIMEOUT_DEADLINE)
+    @DeadlineHandler(deadlineName = RISK_ASSESSMENT_TIMEOUT_DEADLINE)
     public void on(PaymentId paymentId) {
         log.info("Risk check timeout for payment: {}", paymentId);
     }

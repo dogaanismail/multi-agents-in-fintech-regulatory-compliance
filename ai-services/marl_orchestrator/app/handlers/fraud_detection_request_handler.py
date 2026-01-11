@@ -113,7 +113,7 @@ class FraudDetectionRequestHandler:
             decision_response: CoordinatedDecisionResponse
         
         Returns:
-            Avro-compatible response dict matching FraudDetectionResponse.avsc
+            Avro-compatible response dict matching FraudAnalysisCompletedEvent.avsc
         """
         # Convert ISO timestamp string to milliseconds since epoch
         timestamp_ms = int(datetime.fromisoformat(decision_response.timestamp).timestamp() * 1000)

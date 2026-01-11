@@ -9,11 +9,9 @@ import org.banksolution.model.response.PaymentRequestResponse;
 public class PaymentRequestMapper {
 
     public static PaymentRequestEntity toEntity(
-            PaymentRequestRequest request,
-            String referenceNumber) {
+            PaymentRequestRequest request) {
 
         return PaymentRequestEntity.builder()
-                .referenceNumber(referenceNumber)
                 .customerId(request.getCustomerId())
                 .sourceAccountId(request.getSourceAccountId())
                 .destinationAccountId(request.getDestinationAccountId())
@@ -30,7 +28,6 @@ public class PaymentRequestMapper {
 
         return PaymentRequestResponse.builder()
                 .id(entity.getId())
-                .referenceNumber(entity.getReferenceNumber())
                 .customerId(entity.getCustomerId())
                 .sourceAccountId(entity.getSourceAccountId())
                 .destinationAccountId(entity.getDestinationAccountId())

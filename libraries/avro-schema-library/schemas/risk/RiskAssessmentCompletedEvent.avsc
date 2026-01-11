@@ -1,0 +1,261 @@
+{
+  "namespace": "com.aml.risk",
+  "type": "record",
+  "name": "RiskAssessmentCompletedEvent",
+  "fields": [
+    {
+      "name": "riskCheckRequestId",
+      "type": "string",
+      "doc": "Unique request identifier (UUID) stored in risk-engine"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Internal payment identifier"
+    },
+    {
+      "name": "riskScore",
+      "type": "double",
+      "doc": "Overall risk score from risk engine (0.0 to 1.0)"
+    },
+    {
+      "name": "riskLevel",
+      "type": {
+        "type": "enum",
+        "name": "RiskLevel",
+        "symbols": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ]
+      },
+      "doc": "Categorized risk level"
+    },
+    {
+      "name": "action",
+      "type": {
+        "type": "enum",
+        "name": "RiskAction",
+        "symbols": [
+          "PROCEED",
+          "ESCALATE",
+          "BLOCK"
+        ]
+      },
+      "doc": "Recommended action based on risk assessment"
+    },
+    {
+      "name": "fraudIndicators",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "default": [],
+      "doc": "List of fraud indicators detected"
+    },
+    {
+      "name": "mlModelVersion",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Version of ML model used for assessment"
+    },
+    {
+      "name": "marlAssessment",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "MarlAssessment",
+          "doc": "MARL orchestrator assessment details (only present if escalated to MARL)",
+          "fields": [
+            {
+              "name": "requestId",
+              "type": "string",
+              "doc": "MARL request identifier"
+            },
+            {
+              "name": "action",
+              "type": {
+                "type": "enum",
+                "name": "MarlAction",
+                "symbols": [
+                  "ALLOW",
+                  "BLOCK",
+                  "REVIEW"
+                ]
+              },
+              "doc": "MARL coordinated decision"
+            },
+            {
+              "name": "confidence",
+              "type": "double",
+              "doc": "Decision confidence level (0.0 to 1.0)"
+            },
+            {
+              "name": "maddpgQValue",
+              "type": "double",
+              "doc": "Q-value from MADDPG critic"
+            },
+            {
+              "name": "transactionAgentObservation",
+              "type": {
+                "type": "record",
+                "name": "TransactionAgentObservation",
+                "doc": "Transaction pattern agent's risk assessment observation",
+                "fields": [
+                  {
+                    "name": "agentName",
+                    "type": "string",
+                    "doc": "Agent identifier: transaction-pattern-agent"
+                  },
+                  {
+                    "name": "isSuspicious",
+                    "type": "boolean",
+                    "doc": "Binary fraud classification"
+                  },
+                  {
+                    "name": "probability",
+                    "type": "double",
+                    "doc": "Fraud probability (0.0 to 1.0)"
+                  },
+                  {
+                    "name": "riskScore",
+                    "type": "double",
+                    "doc": "Risk score (0-100 scale)"
+                  },
+                  {
+                    "name": "confidence",
+                    "type": "string",
+                    "doc": "Confidence level: LOW, MEDIUM, HIGH, CRITICAL"
+                  },
+                  {
+                    "name": "responseTimeMs",
+                    "type": "double",
+                    "doc": "Agent response time in milliseconds"
+                  }
+                ]
+              },
+              "doc": "Transaction pattern agent assessment"
+            },
+            {
+              "name": "customerAgentObservation",
+              "type": {
+                "type": "record",
+                "name": "CustomerAgentObservation",
+                "doc": "Customer risk agent's risk assessment observation",
+                "fields": [
+                  {
+                    "name": "agentName",
+                    "type": "string",
+                    "doc": "Agent identifier: customer-risk-agent"
+                  },
+                  {
+                    "name": "isSuspicious",
+                    "type": "boolean",
+                    "doc": "Binary fraud classification"
+                  },
+                  {
+                    "name": "probability",
+                    "type": "double",
+                    "doc": "Fraud probability (0.0 to 1.0)"
+                  },
+                  {
+                    "name": "riskScore",
+                    "type": "double",
+                    "doc": "Risk score (0-100 scale)"
+                  },
+                  {
+                    "name": "confidence",
+                    "type": "string",
+                    "doc": "Confidence level: LOW, MEDIUM, HIGH, CRITICAL"
+                  },
+                  {
+                    "name": "responseTimeMs",
+                    "type": "double",
+                    "doc": "Agent response time in milliseconds"
+                  }
+                ]
+              },
+              "doc": "Customer risk agent assessment"
+            },
+            {
+              "name": "networkAgentObservation",
+              "type": {
+                "type": "record",
+                "name": "NetworkAgentObservation",
+                "doc": "Network analysis agent's risk assessment observation",
+                "fields": [
+                  {
+                    "name": "agentName",
+                    "type": "string",
+                    "doc": "Agent identifier: network-analysis-agent"
+                  },
+                  {
+                    "name": "isSuspicious",
+                    "type": "boolean",
+                    "doc": "Binary fraud classification"
+                  },
+                  {
+                    "name": "probability",
+                    "type": "double",
+                    "doc": "Fraud probability (0.0 to 1.0)"
+                  },
+                  {
+                    "name": "riskScore",
+                    "type": "double",
+                    "doc": "Risk score (0-100 scale)"
+                  },
+                  {
+                    "name": "confidence",
+                    "type": "string",
+                    "doc": "Confidence level: LOW, MEDIUM, HIGH, CRITICAL"
+                  },
+                  {
+                    "name": "responseTimeMs",
+                    "type": "double",
+                    "doc": "Agent response time in milliseconds"
+                  }
+                ]
+              },
+              "doc": "Network analysis agent assessment"
+            },
+            {
+              "name": "agentContributions",
+              "type": {
+                "type": "map",
+                "values": "double"
+              },
+              "doc": "Contribution scores from each agent (transaction, customer, network)"
+            },
+            {
+              "name": "processingTimeMs",
+              "type": "double",
+              "doc": "MARL processing time in milliseconds"
+            },
+            {
+              "name": "mode",
+              "type": "string",
+              "doc": "Execution mode: inference or training"
+            }
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "MARL assessment details if payment was escalated to MARL orchestrator"
+    },
+    {
+      "name": "processingTimeMs",
+      "type": "long",
+      "doc": "Time taken to process the risk check in milliseconds"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Timestamp when the risk check was completed (epoch millis)"
+    }
+  ]
+}

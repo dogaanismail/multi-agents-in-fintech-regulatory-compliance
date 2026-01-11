@@ -31,14 +31,14 @@ public class KafkaConfigurationProperties {
 
         @Data
         public static class Incoming {
-            private String riskCheckRequest;
-            private String fraudDetectionResponse;
+            private String riskAssessmentRequested;
+            private String fraudAnalysisCompleted;
         }
 
         @Data
         public static class Outgoing {
-            private String riskCheckResponse;
-            private String fraudDetectionRequest;
+            private String riskAssessmentCompleted;
+            private String fraudAnalysisRequested;
         }
     }
 }

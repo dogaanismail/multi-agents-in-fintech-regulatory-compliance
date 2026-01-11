@@ -14,7 +14,6 @@ public class PaymentCreatedEventMapper {
         return PaymentCreatedEvent.newBuilder()
                 .setPaymentId(entity.getId().toString())
                 .setEventId(UUID.randomUUID().toString())
-                .setReferenceNumber(entity.getReferenceNumber())
                 .setTimestamp(Instant.now().toEpochMilli())
                 .setCustomerId(entity.getCustomerId().toString())
                 .setSourceAccountId(entity.getSourceAccountId() != null ?
