@@ -5,12 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.RiskCheckRequestEntity;
 import org.banksolution.exception.RiskAssessmentProcessingException;
-import org.banksolution.mapper.RiskCheckRequestEntityMapper;
 import org.banksolution.repository.RiskCheckRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.banksolution.enums.RiskCheckStatus.*;
+import static org.banksolution.mapper.RiskCheckRequestEntityMapper.toEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +18,7 @@ import static org.banksolution.enums.RiskCheckStatus.*;
 public class RiskCheckService {
 
     private final RiskCheckRequestRepository riskCheckRequestRepository;
+    private final FraudAnalysisRequestService fraudAnalysisRequestService;
 
     @Transactional
     public void processRiskAssessmentRequest(RiskAssessmentRequestedEvent event) {
@@ -28,9 +29,10 @@ public class RiskCheckService {
             return;
         }
 
-        RiskCheckRequestEntity riskCheckRequestEntity = RiskCheckRequestEntityMapper.toEntity(event);
+        RiskCheckRequestEntity riskCheckRequestEntity = toEntity(event);
         try {
-            RiskCheckRequestEntity saved = riskCheckRequestRepository.save(riskCheckRequestEntity);
+            RiskCheckRequestEntity savedRiskCheckRequestEntity = riskCheckRequestRepository.save(riskCheckRequestEntity);
+            fraudAnalysisRequestService.processFraudAnalysisRequest(savedRiskCheckRequestEntity);
         } catch (Exception e) {
             log.error("Failed to save risk check request for paymentId: {}", event.getPaymentId(), e);
             riskCheckRequestEntity.setStatus(FAILED);

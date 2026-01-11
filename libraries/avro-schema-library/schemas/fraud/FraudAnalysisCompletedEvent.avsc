@@ -1,13 +1,13 @@
 {
   "namespace": "com.aml.fraud",
   "type": "record",
-  "name": "FraudDetectionResponse",
+  "name": "FraudAnalysisCompletedEvent",
   "doc": "Response from MARL orchestrator with coordinated fraud decision",
   "fields": [
     {
-      "name": "requestId",
+      "name": "riskCheckRequestId",
       "type": "string",
-      "doc": "Original request identifier"
+      "doc": "Unique request identifier (UUID) stored in risk-engine"
     },
     {
       "name": "paymentId",

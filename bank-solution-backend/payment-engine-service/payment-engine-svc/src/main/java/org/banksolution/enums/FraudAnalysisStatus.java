@@ -1,6 +1,6 @@
 package org.banksolution.enums;
 
-public enum FraudCheckStatus {
+public enum FraudAnalysisStatus {
     PENDING,
     APPROVED,
     BLOCKED,

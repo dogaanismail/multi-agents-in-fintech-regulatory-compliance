@@ -34,7 +34,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentKafkaTemplate() {
+    public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentRequestedEventKafkaTemplate() {
         return new KafkaTemplate<>(riskAssessmentProducerFactory());
     }
 

@@ -10,7 +10,7 @@ import org.axonframework.modelling.command.AggregateVersion;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.banksolution.domain.payment.command.*;
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.enums.FraudCheckStatus;
+import org.banksolution.enums.FraudAnalysisStatus;
 import org.banksolution.enums.PaymentStatus;
 import org.banksolution.domain.payment.event.*;
 import org.banksolution.exception.InvalidPaymentStateException;
@@ -44,7 +44,7 @@ public class PaymentAggregate {
 
     // Status
     private PaymentStatus status;
-    private FraudCheckStatus fraudStatus;
+    private FraudAnalysisStatus fraudStatus;
 
     // Risk Assessment (includes MARL assessment if escalated)
     private RiskAssessment riskAssessment;
@@ -146,7 +146,7 @@ public class PaymentAggregate {
         this.paymentType = event.paymentType();
         this.description = event.description();
         this.status = PaymentStatus.INITIATED;
-        this.fraudStatus = FraudCheckStatus.PENDING;
+        this.fraudStatus = FraudAnalysisStatus.PENDING;
         this.initiatedAt = Instant.now();
         log.info("Payment initiated: {}", this.paymentId);
     }
@@ -170,7 +170,7 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(PaymentBlockedEvent event) {
         this.status = PaymentStatus.BLOCKED;
-        this.fraudStatus = FraudCheckStatus.BLOCKED;
+        this.fraudStatus = FraudAnalysisStatus.BLOCKED;
         this.blockedAt = Instant.now();
         log.info("Payment blocked: {} - Reason: {}", event.paymentId(), event.reason());
     }
@@ -178,7 +178,7 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(ManualReviewRequestedEvent event) {
         this.status = PaymentStatus.MANUAL_REVIEW_REQUIRED;
-        this.fraudStatus = FraudCheckStatus.REVIEW_REQUIRED;
+        this.fraudStatus = FraudAnalysisStatus.REVIEW_REQUIRED;
         this.manualReviewRequestedAt = Instant.now();
         log.info("Manual review requested for payment: {}", event.paymentId());
     }

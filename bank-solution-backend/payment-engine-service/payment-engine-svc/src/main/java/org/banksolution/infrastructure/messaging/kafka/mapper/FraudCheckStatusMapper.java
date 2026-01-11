@@ -2,6 +2,7 @@ package org.banksolution.infrastructure.messaging.kafka.mapper;
 
 import com.aml.payment.FraudCheckStatus;
 import lombok.experimental.UtilityClass;
+import org.banksolution.enums.FraudAnalysisStatus;
 
 /**
  * Mapper for converting domain FraudCheckStatus to Avro FraudCheckStatus.
@@ -14,7 +15,7 @@ public class FraudCheckStatusMapper {
             return FraudCheckStatus.PENDING;
         }
         
-        org.banksolution.enums.FraudCheckStatus status = (org.banksolution.enums.FraudCheckStatus) fraudStatus;
+        FraudAnalysisStatus status = (FraudAnalysisStatus) fraudStatus;
         return switch (status) {
             case PENDING -> FraudCheckStatus.PENDING;
             case APPROVED -> FraudCheckStatus.APPROVED;

@@ -21,13 +21,13 @@ def load_schema(schema_path: str) -> dict:
     Load an Avro schema from file
     
     Args:
-        schema_path: Relative path to schema file (e.g., 'fraud/FraudDetectionRequest.avsc')
+        schema_path: Relative path to schema file (e.g., 'fraud/FraudAnalysisRequestedEvent.avsc')
     
     Returns:
         Schema dictionary
     
     Example:
-        >>> schema = load_schema('fraud/FraudDetectionRequest.avsc')
+        >>> schema = load_schema('fraud/FraudAnalysisRequestedEvent.avsc')
         >>> print(schema['name'])
         FraudDetectionRequest
     """
@@ -60,8 +60,8 @@ def get_all_schemas() -> dict:
 
 
 # Commonly used schemas
-FRAUD_DETECTION_REQUEST_SCHEMA = load_schema('fraud/FraudDetectionRequest.avsc')
-FRAUD_DETECTION_RESPONSE_SCHEMA = load_schema('fraud/FraudDetectionResponse.avsc')
+FRAUD_DETECTION_REQUEST_SCHEMA = load_schema('fraud/FraudAnalysisRequestedEvent.avsc')
+FRAUD_DETECTION_RESPONSE_SCHEMA = load_schema('fraud/FraudAnalysisCompletedEvent.avsc')
 PAYMENT_CREATED_EVENT_SCHEMA = load_schema('payment/PaymentCreatedEvent.avsc')
 PAYMENT_COMPLETED_EVENT_SCHEMA = load_schema('payment/PaymentCompletedEvent.avsc')
 PAYMENT_BLOCKED_EVENT_SCHEMA = load_schema('payment/PaymentBlockedEvent.avsc')

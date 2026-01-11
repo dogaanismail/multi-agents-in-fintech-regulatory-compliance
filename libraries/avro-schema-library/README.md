@@ -198,7 +198,7 @@ When modifying schemas:
 
 3. **Test compatibility**:
    ```bash
-   ./scripts/test-compatibility.sh schemas/fraud/FraudDetectionRequest.avsc
+   ./scripts/test-compatibility.sh schemas/fraud/FraudAnalysisRequestedEvent.avsc
    ```
 
 ## Architecture Benefits
