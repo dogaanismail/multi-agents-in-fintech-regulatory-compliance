@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentRequestRequest {
+public class PaymentRequest {
 
     @NotNull(message = "Customer ID is required")
     private UUID customerId;

@@ -2,40 +2,40 @@ package org.banksolution.mapper;
 
 import lombok.experimental.UtilityClass;
 import org.banksolution.entity.PaymentRequestEntity;
-import org.banksolution.model.request.PaymentRequestRequest;
+import org.banksolution.model.request.PaymentRequest;
 import org.banksolution.model.response.PaymentRequestResponse;
 
 @UtilityClass
 public class PaymentRequestMapper {
 
     public static PaymentRequestEntity toEntity(
-            PaymentRequestRequest request) {
+            PaymentRequest paymentRequest) {
 
         return PaymentRequestEntity.builder()
-                .customerId(request.getCustomerId())
-                .sourceAccountId(request.getSourceAccountId())
-                .destinationAccountId(request.getDestinationAccountId())
-                .amount(request.getAmount())
-                .currency(request.getCurrency())
-                .paymentType(request.getPaymentType())
-                .description(request.getDescription())
+                .customerId(paymentRequest.getCustomerId())
+                .sourceAccountId(paymentRequest.getSourceAccountId())
+                .destinationAccountId(paymentRequest.getDestinationAccountId())
+                .amount(paymentRequest.getAmount())
+                .currency(paymentRequest.getCurrency())
+                .paymentType(paymentRequest.getPaymentType())
+                .description(paymentRequest.getDescription())
                 .build();
     }
 
     public static PaymentRequestResponse toResponse(
-            PaymentRequestEntity entity,
+            PaymentRequestEntity paymentRequestEntity,
             String message) {
 
         return PaymentRequestResponse.builder()
-                .id(entity.getId())
-                .customerId(entity.getCustomerId())
-                .sourceAccountId(entity.getSourceAccountId())
-                .destinationAccountId(entity.getDestinationAccountId())
-                .amount(entity.getAmount())
-                .currency(entity.getCurrency())
-                .paymentType(entity.getPaymentType())
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt())
+                .id(paymentRequestEntity.getId())
+                .customerId(paymentRequestEntity.getCustomerId())
+                .sourceAccountId(paymentRequestEntity.getSourceAccountId())
+                .destinationAccountId(paymentRequestEntity.getDestinationAccountId())
+                .amount(paymentRequestEntity.getAmount())
+                .currency(paymentRequestEntity.getCurrency())
+                .paymentType(paymentRequestEntity.getPaymentType())
+                .description(paymentRequestEntity.getDescription())
+                .createdAt(paymentRequestEntity.getCreatedAt())
                 .message(message)
                 .build();
     }

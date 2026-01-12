@@ -3,9 +3,9 @@ package org.banksolution.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.PaymentRequestEntity;
-import org.banksolution.model.request.PaymentRequestRequest;
+import org.banksolution.model.request.PaymentRequest;
 import org.banksolution.model.response.PaymentRequestResponse;
-import org.banksolution.producer.PaymentEventProducer;
+import org.banksolution.producer.PaymentCreatedEventProducer;
 import org.banksolution.repository.PaymentRequestRepository;
 import org.banksolution.util.PaymentRequestUtil;
 import org.springframework.stereotype.Service;
@@ -23,10 +23,10 @@ import static org.banksolution.mapper.PaymentRequestMapper.toResponse;
 public class PaymentService {
 
     private final PaymentRequestRepository paymentRequestRepository;
-    private final PaymentEventProducer paymentEventProducer;
+    private final PaymentCreatedEventProducer paymentCreatedEventProducer;
 
     @Transactional
-    public PaymentRequestResponse requestPayment(PaymentRequestRequest request) {
+    public PaymentRequestResponse requestPayment(PaymentRequest request) {
 
         log.info("Processing payment request for customer: {}, type: {}, amount: {} {}",
                 request.getCustomerId(),
@@ -40,7 +40,7 @@ public class PaymentService {
         PaymentRequestEntity savedEntity = paymentRequestRepository.save(entity);
 
         //TODO: Investigate and implement outbox pattern
-        paymentEventProducer.publishPaymentCreatedEvent(savedEntity);
+        paymentCreatedEventProducer.publishPaymentCreatedEvent(savedEntity);
 
         log.info("Payment request created: id:{}", savedEntity.getId());
 

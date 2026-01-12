@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.banksolution.model.request.PaymentRequestRequest;
+import org.banksolution.model.request.PaymentRequest;
 import org.banksolution.model.response.PaymentRequestResponse;
 import org.banksolution.service.PaymentService;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class PaymentController {
 
     @PostMapping("/request")
     public ResponseEntity<@NonNull PaymentRequestResponse> requestPayment(
-            @Valid @RequestBody PaymentRequestRequest request) {
+            @Valid @RequestBody PaymentRequest request) {
 
         log.info("POST /api/v1/payments/request - customer: {}, type: {}, amount: {} {}",
                 request.getCustomerId(),

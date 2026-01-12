@@ -14,7 +14,7 @@ import static org.banksolution.mapper.PaymentCreatedEventMapper.toPaymentCreated
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentEventProducer {
+public class PaymentCreatedEventProducer {
 
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull PaymentCreatedEvent> paymentCreatedEventKafkaTemplate;

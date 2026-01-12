@@ -10,20 +10,20 @@ import java.util.UUID;
 @UtilityClass
 public class PaymentCreatedEventMapper {
 
-    public static PaymentCreatedEvent toPaymentCreatedEvent(PaymentRequestEntity entity) {
+    public static PaymentCreatedEvent toPaymentCreatedEvent(PaymentRequestEntity paymentRequestEntity) {
         return PaymentCreatedEvent.newBuilder()
-                .setPaymentId(entity.getId().toString())
+                .setPaymentId(paymentRequestEntity.getId().toString())
                 .setEventId(UUID.randomUUID().toString())
                 .setTimestamp(Instant.now().toEpochMilli())
-                .setCustomerId(entity.getCustomerId().toString())
-                .setSourceAccountId(entity.getSourceAccountId() != null ?
-                        entity.getSourceAccountId().toString() : null)
-                .setDestinationAccountId(entity.getDestinationAccountId() != null ?
-                        entity.getDestinationAccountId().toString() : null)
-                .setAmount(entity.getAmount().toString())
-                .setCurrency(entity.getCurrency().name())
-                .setPaymentType(com.aml.payment.PaymentType.valueOf(entity.getPaymentType().name()))
-                .setDescription(entity.getDescription())
+                .setCustomerId(paymentRequestEntity.getCustomerId().toString())
+                .setSourceAccountId(paymentRequestEntity.getSourceAccountId() != null ?
+                        paymentRequestEntity.getSourceAccountId().toString() : null)
+                .setDestinationAccountId(paymentRequestEntity.getDestinationAccountId() != null ?
+                        paymentRequestEntity.getDestinationAccountId().toString() : null)
+                .setAmount(paymentRequestEntity.getAmount().toString())
+                .setCurrency(paymentRequestEntity.getCurrency().name())
+                .setPaymentType(com.aml.payment.PaymentType.valueOf(paymentRequestEntity.getPaymentType().name()))
+                .setDescription(paymentRequestEntity.getDescription())
                 .build();
     }
 
