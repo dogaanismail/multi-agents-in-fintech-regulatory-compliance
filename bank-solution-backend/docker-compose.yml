@@ -199,6 +199,10 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+    # TODO: Add containers for risk-engine service and db migration
+    # TODO: Add containers for network-topology service and db migration
+    # TODO: Add containers for customer-profile service and db migration
+
   # Payment History Service Database Migration
   payment-history-db-migration:
     image: payment-history-svc-db-migration-app:latest

@@ -17,6 +17,7 @@ class ActionType(str, Enum):
     REVIEW = "REVIEW"
 
 
+#TODO: Refactor schemas in marl orchestrator
 class TransactionFeatures(BaseModel):
     """Transaction features for Transaction Pattern Agent"""
     Date: str

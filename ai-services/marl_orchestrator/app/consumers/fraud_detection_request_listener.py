@@ -14,7 +14,7 @@ from app.handlers.fraud_detection_request_handler import fraud_detection_request
 from app.core.config import settings
 from app.core.logging import logger
 
-
+#TODO: Refactor kafka listener in marl orchestrator
 class FraudDetectionRequestListener:
     """
     Kafka consumer for fraud detection requests.

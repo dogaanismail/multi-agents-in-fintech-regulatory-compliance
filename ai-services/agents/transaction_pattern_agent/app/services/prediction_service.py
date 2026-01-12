@@ -15,7 +15,9 @@ from .model_loader import model_loader
 
 class PredictionService:
     """Handles transaction preprocessing and fraud prediction"""
-    
+
+    #TODO: Refactor mapping strategies and handle mapping in Jupyter notebook
+
     # Mapping dictionaries to convert API-friendly values to training data values
     CURRENCY_MAPPING = {
         'UK pound': 'UK pounds',

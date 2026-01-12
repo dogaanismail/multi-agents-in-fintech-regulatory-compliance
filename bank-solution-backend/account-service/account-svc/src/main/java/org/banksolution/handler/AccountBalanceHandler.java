@@ -31,6 +31,7 @@ public class AccountBalanceHandler {
                 event.getPaymentId(),
                 event.getPaymentType());
 
+        //TODO: Handle balances properly based on payment type
         PaymentType paymentType = PaymentType.valueOf(event.getPaymentType().name());
         Currency currency = Currency.valueOf(event.getCurrency());
         BigDecimal amount = new BigDecimal(event.getAmount());
