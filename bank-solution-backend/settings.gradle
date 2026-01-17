@@ -42,8 +42,6 @@ include 'payment-history-service:payment-history-svc-db-migration-changelog'
 // network topology service modules
 include 'network-topology-service'
 include 'network-topology-service:network-topology-svc'
-include 'network-topology-service:network-topology-svc-db-migration'
-include 'network-topology-service:network-topology-svc-db-migration-changelog'
 
 // payment engine service modules
 include 'payment-engine-service'

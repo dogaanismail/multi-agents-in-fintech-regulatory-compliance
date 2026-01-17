@@ -2,13 +2,13 @@ package org.banksolution.service;
 
 import com.aml.fraud.FraudAnalysisRequestedEvent;
 import com.aml.fraud.TransactionFeatures;
+import com.aml.fraud.NetworkFeatures;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.RiskCheckRequestEntity;
 import org.banksolution.infrastructure.messaging.kafka.producer.FraudAnalysisRequestedEventProducer;
+import org.banksolution.mapper.FraudAnalysisRequestedEventMapper;
 import org.springframework.stereotype.Service;
-
-import static org.banksolution.mapper.FraudAnalysisRequestedEventMapper.toAvroRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -22,16 +22,16 @@ public class FraudAnalysisRequestService {
 
     public void processFraudAnalysisRequest(RiskCheckRequestEntity riskCheckRequestEntity) {
         TransactionFeatures transactionFeatures = transactionFeatureService.getTransactionFeatures(riskCheckRequestEntity);
-        //TODO: Retrieve customer and network features
+        NetworkFeatures networkFeatures = networkFeatureService.getNetworkFeatures(riskCheckRequestEntity.getSourceAccountId());
 
         String riskCheckRequestId = riskCheckRequestEntity.getId().toString();
         long requestTimestamp = riskCheckRequestEntity.getRequestTimestamp();
-        FraudAnalysisRequestedEvent fraudAnalysisRequestedEvent = toAvroRequest(
+        FraudAnalysisRequestedEvent fraudAnalysisRequestedEvent = FraudAnalysisRequestedEventMapper.toAvroRequest(
                 riskCheckRequestId,
                 requestTimestamp,
                 transactionFeatures,
                 null,
-                null);
+                networkFeatures);
 
         fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(fraudAnalysisRequestedEvent);
     }

@@ -6,7 +6,7 @@
                             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
     <changeSet id="2025-12-09-02-00" author="Ismail Dogan">
-        <comment>Add payment_history table for backoffice audit trail</comment>
+        <comment>Add db scheduler table</comment>
         <sqlFile path="changelog/add_db_scheduler_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 

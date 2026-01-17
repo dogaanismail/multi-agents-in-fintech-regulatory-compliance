@@ -9,6 +9,9 @@ version = '0.0.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
 }
 
 dependencyManagement {
@@ -20,15 +23,27 @@ dependencyManagement {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    implementation project(':network-topology-service:network-topology-svc-db-migration-changelog')
+    // Neo4j Spring Data
+    implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
 
-    implementation 'org.postgresql:postgresql'
+    implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
+
+    // Kafka + Avro
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
+    implementation "org.apache.avro:avro:${apacheAvroVersion}"
+
+    // Avro Schema Library
+    implementation project(':avro-schema-library-java')
+
+    implementation project(':common')
+
+    // vulnerabilities
+    implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
+    implementation 'io.grpc:grpc-netty-shaded:1.75.0'
 }
 
 springBoot {
