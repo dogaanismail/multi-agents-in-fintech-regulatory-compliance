@@ -33,7 +33,7 @@ COMMENT ON COLUMN account.id IS 'Unique identifier for account';
 COMMENT ON COLUMN account.customer_id IS 'Reference to customer who owns the account';
 COMMENT ON COLUMN account.account_number IS 'Unique account number';
 COMMENT ON COLUMN account.account_type IS 'Type of account: CHECKING, SAVINGS, or BUSINESS';
-COMMENT ON COLUMN account.bank_location IS 'Bank Location'
+COMMENT ON COLUMN account.bank_location IS 'Bank Location';
 COMMENT ON COLUMN account.account_status IS 'Account status: ACTIVE, SUSPENDED, or CLOSED';
 COMMENT ON COLUMN account.opening_date IS 'Date when the account was opened';
 COMMENT ON COLUMN account.closing_date IS 'Date when the account was closed (if applicable)';
