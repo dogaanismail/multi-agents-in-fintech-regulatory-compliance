@@ -31,9 +31,6 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
 
-    implementation "org.axonframework:axon-spring-boot-starter:${axonKafkaVersion}"
-    implementation "org.axonframework.extensions.kafka:axon-kafka-spring-boot-starter:${axonKafkaVersion}"
-
     implementation 'org.springframework.kafka:spring-kafka'
     implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
     implementation "org.apache.avro:avro:${apacheAvroVersion}"

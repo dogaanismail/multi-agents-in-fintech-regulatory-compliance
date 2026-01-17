@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <changeSet id="2025-12-04-02-00" author="Ismail Dogan">
+    <changeSet id="2025-12-04-02-01" author="Ismail Dogan">
         <comment>Add account table</comment>
         <sqlFile path="changelog/add_account_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
