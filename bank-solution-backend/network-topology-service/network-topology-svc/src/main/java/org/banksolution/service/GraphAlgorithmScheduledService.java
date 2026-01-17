@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class GraphAlgorithmService {
+public class GraphAlgorithmScheduledService {
 
     private final Driver neo4jDriver;
     private static final String GRAPH_NAME_KEY = "graphName";
@@ -40,6 +40,9 @@ public class GraphAlgorithmService {
             refreshGraphProjection();
             computePageRank();
             computeBetweennessCentrality();
+            computeClosenessCentrality();
+            computeEigenvectorCentrality();
+            computeLocalClusteringCoefficient();
             computeCommunities();
             dropGraphProjection();
 
@@ -103,6 +106,40 @@ public class GraphAlgorithmService {
                     })
                     """, Values.parameters(GRAPH_NAME_KEY, GRAPH_NAME));
             log.debug("Betweenness centrality computed");
+        }
+    }
+
+    private void computeClosenessCentrality() {
+        try (Session session = neo4jDriver.session()) {
+            session.run("""
+                    CALL gds.closeness.write($graphName, {
+                        writeProperty: 'closenessCentrality'
+                    })
+                    """, Values.parameters(GRAPH_NAME_KEY, GRAPH_NAME));
+            log.debug("Closeness centrality computed");
+        }
+    }
+
+    private void computeEigenvectorCentrality() {
+        try (Session session = neo4jDriver.session()) {
+            session.run("""
+                    CALL gds.eigenvector.write($graphName, {
+                        writeProperty: 'eigenvectorCentrality',
+                        maxIterations: 20
+                    })
+                    """, Values.parameters(GRAPH_NAME_KEY, GRAPH_NAME));
+            log.debug("Eigenvector centrality computed");
+        }
+    }
+
+    private void computeLocalClusteringCoefficient() {
+        try (Session session = neo4jDriver.session()) {
+            session.run("""
+                    CALL gds.localClusteringCoefficient.write($graphName, {
+                        writeProperty: 'clusteringCoefficient'
+                    })
+                    """, Values.parameters(GRAPH_NAME_KEY, GRAPH_NAME));
+            log.debug("Clustering coefficient computed");
         }
     }
 

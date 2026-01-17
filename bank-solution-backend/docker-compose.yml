@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database - Single instance for all microservices
   bank-solution-postgres:
@@ -235,6 +233,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
+      NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-svc:5007/api/v1/networks
       SERVER_PORT: 5006
     networks:
       - bank-network
@@ -262,6 +261,7 @@ services:
       - neo4j_data:/data
     networks:
       - bank-network
+      - aml-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:7474" ]
       interval: 10s
@@ -275,7 +275,6 @@ services:
       dockerfile: Dockerfile
     container_name: network-topology-svc
     ports:
-      - "8086:8086"
       - "5007:5007"
     environment:
       - NEO4J_URI=bolt://neo4j:7687
@@ -286,10 +285,9 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
-      kafka:
-        condition: service_started
     networks:
       - bank-network
+      - aml-network
 
   # Payment History Service Database Migration
   payment-history-db-migration:
@@ -344,10 +342,12 @@ services:
 volumes:
   postgres_data:
     driver: local
+  neo4j_data:
+    driver: local
 
 networks:
   bank-network:
     driver: bridge
   aml-network:
     external: true
-    name: aml-network
+    name: avro-schema-library_default

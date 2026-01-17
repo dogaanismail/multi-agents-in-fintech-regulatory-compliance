@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/network")
+@RequestMapping("/api/v1/networks")
 @RequiredArgsConstructor
 @Slf4j
 public class NetworkFeaturesController {
@@ -20,13 +20,9 @@ public class NetworkFeaturesController {
     private final NetworkFeatureService networkFeatureService;
 
     @GetMapping("/features/{accountId}")
-    public ResponseEntity<CustomResponse<NetworkFeaturesDto>> getNetworkFeatures(
-            @PathVariable String accountId) {
+    public ResponseEntity<NetworkFeaturesDto> getNetworkFeatures(@PathVariable String accountId) {
         log.info("REST request to get network features for account: {}", accountId);
         NetworkFeaturesDto features = networkFeatureService.getNetworkFeatures(accountId);
-        return ResponseEntity.ok(CustomResponse.<NetworkFeaturesDto>builder()
-                .isSuccess(true)
-                .response(features)
-                .build());
+        return ResponseEntity.ok(features);
     }
 }

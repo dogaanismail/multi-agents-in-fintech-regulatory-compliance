@@ -17,7 +17,6 @@ public class NetworkGraphRepository {
 
     private final Driver neo4jDriver;
 
-
     public NetworkFeaturesDto getNetworkFeatures(String accountId) {
         try (Session session = neo4jDriver.session()) {
             String query = """

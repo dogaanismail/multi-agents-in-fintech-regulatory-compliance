@@ -97,4 +97,4 @@ networks:
     driver: bridge
   aml-network:
     external: true
-    name: aml-network
+    name: avro-schema-library_default
