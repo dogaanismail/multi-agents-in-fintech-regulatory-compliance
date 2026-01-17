@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfiguration {
 
     @Bean
-    public OpenAPI paymentEngineOpenAPI() {
+    public OpenAPI networkTopologyOpenApi() {
         return new OpenAPI()
                 .info(new Info()
                         .title("Network Topology Service API")

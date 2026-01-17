@@ -31,6 +31,7 @@ public class KafkaConfigurationProperties {
 
         @Data
         public static class Incoming {
+            private String paymentCompleted;
         }
 
         @Data
