@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: default
       POSTGRES_PASSWORD: default
-      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db
+      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db,customer_profile_db
     ports:
       - "5433:5432"
     volumes:
@@ -234,6 +234,7 @@ services:
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
       NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-svc:5007/api/v1/networks
+      CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-svc:5008/api/v1/customer-profiles
       SERVER_PORT: 5006
     networks:
       - bank-network
@@ -289,6 +290,53 @@ services:
     networks:
       - bank-network
       - aml-network
+
+  # Customer Profile Database Migration
+  customer-profile-db-migration:
+    image: customer-profile-svc-db-migration-app:latest
+    container_name: customer-profile-svc-db-migration-service
+    build:
+      context: ./customer-profile-service/customer-profile-svc-db-migration
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/customer_profile_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_LIQUIBASE_ENABLED: "true"
+    depends_on:
+      bank-solution-postgres:
+        condition: service_healthy
+    networks:
+      - bank-network
+    restart: on-failure
+
+  # Customer Profile Service
+  customer-profile-service:
+    image: customer-profile-svc-api:latest
+    container_name: customer-profile-svc-app
+    build:
+      context: ./customer-profile-service/customer-profile-svc
+      dockerfile: Dockerfile
+    ports:
+      - "5008:5008"
+    environment:
+      DB_SERVICE_URL: jdbc:postgresql://bank-solution-postgres:5432/customer_profile_db
+      DB_SERVICE_USERNAME: default
+      DB_SERVICE_PASSWORD: default
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      SERVER_PORT: 5008
+    networks:
+      - bank-network
+      - aml-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5008/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
   # Payment History Service Database Migration
   payment-history-db-migration:
