@@ -10,7 +10,7 @@ public class CustomerFeaturesMapper {
     public CustomerFeatures toAvroCustomerFeatures(CustomerFeaturesResponse response) {
         return CustomerFeatures.newBuilder()
                 .setCustomerId(response.getCustomerId())
-                .setAccountId(response.getAccountId())
+                .setAccountId(response.getAccountId() == null ? "" : response.getAccountId()) //TODO: Investigate and fix here
                 .setTransactionCount(response.getTransactionCount())
                 .setTotalAmount(response.getTotalAmount())
                 .setAvgAmount(response.getAvgAmount())

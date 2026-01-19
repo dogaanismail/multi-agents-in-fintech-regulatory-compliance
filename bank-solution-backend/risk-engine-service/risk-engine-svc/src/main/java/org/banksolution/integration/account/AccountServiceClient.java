@@ -17,10 +17,10 @@ import java.util.UUID;
 @Headers({"Content-Type: application/json"})
 public interface AccountServiceClient {
 
-    @GetMapping("/api/v1/accounts/{id}")
+    @GetMapping("/{id}")
     AccountResponse getAccountById(@PathVariable UUID id);
 
-    @GetMapping("/api/v1/accounts/ids")
+    @GetMapping("/ids")
     List<AccountResponse> getAccountsByIds(@RequestParam("ids") List<UUID> ids);
 
 }

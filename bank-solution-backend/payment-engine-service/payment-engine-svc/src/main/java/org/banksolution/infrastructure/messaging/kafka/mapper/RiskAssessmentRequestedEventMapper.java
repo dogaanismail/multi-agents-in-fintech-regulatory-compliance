@@ -18,7 +18,7 @@ public class RiskAssessmentRequestedEventMapper {
                 .setDestinationAccountId(event.destinationAccountId() != null ? event.destinationAccountId().toString() : null)
                 .setAmount(event.amount().toString())
                 .setCurrency(event.currency())
-                .setPaymentType(PaymentType.PAYMENT)
+                .setPaymentType(PaymentType.valueOf(event.paymentType()))
                 .setTimestamp(Instant.now().toEpochMilli())
                 .setDescription(event.description())
                 .build();

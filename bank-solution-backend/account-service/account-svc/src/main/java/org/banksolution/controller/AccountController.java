@@ -24,7 +24,7 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @PostMapping
+    @PostMapping("open-account")
     public ResponseEntity<@NonNull AccountResponse> openAccount(@Valid @RequestBody OpenAccountRequest request) {
         log.info("POST /api/v1/accounts - Opening account for customer: {}", request.getCustomerId());
         AccountResponse response = accountService.openAccount(request);

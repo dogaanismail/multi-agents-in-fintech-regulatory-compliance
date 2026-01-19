@@ -182,7 +182,6 @@ services:
       DB_SERVICE_URL: jdbc:postgresql://bank-solution-postgres:5432/payment_engine_db
       DB_SERVICE_USERNAME: default
       DB_SERVICE_PASSWORD: default
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       SERVER_PORT: 5004
@@ -311,7 +310,7 @@ services:
     restart: on-failure
 
   # Customer Profile Service
-  customer-profile-service:
+  customer-profile-svc:
     image: customer-profile-svc-api:latest
     container_name: customer-profile-svc-app
     build:

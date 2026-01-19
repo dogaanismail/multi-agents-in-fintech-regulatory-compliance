@@ -18,11 +18,3 @@ EOSQL
     echo "Multiple databases created successfully!"
 fi
 
-# Explicitly create payment_engine_db
-echo "Creating payment_engine_db database..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
-    CREATE DATABASE payment_engine_db;
-    GRANT ALL PRIVILEGES ON DATABASE payment_engine_db TO "$POSTGRES_USER";
-EOSQL
-echo "payment_engine_db created successfully!"
-

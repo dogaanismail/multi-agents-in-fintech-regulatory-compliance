@@ -22,7 +22,7 @@ public class CustomerFeatureService {
             return CustomerFeaturesMapper.toAvroCustomerFeatures(response);
         } catch (Exception e) {
             log.error("Failed to fetch customer features for customerId: {}", customerId, e);
-            return CustomerFeaturesMapper.getDefaultCustomerFeatures(customerId, null);
+            return CustomerFeaturesMapper.getDefaultCustomerFeatures(customerId, "");
         }
     }
 
@@ -33,7 +33,7 @@ public class CustomerFeatureService {
             return CustomerFeaturesMapper.toAvroCustomerFeatures(response);
         } catch (Exception e) {
             log.error("Failed to fetch customer features for accountId: {}", accountId, e);
-            return CustomerFeaturesMapper.getDefaultCustomerFeatures(null, accountId);
+            return CustomerFeaturesMapper.getDefaultCustomerFeatures("", accountId);
         }
     }
 

@@ -110,4 +110,4 @@ networks:
   aml-network:
     name: aml-network
     driver: bridge
-    external: false
+    external: true

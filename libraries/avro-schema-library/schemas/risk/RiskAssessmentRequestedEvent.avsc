@@ -47,10 +47,10 @@
         "type": "enum",
         "name": "PaymentType",
         "symbols": [
-          "TRANSFER",
+          "TRANSFER_IN",
+          "TRANSFER_OUT",
           "DEPOSIT",
-          "WITHDRAWAL",
-          "PAYMENT"
+          "WITHDRAWAL"
         ]
       },
       "doc": "Type of payment transaction"
