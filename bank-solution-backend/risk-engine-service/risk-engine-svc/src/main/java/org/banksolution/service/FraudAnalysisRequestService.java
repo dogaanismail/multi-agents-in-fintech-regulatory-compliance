@@ -3,6 +3,7 @@ package org.banksolution.service;
 import com.aml.fraud.FraudAnalysisRequestedEvent;
 import com.aml.fraud.TransactionFeatures;
 import com.aml.fraud.NetworkFeatures;
+import com.aml.fraud.CustomerFeatures;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.RiskCheckRequestEntity;
@@ -23,6 +24,7 @@ public class FraudAnalysisRequestService {
     public void processFraudAnalysisRequest(RiskCheckRequestEntity riskCheckRequestEntity) {
         TransactionFeatures transactionFeatures = transactionFeatureService.getTransactionFeatures(riskCheckRequestEntity);
         NetworkFeatures networkFeatures = networkFeatureService.getNetworkFeatures(riskCheckRequestEntity.getSourceAccountId());
+        CustomerFeatures customerFeatures = customerFeatureService.getCustomerFeatures(riskCheckRequestEntity.getCustomerId());
 
         String riskCheckRequestId = riskCheckRequestEntity.getId().toString();
         long requestTimestamp = riskCheckRequestEntity.getRequestTimestamp();
@@ -30,7 +32,7 @@ public class FraudAnalysisRequestService {
                 riskCheckRequestId,
                 requestTimestamp,
                 transactionFeatures,
-                null,
+                customerFeatures,
                 networkFeatures);
 
         fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(fraudAnalysisRequestedEvent);

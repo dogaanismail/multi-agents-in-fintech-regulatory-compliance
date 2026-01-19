@@ -44,6 +44,15 @@
       "doc": "Source account ID (for transfers/withdrawals)"
     },
     {
+      "name": "sourceAccountBankLocation",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Source account bank location"
+    },
+    {
       "name": "destinationAccountId",
       "type": [
         "null",
@@ -51,6 +60,15 @@
       ],
       "default": null,
       "doc": "Destination account ID (for transfers/deposits)"
+    },
+    {
+      "name": "destinationAccountBankLocation",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Destination account bank location"
     },
     {
       "name": "customerId",
