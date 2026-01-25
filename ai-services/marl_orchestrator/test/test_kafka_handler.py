@@ -1,5 +1,5 @@
 """
-Unit tests for FraudDetectionRequestHandler
+Unit tests for FraudAnalysisRequestedHandler
 
 Tests the handler logic without actual Kafka infrastructure.
 """
@@ -8,7 +8,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime
 
-from app.handlers.fraud_detection_request_handler import FraudDetectionRequestHandler
+from app.handlers.fraud_analysis_requested_handler import FraudAnalysisRequestedHandler
 from app.models.schemas import CoordinatedDecisionResponse, ActionType, AgentObservation
 
 
@@ -21,7 +21,7 @@ def mock_fraud_decision_service():
 
 @pytest.fixture
 def mock_fraud_response_publisher():
-    """Mock FraudDetectionResponsePublisher"""
+    """Mock FraudAnalysisCompletedPublisher"""
     mock = Mock()
     return mock
 
@@ -29,7 +29,7 @@ def mock_fraud_response_publisher():
 @pytest.fixture
 def handler(mock_fraud_decision_service, mock_fraud_response_publisher):
     """Create handler with mocked dependencies"""
-    handler = FraudDetectionRequestHandler()
+    handler = FraudAnalysisRequestedHandler()
     handler.fraud_decision_service = mock_fraud_decision_service
     handler.fraud_response_publisher = mock_fraud_response_publisher
     return handler
@@ -37,7 +37,7 @@ def handler(mock_fraud_decision_service, mock_fraud_response_publisher):
 
 @pytest.fixture
 def sample_request():
-    """Sample fraud detection request (Avro format)"""
+    """Sample fraud analysis request (Avro format)"""
     return {
         'requestId': 'req-12345',
         'transactionId': 'txn-67890',
@@ -106,7 +106,7 @@ def sample_decision_response():
 @pytest.mark.asyncio
 async def test_handle_success(handler, mock_fraud_decision_service, mock_fraud_response_publisher, 
                                sample_request, sample_decision_response):
-    """Test successful handling of fraud detection request"""
+    """Test successful handling of fraud analysis request"""
     # Arrange
     mock_fraud_decision_service.make_decision = AsyncMock(return_value=sample_decision_response)
     mock_fraud_response_publisher.publish = Mock(return_value=True)

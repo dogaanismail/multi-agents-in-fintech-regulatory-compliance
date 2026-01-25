@@ -65,8 +65,8 @@ class Settings(BaseSettings):
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     schema_registry_url: str = os.getenv("SCHEMA_REGISTRY_URL", "http://localhost:8081")
     kafka_consumer_group: str = "marl-orchestrator-group"
-    fraud_request_topic: str = "fraud.detection.request"
-    fraud_response_topic: str = "fraud.detection.response"
+    fraud_analysis_requested_topic: str = "fraud.analysis.requested"
+    fraud_analysis_completed_topic: str = "fraud.analysis.completed"
     
     # Logging
     log_path: str = "./logs"

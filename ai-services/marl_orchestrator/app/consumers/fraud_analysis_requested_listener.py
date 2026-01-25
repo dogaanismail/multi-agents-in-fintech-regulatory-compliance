@@ -1,8 +1,8 @@
 """
-Fraud Detection Request Listener - Consumes FraudDetectionRequest from Kafka
+Fraud Analysis Requested Listener - Consumes FraudAnalysisRequested from Kafka
 
-Thin Kafka consumer that listens to fraud detection requests
-and delegates processing to FraudDetectionRequestHandler.
+Thin Kafka consumer that listens to fraud analysis requests
+and delegates processing to FraudAnalysisRequestedHandler.
 """
 
 import asyncio
@@ -10,14 +10,14 @@ from threading import Thread
 from confluent_kafka import KafkaError
 
 from app.infrastructure.kafka.kafka_config import kafka_config
-from app.handlers.fraud_detection_request_handler import fraud_detection_request_handler
+from app.handlers.fraud_analysis_requested_handler import fraud_analysis_requested_handler
 from app.core.config import settings
 from app.core.logging import logger
 
 #TODO: Refactor kafka listener in marl orchestrator
-class FraudDetectionRequestListener:
+class FraudAnalysisRequestedListener:
     """
-    Kafka consumer for fraud detection requests.
+    Kafka consumer for fraud analysis requests.
     
     Runs Kafka polling in a separate thread to avoid blocking the async event loop.
     Async message processing is submitted back to the main event loop.
@@ -31,14 +31,14 @@ class FraudDetectionRequestListener:
         )
         
         # Inject handler
-        self.handler = fraud_detection_request_handler
+        self.handler = fraud_analysis_requested_handler
         
-        self.topic = settings.fraud_request_topic
+        self.topic = settings.fraud_analysis_requested_topic
         self.running = False
         self._thread = None
         self._loop = None  # Reference to main event loop
         
-        logger.info(f"FraudDetectionRequestListener initialized for topic: {self.topic}")
+        logger.info(f"FraudAnalysisRequestedListener initialized for topic: {self.topic}")
     
     async def start(self):
         """Start listening to Kafka topic in a separate thread."""
@@ -91,7 +91,7 @@ class FraudDetectionRequestListener:
     
     def stop(self):
         """Stop the listener gracefully."""
-        logger.info("Stopping fraud request listener...")
+        logger.info("Stopping fraud analysis request listener...")
         self.running = False
     
     def _cleanup(self):
@@ -100,4 +100,4 @@ class FraudDetectionRequestListener:
             self.consumer.close()
             logger.info("Consumer closed")
 
-fraud_detection_request_listener = FraudDetectionRequestListener()
+fraud_analysis_requested_listener = FraudAnalysisRequestedListener()

@@ -1,10 +1,17 @@
 package org.banksolution.enums;
 
 public enum Currency {
-    TRY,
-    USD,
+    AED,
+    ALL,
+    CHF,
     EUR,
     GBP,
+    INR,
     JPY,
-    CHF
+    MAD,
+    MXN,
+    NGN,
+    PKR,
+    TRY,
+    USD
 }

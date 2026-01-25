@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import logger
 from app.api import api_router
-from app.consumers.fraud_detection_request_listener import fraud_detection_request_listener
+from app.consumers.fraud_analysis_requested_listener import fraud_analysis_requested_listener
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,14 +39,14 @@ async def lifespan(app: FastAPI):
             logger.info("💡 Running in training mode - models will be trained first")
     
     # Start Kafka listener in background
-    logger.info("🎧 Starting Kafka fraud detection request listener...")
-    listener_task = asyncio.create_task(fraud_detection_request_listener.start())
+    logger.info("🎧 Starting Kafka fraud analysis request listener...")
+    listener_task = asyncio.create_task(fraud_analysis_requested_listener.start())
     
     yield
     
     # Shutdown
     logger.info("👋 Shutting down MARL Orchestrator...")
-    fraud_detection_request_listener.stop()
+    fraud_analysis_requested_listener.stop()
     await listener_task
 
 

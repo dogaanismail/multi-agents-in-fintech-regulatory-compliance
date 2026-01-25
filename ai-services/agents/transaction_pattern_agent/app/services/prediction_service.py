@@ -14,82 +14,15 @@ from .model_loader import model_loader
 
 
 class PredictionService:
-    """Handles transaction preprocessing and fraud prediction"""
-
-    #TODO: Refactor mapping strategies and handle mapping in Jupyter notebook
-
-    # Mapping dictionaries to convert API-friendly values to training data values
-    CURRENCY_MAPPING = {
-        'UK pound': 'UK pounds',
-        'UK Pound': 'UK pounds',
-        'GBP': 'UK pounds',
-        'US Dollar': 'US dollar',
-        'USD': 'US dollar',
-        # Add pass-through for exact matches
-        'UK pounds': 'UK pounds',
-        'US dollar': 'US dollar',
-        'Euro': 'Euro',
-        'Yen': 'Yen',
-        'Dirham': 'Dirham',
-        'Swiss franc': 'Swiss franc',
-        'Turkish lira': 'Turkish lira',
-        'Indian rupee': 'Indian rupee',
-        'Pakistani rupee': 'Pakistani rupee',
-        'Mexican Peso': 'Mexican Peso',
-        'Naira': 'Naira',
-        'Albanian lek': 'Albanian lek',
-        'Moroccan dirham': 'Moroccan dirham'
-    }
+    """
+    Handles transaction preprocessing and fraud prediction
     
-    COUNTRY_MAPPING = {
-        'United Kingdom': 'UK',
-        'United States': 'USA',
-        'United Arab Emirates': 'UAE',
-        # Add pass-through for exact matches
-        'UK': 'UK',
-        'USA': 'USA',
-        'UAE': 'UAE',
-        'France': 'France',
-        'Germany': 'Germany',
-        'Italy': 'Italy',
-        'Spain': 'Spain',
-        'Netherlands': 'Netherlands',
-        'Switzerland': 'Switzerland',
-        'Austria': 'Austria',
-        'Turkey': 'Turkey',
-        'India': 'India',
-        'Pakistan': 'Pakistan',
-        'Japan': 'Japan',
-        'Mexico': 'Mexico',
-        'Nigeria': 'Nigeria',
-        'Morocco': 'Morocco',
-        'Albania': 'Albania'
-    }
+    NOTE: Model trained with ISO standardized codes:
+    - Currencies: ISO 4217 (3-letter: USD, EUR, GBP, etc.)
+    - Countries: ISO 3166-1 alpha-2 (2-letter: US, GB, TR, etc.)
     
-    @staticmethod
-    def normalize_value(value: str, mapping: dict) -> str:
-        """
-        Normalize a categorical value using the provided mapping
-        
-        Args:
-            value: Original value from API
-            mapping: Dictionary mapping API values to training data values
-        
-        Returns:
-            Normalized value matching training data
-        """
-        # Try exact match first
-        if value in mapping:
-            return mapping[value]
-        
-        # Try case-insensitive match
-        for key, mapped_value in mapping.items():
-            if key.lower() == value.lower():
-                return mapped_value
-        
-        # Return original if no mapping found (will be handled as unknown by preprocessor)
-        logger.warning(f"No mapping found for value: {value}")
-        return value
+    API must send data in ISO format to match training data.
+    """
     
     @staticmethod
     def preprocess_transaction(transaction: TransactionInput) -> pd.DataFrame:
@@ -97,45 +30,27 @@ class PredictionService:
         Preprocess a single transaction for model input
         
         Args:
-            transaction: Transaction input data
+            transaction: Transaction input data (aligned with Avro schema)
         
         Returns:
             Preprocessed DataFrame ready for model
+            
+        Note:
+            - Model expects 7 core features: Amount, Payment_currency, Received_currency,
+              Sender_bank_location, Receiver_bank_location, Payment_type, plus derived time features
+            - Account numbers and bank names are NOT used for prediction
+            - ISO codes expected: ISO 4217 (currencies), ISO 3166-1 alpha-2 (countries)
         """
-        # Convert to DataFrame (matching actual CSV column names)
-        # CSV columns: Time,Date,Sender_account,Receiver_account,Amount,Payment_currency,Received_currency,
-        #              Sender_bank_location,Receiver_bank_location,Payment_type,Is_laundering,Laundering_type
-        
-        # Calculate Amount as average of received and paid (to match training data)
-        amount = (transaction.Amount_Received + transaction.Amount_Paid) / 2
-        
-        # Normalize categorical values to match training data exactly
-        payment_currency = PredictionService.normalize_value(
-            transaction.Payment_Currency, 
-            PredictionService.CURRENCY_MAPPING
-        )
-        receiving_currency = PredictionService.normalize_value(
-            transaction.Receiving_Currency,
-            PredictionService.CURRENCY_MAPPING
-        )
-        sender_location = PredictionService.normalize_value(
-            transaction.Sender_bank_location,
-            PredictionService.COUNTRY_MAPPING
-        )
-        receiver_location = PredictionService.normalize_value(
-            transaction.Receiver_bank_location,
-            PredictionService.COUNTRY_MAPPING
-        )
         
         data = {
-            'Time': transaction.Time,
-            'Date': transaction.Date,
-            'Amount': amount,
-            'Payment_currency': payment_currency,
-            'Received_currency': receiving_currency,
-            'Sender_bank_location': sender_location,
-            'Receiver_bank_location': receiver_location,
-            'Payment_type': transaction.Payment_type
+            'Time': transaction.time,
+            'Date': transaction.date,
+            'Amount': transaction.amount,
+            'Payment_currency': transaction.paymentCurrency,
+            'Received_currency': transaction.receivedCurrency,
+            'Sender_bank_location': transaction.senderBankLocation,
+            'Receiver_bank_location': transaction.receiverBankLocation,
+            'Payment_type': transaction.paymentType
         }
         
         df = pd.DataFrame([data])
@@ -259,7 +174,7 @@ class PredictionService:
         try:
             for idx, transaction in enumerate(transactions):
                 prediction = PredictionService.predict_single(transaction)
-                prediction.transaction_id = f"TXN_{idx+1:04d}"
+                prediction.payment_id = f"PAY_{idx+1:04d}"
                 predictions.append(prediction)
             
             # Calculate processing time

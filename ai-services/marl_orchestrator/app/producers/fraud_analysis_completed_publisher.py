@@ -1,7 +1,7 @@
 """
-Fraud Detection Response Publisher - Publishes FraudDetectionResponse to Kafka
+Fraud Analysis Completed Publisher - Publishes FraudAnalysisCompleted to Kafka
 
-Responsible for publishing MADDPG fraud detection decisions back to Kafka.
+Responsible for publishing MADDPG fraud analysis decisions back to Kafka.
 """
 
 from typing import Any
@@ -14,11 +14,11 @@ from app.core.config import settings
 from app.core.logging import logger
 
 
-class FraudDetectionResponsePublisher:
+class FraudAnalysisCompletedPublisher:
     """
-    Publisher for fraud detection responses.
+    Publisher for fraud analysis completed events.
     
-    Publishes FraudDetectionResponse (Avro) to Kafka after MADDPG makes a decision.
+    Publishes FraudAnalysisCompletedEvent (Avro) to Kafka after MADDPG makes a decision.
     Uses dependency injection pattern with singleton instances.
     """
     
@@ -37,18 +37,18 @@ class FraudDetectionResponsePublisher:
         )
         
         self.producer_wrapper = AvroProducerWrapper(producer)
-        self.topic = settings.fraud_response_topic
+        self.topic = settings.fraud_analysis_completed_topic
         
-        logger.info(f"FraudDetectionResponsePublisher initialized for topic: {self.topic}")
+        logger.info(f"FraudAnalysisCompletedPublisher initialized for topic: {self.topic}")
     
     def _load_schema_from_registry(self):
-        """Load FraudDetectionResponse schema from Schema Registry."""
+        """Load FraudAnalysisCompletedEvent schema from Schema Registry."""
         try:
-            schema_url = f"{settings.schema_registry_url}/subjects/fraud.detection.response-value/versions/latest"
+            schema_url = f"{settings.schema_registry_url}/subjects/fraud.analysis.completed-value/versions/latest"
             response = requests.get(schema_url)
             response.raise_for_status()
             schema_str = response.json()['schema']
-            logger.info("Loaded FraudDetectionResponse schema from registry")
+            logger.info("Loaded FraudAnalysisCompletedEvent schema from registry")
             return avro.loads(schema_str)
         except Exception as e:
             logger.error(f"Failed to load schema from registry: {e}")
@@ -57,14 +57,14 @@ class FraudDetectionResponsePublisher:
     def publish(
         self,
         response: Any,
-        transaction_id: str = None
+        payment_id: str = None
     ) -> bool:
         """
-        Publish fraud detection response to Kafka.
+        Publish fraud analysis completed event to Kafka.
         
         Args:
             response: CoordinatedDecisionResponse or Avro dict
-            transaction_id: Optional transaction ID for logging
+            payment_id: Optional payment ID for logging
         
         Returns:
             True if published successfully
@@ -77,27 +77,27 @@ class FraudDetectionResponsePublisher:
             success = self.producer_wrapper.send(
                 topic=self.topic,
                 value=avro_response,
-                key=transaction_id
+                key=payment_id
             )
             
             if success:
                 logger.info(
-                    f"Published fraud response for transaction {transaction_id} "
+                    f"Published fraud analysis completed event for payment {payment_id} "
                     f"to topic {self.topic}"
                 )
             else:
-                logger.error(f"Failed to publish fraud response for transaction {transaction_id}")
+                logger.error(f"Failed to publish fraud analysis completed event for payment {payment_id}")
             
             return success
             
         except Exception as e:
-            logger.error(f"Error publishing fraud response: {str(e)}")
+            logger.error(f"Error publishing fraud analysis completed event: {str(e)}")
             logger.exception("Full traceback:")
             return False
     
     def _to_avro_format(self, response: Any) -> dict:
         """
-        Convert CoordinatedDecisionResponse to Avro FraudDetectionResponse format.
+        Convert CoordinatedDecisionResponse to Avro FraudAnalysisCompletedEvent format.
         
         Args:
             response: CoordinatedDecisionResponse object or dict (pre-formatted by handler)
@@ -151,4 +151,6 @@ class FraudDetectionResponsePublisher:
         """Close producer and flush messages."""
         self.producer_wrapper.close()
 
-fraud_detection_response_publisher = FraudDetectionResponsePublisher()
+
+# Singleton instance for dependency injection
+fraud_analysis_completed_publisher = FraudAnalysisCompletedPublisher()

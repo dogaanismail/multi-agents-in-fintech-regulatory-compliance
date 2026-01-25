@@ -2,6 +2,6 @@
 Handlers package - Request/message handlers
 """
 
-from .fraud_detection_request_handler import fraud_detection_request_handler
+from .fraud_analysis_requested_handler import fraud_analysis_requested_handler
 
-__all__ = ['fraud_detection_request_handler']
+__all__ = ['fraud_analysis_requested_handler']
