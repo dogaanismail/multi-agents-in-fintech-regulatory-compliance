@@ -148,7 +148,8 @@ public class PaymentAggregate {
                 command.paymentId(),
                 command.riskAssessment().riskScore(),
                 command.riskAssessment().marlAssessment() != null ?
-                        command.riskAssessment().marlAssessment().maddpgQValue() : null
+                        command.riskAssessment().marlAssessment().maddpgQValue() : null,
+                command.riskAssessment()
         ));
     }
 
@@ -277,6 +278,8 @@ public class PaymentAggregate {
         this.status = PaymentStatus.FRAUD_CHECK_APPROVED;
         this.fraudStatus = FraudAnalysisStatus.APPROVED;
         this.fraudCheckApprovedAt = Instant.now();
+        this.riskAssessment = event.riskAssessment();
+        this.riskAssessmentCompletedAt = Instant.now();
         log.info("Fraud check approved for payment: {}", event.paymentId());
 
         apply(new AccountChargeInitiatedEvent(
@@ -311,6 +314,7 @@ public class PaymentAggregate {
         this.fraudStatus = FraudAnalysisStatus.BLOCKED;
         this.blockedAt = Instant.now();
         this.blockReason = event.reason();
+        this.riskAssessmentCompletedAt = Instant.now();
         this.riskAssessment = event.riskAssessment();
         log.info("Payment blocked: {} - Reason: {}", event.paymentId(), event.reason());
     }
@@ -330,6 +334,7 @@ public class PaymentAggregate {
         this.manualReviewApprovedAt = Instant.now();
         this.manualReviewedBy = event.approvedBy();
         this.manualReviewNotes = event.approvalNotes();
+        this.riskAssessmentCompletedAt = Instant.now();
         log.info("Manual review approved for payment: {} by {}", event.paymentId(), event.approvedBy());
 
         apply(new AccountChargeInitiatedEvent(
