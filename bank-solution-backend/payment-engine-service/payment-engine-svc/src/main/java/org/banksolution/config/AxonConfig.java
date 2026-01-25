@@ -36,6 +36,9 @@ import org.axonframework.serialization.json.JacksonSerializer;
 import org.axonframework.spring.eventsourcing.SpringAggregateSnapshotterFactoryBean;
 import org.axonframework.spring.messaging.unitofwork.SpringTransactionManager;
 import org.axonframework.tracing.SpanFactory;
+import org.axonframework.eventsourcing.EventSourcingRepository;
+import org.banksolution.domain.payment.aggregate.PaymentAggregate;
+import org.banksolution.domain.payment.saga.AccountChargeSaga;
 import org.banksolution.domain.payment.saga.PaymentRiskSaga;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -212,14 +215,34 @@ public class AxonConfig {
 
     @Autowired
     public void configureSaga(EventProcessingConfigurer configurer) {
+        // Configure PaymentRiskSaga
         configurer.registerSaga(PaymentRiskSaga.class);
-
         configurer.assignHandlerTypesMatching(
                 "PaymentRiskSagaProcessor",
                 clazz -> clazz.equals(PaymentRiskSaga.class)
         );
-
         configurer.registerSubscribingEventProcessor("PaymentRiskSagaProcessor");
+
+        // Configure AccountChargeSaga
+        configurer.registerSaga(AccountChargeSaga.class);
+        configurer.assignHandlerTypesMatching(
+                "AccountChargeSagaProcessor",
+                clazz -> clazz.equals(AccountChargeSaga.class)
+        );
+        configurer.registerSubscribingEventProcessor("AccountChargeSagaProcessor");
+    }
+
+    @Bean
+    public EventSourcingRepository<PaymentAggregate> paymentRepository(
+            EventStore eventStore,
+            SnapshotTriggerDefinition snapshotTriggerDefinition,
+            Cache paymentCache) {
+        
+        return EventSourcingRepository.builder(PaymentAggregate.class)
+                .eventStore(eventStore)
+                .snapshotTriggerDefinition(snapshotTriggerDefinition)
+                .cache(paymentCache)
+                .build();
     }
 
 }

@@ -1,5 +1,6 @@
 package org.banksolution.infrastructure.messaging.kafka.handler;
 
+import com.aml.account.AccountChargeCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -18,7 +19,7 @@ public class AccountChargeCompletedEventHandler {
 
     private final CommandGateway commandGateway;
 
-    public void handle(com.aml.account.AccountChargeCompletedEvent event) {
+    public void handle(AccountChargeCompletedEvent event) {
         log.info("Received account charge completed event for payment: {}, success: {}",
                 event.getPaymentId(),
                 event.getSuccess());

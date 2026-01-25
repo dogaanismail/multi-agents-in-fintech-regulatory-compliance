@@ -31,8 +31,21 @@ CREATE TABLE payment_history
     initiated_at             TIMESTAMP,
     risk_check_requested_at  TIMESTAMP,
     risk_check_completed_at  TIMESTAMP,
+    fraud_check_approved_at  TIMESTAMP,
+    manual_review_requested_at TIMESTAMP,
+    manual_review_approved_at TIMESTAMP,
+    manual_review_rejected_at TIMESTAMP,
+    account_charge_initiated_at TIMESTAMP,
+    account_charged_at       TIMESTAMP,
+    account_charge_failed_at TIMESTAMP,
     completed_at             TIMESTAMP,
     blocked_at               TIMESTAMP,
+    
+    -- Decision Metadata
+    manual_reviewed_by       VARCHAR(255),
+    manual_review_notes      VARCHAR(2000),
+    block_reason             VARCHAR(1000),
+    failure_reason           VARCHAR(1000),
     
     -- Processing Metadata
     risk_processing_time_ms  BIGINT,
@@ -62,6 +75,10 @@ CREATE INDEX idx_payment_history_fraud_status ON payment_history (fraud_status);
 CREATE INDEX idx_payment_history_risk_level ON payment_history (risk_level);
 CREATE INDEX idx_payment_history_created_at ON payment_history (created_at DESC);
 CREATE INDEX idx_payment_history_initiated_at ON payment_history (initiated_at DESC);
+CREATE INDEX idx_payment_history_manual_review_requested ON payment_history (manual_review_requested_at DESC);
+CREATE INDEX idx_payment_history_account_charged ON payment_history (account_charged_at DESC);
+CREATE INDEX idx_payment_history_manual_reviewed_by ON payment_history (manual_reviewed_by);
+CREATE INDEX idx_payment_history_completed_at ON payment_history (completed_at DESC);
 
 -- Composite indexes for common query combinations
 CREATE INDEX idx_payment_history_customer_status ON payment_history (customer_id, status);
@@ -92,8 +109,19 @@ COMMENT ON COLUMN payment_history.marl_assessment IS 'Complete MARL orchestrator
 COMMENT ON COLUMN payment_history.initiated_at IS 'Timestamp when payment was initiated';
 COMMENT ON COLUMN payment_history.risk_check_requested_at IS 'Timestamp when risk check was requested';
 COMMENT ON COLUMN payment_history.risk_check_completed_at IS 'Timestamp when risk check completed';
+COMMENT ON COLUMN payment_history.fraud_check_approved_at IS 'Timestamp when fraud check was approved';
+COMMENT ON COLUMN payment_history.manual_review_requested_at IS 'Timestamp when manual review was requested';
+COMMENT ON COLUMN payment_history.manual_review_approved_at IS 'Timestamp when manual review was approved';
+COMMENT ON COLUMN payment_history.manual_review_rejected_at IS 'Timestamp when manual review was rejected';
+COMMENT ON COLUMN payment_history.account_charge_initiated_at IS 'Timestamp when account charge was initiated';
+COMMENT ON COLUMN payment_history.account_charged_at IS 'Timestamp when account was successfully charged';
+COMMENT ON COLUMN payment_history.account_charge_failed_at IS 'Timestamp when account charge failed';
 COMMENT ON COLUMN payment_history.completed_at IS 'Timestamp when payment was completed';
 COMMENT ON COLUMN payment_history.blocked_at IS 'Timestamp when payment was blocked';
+COMMENT ON COLUMN payment_history.manual_reviewed_by IS 'Compliance officer who performed manual review';
+COMMENT ON COLUMN payment_history.manual_review_notes IS 'Notes from compliance officer manual review';
+COMMENT ON COLUMN payment_history.block_reason IS 'Reason why payment was blocked';
+COMMENT ON COLUMN payment_history.failure_reason IS 'Reason for payment failure';
 COMMENT ON COLUMN payment_history.risk_processing_time_ms IS 'Risk engine processing time in milliseconds';
 COMMENT ON COLUMN payment_history.marl_processing_time_ms IS 'MARL orchestrator processing time in milliseconds';
 COMMENT ON COLUMN payment_history.ml_model_version IS 'ML model version used for risk assessment';

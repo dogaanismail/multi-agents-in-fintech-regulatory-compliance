@@ -11,10 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * DTO for payment history API responses.
- * Used for pagination and API layer data transfer.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,13 +42,27 @@ public class PaymentHistoryResponse {
     // MARL Assessment
     private MarlAssessmentDto marlAssessment;
 
-    // Lifecycle Timestamps
+    // Complete Lifecycle Timestamps - Full audit trail
     private Instant initiatedAt;
     private Instant riskCheckRequestedAt;
     private Instant riskCheckCompletedAt;
+    private Instant fraudCheckApprovedAt;
+    private Instant manualReviewRequestedAt;
+    private Instant manualReviewApprovedAt;
+    private Instant manualReviewRejectedAt;
+    private Instant accountChargeInitiatedAt;
+    private Instant accountChargedAt;
+    private Instant accountChargeFailedAt;
     private Instant completedAt;
     private Instant blockedAt;
 
+    // Decision Metadata
+    private String manualReviewedBy;
+    private String manualReviewNotes;
+    private String blockReason;
+    private String failureReason;
+
+    // Processing Metadata
     private Long riskProcessingTimeMs;
     private Long marlProcessingTimeMs;
     private String mlModelVersion;

@@ -34,6 +34,8 @@ public class PaymentAggregate {
     @AggregateIdentifier
     private PaymentId paymentId;
 
+    private String referenceNumber;
+
     private UUID customerId;
     private UUID sourceAccountId;
     private UUID destinationAccountId;
@@ -47,12 +49,23 @@ public class PaymentAggregate {
 
     private RiskAssessment riskAssessment;
 
+    // Lifecycle Timestamps
     private Instant initiatedAt;
     private Instant riskAssessmentRequestedAt;
     private Instant riskAssessmentCompletedAt;
+    private Instant fraudCheckApprovedAt;
+    private Instant manualReviewRequestedAt;
+    private Instant manualReviewApprovedAt;
+    private Instant manualReviewRejectedAt;
+    private String manualReviewedBy;
+    private String manualReviewNotes;
+    private Instant accountChargeInitiatedAt;
+    private Instant accountChargedAt;
+    private Instant accountChargeFailedAt;
     private Instant completedAt;
     private Instant blockedAt;
-    private Instant manualReviewRequestedAt;
+    private String blockReason;
+    private String failureReason;
 
     @AggregateVersion
     private Long version;
@@ -230,6 +243,7 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(PaymentInitiatedEvent event) {
         this.paymentId = event.paymentId();
+        this.referenceNumber = "PAY-" + event.paymentId().toString().substring(0, 8).toUpperCase();
         this.customerId = event.customerId();
         this.sourceAccountId = event.sourceAccountId();
         this.destinationAccountId = event.destinationAccountId();
@@ -261,6 +275,7 @@ public class PaymentAggregate {
     public void on(FraudCheckApprovedEvent event) {
         this.status = PaymentStatus.FRAUD_CHECK_APPROVED;
         this.fraudStatus = FraudAnalysisStatus.APPROVED;
+        this.fraudCheckApprovedAt = Instant.now();
         log.info("Fraud check approved for payment: {}", event.paymentId());
 
         apply(new AccountChargeInitiatedEvent(
@@ -278,12 +293,14 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(AccountChargeInitiatedEvent event) {
         this.status = PaymentStatus.ACCOUNT_CHARGE_PENDING;
+        this.accountChargeInitiatedAt = Instant.now();
         log.info("Account charge initiated for payment: {}", event.paymentId());
     }
 
     @EventSourcingHandler
     public void on(AccountChargedEvent event) {
         this.status = PaymentStatus.ACCOUNT_CHARGED;
+        this.accountChargedAt = Instant.now();
         log.info("Account charged for payment: {}", event.paymentId());
     }
 
@@ -292,6 +309,7 @@ public class PaymentAggregate {
         this.status = PaymentStatus.BLOCKED;
         this.fraudStatus = FraudAnalysisStatus.BLOCKED;
         this.blockedAt = Instant.now();
+        this.blockReason = event.reason();
         log.info("Payment blocked: {} - Reason: {}", event.paymentId(), event.reason());
     }
 
@@ -307,6 +325,9 @@ public class PaymentAggregate {
     public void on(ManualReviewApprovedEvent event) {
         this.status = PaymentStatus.FRAUD_CHECK_APPROVED;
         this.fraudStatus = FraudAnalysisStatus.APPROVED;
+        this.manualReviewApprovedAt = Instant.now();
+        this.manualReviewedBy = event.approvedBy();
+        this.manualReviewNotes = event.approvalNotes();
         log.info("Manual review approved for payment: {} by {}", event.paymentId(), event.approvedBy());
 
         apply(new AccountChargeInitiatedEvent(
@@ -326,6 +347,10 @@ public class PaymentAggregate {
         this.status = PaymentStatus.BLOCKED;
         this.fraudStatus = FraudAnalysisStatus.BLOCKED;
         this.blockedAt = Instant.now();
+        this.manualReviewRejectedAt = Instant.now();
+        this.manualReviewedBy = event.rejectedBy();
+        this.manualReviewNotes = event.rejectionReason();
+        this.blockReason = "Manual review rejected: " + event.rejectionReason();
         log.info("Manual review rejected for payment: {} by: {}, reason: {}",
                 event.paymentId(),
                 event.rejectedBy(),
@@ -342,6 +367,8 @@ public class PaymentAggregate {
     public void on(AccountChargeFailedEvent event) {
         this.status = PaymentStatus.FAILED;
         this.fraudStatus = FraudAnalysisStatus.APPROVED;
+        this.accountChargeFailedAt = Instant.now();
+        this.failureReason = event.failureReason();
         log.error("Account charge failed for payment: {}, reason: {}", event.paymentId(), event.failureReason());
 
         apply(new PaymentCompletedEvent(

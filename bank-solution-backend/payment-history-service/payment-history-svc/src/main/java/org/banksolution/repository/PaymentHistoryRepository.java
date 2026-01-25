@@ -10,13 +10,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface PaymentHistoryRepository extends JpaRepository<@NonNull PaymentHistoryEntity, @NonNull UUID> {
-
-    Optional<PaymentHistoryEntity> findByReferenceNumber(String referenceNumber);
 
     Page<@NonNull PaymentHistoryEntity> findByCustomerId(UUID customerId, Pageable pageable);
 
