@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   transaction-pattern-agent:
@@ -13,6 +11,8 @@ services:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
       - PORT=1001
+    networks:
+      - aml-multi-agent-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:1001/health"]
@@ -32,6 +32,8 @@ services:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
       - PORT=1002
+    networks:
+      - aml-multi-agent-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:1002/health"]
@@ -51,6 +53,8 @@ services:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
       - PORT=1003
+    networks:
+      - aml-multi-agent-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:1003/health"]
@@ -85,7 +89,7 @@ services:
       - aml-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1004/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:1004/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -26,7 +26,6 @@ public class AccountChargeRequestedEventProducer {
 
             AccountChargeRequestedEvent request = toAvroRequest(event);
             accountChargeRequestedEventKafkaTemplate.send(topic, messageKey, request);
-
             log.info("Successfully published AccountChargeRequestedEvent for payment: {}", event.paymentId());
         } catch (Exception e) {
             log.error("Error publishing AccountChargeRequestedEvent for payment: {}", event.paymentId(), e);

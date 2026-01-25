@@ -2,6 +2,7 @@ package org.banksolution.mapper;
 
 import com.aml.fraud.FraudAnalysisCompletedEvent;
 import com.aml.risk.RiskAction;
+import com.aml.risk.RiskLevel;
 import lombok.experimental.UtilityClass;
 import org.banksolution.entity.RiskAssessmentEntity;
 import org.banksolution.entity.RiskCheckRequestEntity;
@@ -13,25 +14,38 @@ import java.util.List;
 @UtilityClass
 public class RiskAssessmentEntityMapper {
 
-    //TODO: Implement risk level, ml model version
+    private static final String ML_MODEL_VERSION = "MADDPG-v1.0";
 
     public static RiskAssessmentEntity toRiskAssessmentEntity(
             FraudAnalysisCompletedEvent event,
             RiskCheckRequestEntity riskCheckRequest) {
 
         BigDecimal riskScore = BigDecimal.valueOf(event.getConfidence());
+        RiskLevel riskLevel = calculateRiskLevel(event.getConfidence());
         RiskAction riskAction = mapToRiskAction(event.getAction().name());
         List<String> fraudIndicators = buildFraudIndicators(event);
 
         return RiskAssessmentEntity.builder()
                 .riskCheckRequest(riskCheckRequest)
                 .riskScore(riskScore)
-                .riskLevel(null)
+                .riskLevel(riskLevel)
                 .riskAction(riskAction)
                 .fraudIndicators(fraudIndicators)
-                .mlModelVersion(null)
+                .mlModelVersion(ML_MODEL_VERSION)
                 .processingTimeMs((long) event.getProcessingTimeMs())
                 .build();
+    }
+
+    private static RiskLevel calculateRiskLevel(double confidence) {
+        if (confidence >= 0.8) {
+            return RiskLevel.CRITICAL;
+        } else if (confidence >= 0.6) {
+            return RiskLevel.HIGH;
+        } else if (confidence >= 0.4) {
+            return RiskLevel.MEDIUM;
+        } else {
+            return RiskLevel.LOW;
+        }
     }
 
     private static RiskAction mapToRiskAction(String action) {

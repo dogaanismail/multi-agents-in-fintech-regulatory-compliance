@@ -34,12 +34,47 @@ class CustomerAgentClient:
         
         logger.info(f"✅ {self.agent_name.capitalize()} Agent client initialized")
     
+    def _transform_features(self, features: Dict) -> Dict:
+        """
+        Transform Avro camelCase features to snake_case for agent API.
+        Also handles edge cases where values are 0 (provides minimum valid values).
+        
+        Args:
+            features: Avro-formatted features with camelCase keys
+            
+        Returns:
+            Transformed features with snake_case keys and valid values
+        """
+        # Map camelCase to snake_case
+        transformed = {
+            'transaction_count': max(features.get('transactionCount', 0), 1),  # gt=0 constraint
+            'total_amount': max(features.get('totalAmount', 0.0), 0.01),  # gt=0 constraint
+            'avg_amount': max(features.get('avgAmount', 0.0), 0.01),  # gt=0 constraint
+            'median_amount': max(features.get('medianAmount', 0.0), 0.01),  # gt=0 constraint
+            'max_amount': max(features.get('maxAmount', 0.0), 0.01),  # gt=0 constraint
+            'min_amount': max(features.get('minAmount', 0.0), 0.01),  # gt=0 constraint
+            'std_amount': max(features.get('stdAmount', 0.0), 0.0),  # ge=0 constraint
+            'active_days': max(features.get('activeDays', 0), 1),  # gt=0 constraint
+            'transactions_per_day': max(features.get('transactionsPerDay', 0.0), 0.01),  # gt=0 constraint
+            'cross_border_ratio': min(max(features.get('crossBorderRatio', 0.0), 0.0), 1.0),
+            'cash_transaction_ratio': min(max(features.get('cashTransactionRatio', 0.0), 0.0), 1.0),
+            'amount_consistency': max(features.get('amountConsistency', 0.0), 0.0),
+            'large_transaction_ratio': min(max(features.get('largeTransactionRatio', 0.0), 0.0), 1.0),
+            'unique_receivers': max(features.get('uniqueReceivers', 0), 0),
+            'unique_receiver_countries': max(features.get('uniqueReceiverCountries', 0), 0),
+            'receiver_diversity': min(max(features.get('receiverDiversity', 0.0), 0.0), 1.0),
+            'night_transaction_ratio': min(max(features.get('nightTransactionRatio', 0.0), 0.0), 1.0),
+            'weekend_transaction_ratio': min(max(features.get('weekendTransactionRatio', 0.0), 0.0), 1.0),
+            'unique_currencies': max(features.get('uniqueCurrencies', 0), 0),
+        }
+        return transformed
+    
     async def assess_risk(self, features: Dict, customer_id: str = "ORCHESTRATOR_REQUEST") -> AgentObservation:
         """
         Get risk assessment from Customer Risk Agent
         
         Args:
-            features: Customer features for risk assessment
+            features: Customer features for risk assessment (Avro camelCase format)
             customer_id: Customer identifier (optional)
         
         Returns:
@@ -51,9 +86,15 @@ class CustomerAgentClient:
         start_time = time.time()
         
         try:
+            # Transform Avro camelCase to API snake_case
+            transformed_features = self._transform_features(features)
+            
+            # Get customer_id from features if available
+            actual_customer_id = features.get('customerId', customer_id)
+            
             request_data = {
-                "customer_id": customer_id,
-                "features": features
+                "customer_id": actual_customer_id,
+                "features": transformed_features
             }
             
             response = await self.client.post(

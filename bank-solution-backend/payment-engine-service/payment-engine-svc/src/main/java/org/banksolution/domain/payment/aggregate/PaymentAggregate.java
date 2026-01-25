@@ -125,7 +125,8 @@ public class PaymentAggregate {
                 reason,
                 command.riskAssessment().riskScore(),
                 command.riskAssessment().marlAssessment() != null ?
-                        command.riskAssessment().marlAssessment().maddpgQValue() : null
+                        command.riskAssessment().marlAssessment().maddpgQValue() : null,
+                command.riskAssessment()
         ));
 
         apply(new PaymentCompletedEvent(
@@ -310,6 +311,7 @@ public class PaymentAggregate {
         this.fraudStatus = FraudAnalysisStatus.BLOCKED;
         this.blockedAt = Instant.now();
         this.blockReason = event.reason();
+        this.riskAssessment = event.riskAssessment();
         log.info("Payment blocked: {} - Reason: {}", event.paymentId(), event.reason());
     }
 

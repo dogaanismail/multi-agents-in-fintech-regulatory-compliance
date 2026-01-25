@@ -130,13 +130,6 @@ if [ "$FORCE_DEREGISTER" = true ]; then
 fi
 
 # Register base/dependency schemas first (in order)
-echo "Base Schemas (Dependencies):"
-register_schema "$SCHEMAS_DIR/transaction/TransactionFeatures.avsc" "transaction-features-value"
-register_schema "$SCHEMAS_DIR/customer/CustomerFeatures.avsc" "customer-features-value"
-register_schema "$SCHEMAS_DIR/network/NetworkFeatures.avsc" "network-features-value"
-register_schema "$SCHEMAS_DIR/agents/AgentObservation.avsc" "agent-observation-value"
-echo ""
-
 # Register risk assessment schemas
 echo "Risk Assessment Schemas:"
 register_schema "$SCHEMAS_DIR/risk/RiskAssessmentRequestedEvent.avsc" "risk.assessment.requested-value"

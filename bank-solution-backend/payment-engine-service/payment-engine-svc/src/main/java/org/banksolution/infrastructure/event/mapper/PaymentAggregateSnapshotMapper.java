@@ -30,7 +30,7 @@ public class PaymentAggregateSnapshotMapper {
                 .setRiskAssessment(mapRiskAssessment(payment.riskAssessment()))
                 .setEventTrigger(eventTrigger)
                 .setSnapshotTimestamp(Instant.now().toEpochMilli())
-                .setVersion(payment.version().intValue())
+                .setVersion(0) //TODO: Check version for axon
 
                 // Lifecycle timestamps
                 .setInitiatedAt(toEpochMillis(payment.initiatedAt()))

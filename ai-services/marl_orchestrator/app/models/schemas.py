@@ -34,7 +34,6 @@ class TransactionFeatures(BaseModel):
     Sender_bank_location: str
     Receiver_bank_location: str
 
-
 class CustomerFeatures(BaseModel):
     """Customer features for Customer Risk Agent"""
     transaction_count: int
@@ -98,12 +97,11 @@ class CoordinatedDecisionRequest(BaseModel):
     transaction: TransactionFeatures
     customer: CustomerFeatures
     network: NetworkFeatures
-    transaction_id: Optional[str] = None
-
+    payment_id: str = Field(..., description="Payment identifier from the request")
 
 class CoordinatedDecisionResponse(BaseModel):
     """Coordinated decision from MADDPG"""
-    transaction_id: Optional[str]
+    payment_id: str = Field(..., description="Payment identifier from the request")
     action: ActionType
     confidence: float = Field(..., ge=0, le=1, description="Confidence in decision (0-1)")
     maddpg_q_value: float = Field(..., description="Q-value from centralized critic")

@@ -34,12 +34,39 @@ class NetworkAgentClient:
         
         logger.info(f"✅ {self.agent_name.capitalize()} Agent client initialized")
     
+    def _transform_features(self, features: Dict) -> Dict:
+        """
+        Transform Avro camelCase features to snake_case for agent API.
+        Also handles edge cases where values need to be validated.
+        
+        Args:
+            features: Avro-formatted features with camelCase keys
+            
+        Returns:
+            Transformed features with snake_case keys and valid values
+        """
+        # Map camelCase to snake_case
+        transformed = {
+            'in_degree': max(features.get('inDegree', 0), 0),
+            'out_degree': max(features.get('outDegree', 0), 0),
+            'degree_centrality': min(max(features.get('degreeCentrality', 0.0), 0.0), 1.0),
+            'in_degree_centrality': min(max(features.get('inDegreeCentrality', 0.0), 0.0), 1.0),
+            'out_degree_centrality': min(max(features.get('outDegreeCentrality', 0.0), 0.0), 1.0),
+            'betweenness_centrality': min(max(features.get('betweennessCentrality', 0.0), 0.0), 1.0),
+            'closeness_centrality': min(max(features.get('closenessCentrality', 0.0), 0.0), 1.0),
+            'pagerank': max(features.get('pagerank', 0.0), 0.0),
+            'eigenvector_centrality': max(features.get('eigenvectorCentrality', 0.0), 0.0),
+            'clustering_coefficient': min(max(features.get('clusteringCoefficient', 0.0), 0.0), 1.0),
+            'community': max(features.get('community', 0), 0),
+        }
+        return transformed
+    
     async def analyze(self, features: Dict, account_id: str = "ORCHESTRATOR_REQUEST") -> AgentObservation:
         """
         Get network analysis from Network Analysis Agent
         
         Args:
-            features: Network features for analysis
+            features: Network features for analysis (Avro camelCase format)
             account_id: Account identifier (optional)
         
         Returns:
@@ -51,9 +78,15 @@ class NetworkAgentClient:
         start_time = time.time()
         
         try:
+            # Transform Avro camelCase to API snake_case
+            transformed_features = self._transform_features(features)
+            
+            # Get account_id from features if available
+            actual_account_id = features.get('accountId', account_id)
+            
             request_data = {
-                "account_id": account_id,
-                "features": features
+                "account_id": actual_account_id,
+                "features": transformed_features
             }
             
             response = await self.client.post(
