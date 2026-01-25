@@ -1,7 +1,7 @@
 """
-Fraud Detection Request Handler
+Fraud Analysis Requested Handler
 
-Handles incoming fraud detection requests by orchestrating the decision process.
+Handles incoming fraud analysis requests by orchestrating the decision process.
 Delegates to FraudDecisionService and publishes responses.
 """
 
@@ -9,50 +9,49 @@ from datetime import datetime
 from typing import Dict, Any
 
 from app.services.fraud_decision_service import fraud_decision_service
-from app.producers.fraud_detection_response_publisher import fraud_detection_response_publisher
+from app.producers.fraud_analysis_completed_publisher import fraud_analysis_completed_publisher
 from app.core.logging import logger
 
 
-class FraudDetectionRequestHandler:
+class FraudAnalysisRequestedHandler:
     """
-    Handler for fraud detection requests.
+    Handler for fraud analysis requests.
     
-    Processes FraudDetectionRequest by delegating to service layer
-    and publishing the response via FraudDetectionResponsePublisher.
+    Processes FraudAnalysisRequested event by delegating to service layer
+    and publishing the response via FraudAnalysisCompletedPublisher.
     """
     
     def __init__(self):
         """Initialize handler with service dependencies."""
         self.fraud_decision_service = fraud_decision_service
-        self.fraud_response_publisher = fraud_detection_response_publisher
+        self.fraud_response_publisher = fraud_analysis_completed_publisher
         
-        logger.info("FraudDetectionRequestHandler initialized")
+        logger.info("FraudAnalysisRequestedHandler initialized")
     
     async def handle(self, request: Dict[str, Any]) -> bool:
         """
-        Handle fraud detection request.
+        Handle fraud analysis request.
         
         Extracts fields, calls FraudDecisionService, and publishes response.
         
         Args:
-            request: Deserialized FraudDetectionRequest (Avro format)
+            request: Deserialized FraudAnalysisRequested event (Avro format)
         
         Returns:
             True if handled successfully, False otherwise
         """
         try:
-            # Extract request fields
-            request_id = request.get('requestId')
-            transaction_id = request.get('transactionId')
+            request_id = request.get('riskCheckRequestId')
+            payment_id = request.get('paymentId')
             transaction_features = request.get('transactionFeatures')
             customer_features = request.get('customerFeatures')
             network_features = request.get('networkFeatures')
             
-            logger.info(f"Handling fraud request {request_id} for transaction {transaction_id}")
+            logger.info(f"Handling fraud analysis request {request_id} for payment {payment_id}")
             
             # Delegate to service layer for decision
             decision_response = await self.fraud_decision_service.make_decision(
-                transaction_id=transaction_id,
+                payment_id=payment_id,
                 transaction_features=self._avro_to_dict(transaction_features),
                 customer_features=self._avro_to_dict(customer_features),
                 network_features=self._avro_to_dict(network_features)
@@ -67,12 +66,12 @@ class FraudDetectionRequestHandler:
             # Publish response
             success = self.fraud_response_publisher.publish(
                 response=response_dict,
-                transaction_id=transaction_id
+                payment_id=payment_id
             )
             
             if success:
                 logger.info(
-                    f"Successfully handled fraud request {request_id}: "
+                    f"Successfully handled fraud analysis request {request_id}: "
                     f"action={decision_response.action}"
                 )
             else:
@@ -81,7 +80,7 @@ class FraudDetectionRequestHandler:
             return success
             
         except Exception as e:
-            logger.error(f"Error handling fraud request: {str(e)}")
+            logger.error(f"Error handling fraud analysis request: {str(e)}")
             raise
     
     def _avro_to_dict(self, avro_record: Any) -> Dict[str, Any]:
@@ -119,9 +118,9 @@ class FraudDetectionRequestHandler:
         timestamp_ms = int(datetime.fromisoformat(decision_response.timestamp).timestamp() * 1000)
         
         return {
-            'requestId': request_id,
-            'transactionId': decision_response.transaction_id,
-            'action': decision_response.action.value,  # ALLOW/BLOCK/REVIEW
+            'riskCheckRequestId': request_id,
+            'paymentId': decision_response.payment_id,
+            'action': decision_response.action.value, 
             'confidence': decision_response.confidence,
             'maddpgQValue': decision_response.maddpg_q_value,
             'transactionAgentObservation': self._observation_to_avro(decision_response.transaction_agent_observation),
@@ -152,6 +151,4 @@ class FraudDetectionRequestHandler:
             'responseTimeMs': observation.response_time_ms
         }
 
-
-# Singleton instance for dependency injection
-fraud_detection_request_handler = FraudDetectionRequestHandler()
+fraud_analysis_requested_handler = FraudAnalysisRequestedHandler()

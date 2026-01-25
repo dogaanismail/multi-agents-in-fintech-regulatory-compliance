@@ -4,44 +4,40 @@ Pydantic schemas for request/response models
 
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any
-from datetime import datetime
-
 
 class TransactionInput(BaseModel):
-    """Input schema for a single transaction"""
-    Date: str = Field(..., description="Transaction date (YYYY-MM-DD format)")
-    Time: str = Field(..., description="Transaction time (HH:MM:SS format)")
-    From_Bank: str = Field(..., description="Sender bank name")
-    Account: str = Field(..., description="Sender account number")
-    To_Bank: str = Field(..., description="Receiver bank name")
-    Account_1: str = Field(..., description="Receiver account number")
-    Amount_Received: float = Field(..., gt=0, description="Transaction amount")
-    Receiving_Currency: str = Field(..., description="Currency code")
-    Amount_Paid: float = Field(..., gt=0, description="Amount paid")
-    Payment_Currency: str = Field(..., description="Payment currency code")
-    Payment_type: str = Field(..., description="Type of payment (e.g., ACH, Wire, Card)")
-    Sender_bank_location: str = Field(..., description="Sender bank location/country")
-    Receiver_bank_location: str = Field(..., description="Receiver bank location/country")
+    """
+    Input schema for a single transaction - aligned with Avro FraudAnalysisRequestedEvent.transactionFeatures
+    
+    Note: 
+    - Avro sends additional fields (paymentId, senderAccount, receiverAccount) which are ignored
+    - Model only uses: date, time, amount, currencies, locations, paymentType
+    - Account numbers are NOT used for prediction (model drops them during training)
+    - ISO codes are validated by backend and Avro schema before reaching this service
+    """
+    date: str = Field(..., description="Transaction date (YYYY-MM-DD format)")
+    time: str = Field(..., description="Transaction time (HH:MM:SS format)")
+    amount: float = Field(..., gt=0, description="Transaction amount")
+    paymentCurrency: str = Field(..., description="Payment currency code (ISO 4217, 3-letter: USD, EUR, GBP, etc.)")
+    receivedCurrency: str = Field(..., description="Received currency code (ISO 4217, 3-letter: USD, EUR, GBP, etc.)")
+    senderBankLocation: str = Field(..., description="Sender bank country (ISO 3166-1 alpha-2, 2-letter: US, GB, TR, etc.)")
+    receiverBankLocation: str = Field(..., description="Receiver bank country (ISO 3166-1 alpha-2, 2-letter: US, GB, TR, etc.)")
+    paymentType: str = Field(..., description="Type of payment (ACH, Cash Deposit, Cheque, Credit card, Debit card, Cross-border)")
 
     class Config:
+        extra = "ignore"
         schema_extra = {
             "example": {
-                "Date": "2024-01-15",
-                "Time": "14:30:00",
-                "From_Bank": "HSBC Bank",
-                "Account": "ACC123456",
-                "To_Bank": "Chase Bank",
-                "Account_1": "ACC789012",
-                "Amount_Received": 15000.50,
-                "Receiving_Currency": "USD",
-                "Amount_Paid": 15000.50,
-                "Payment_Currency": "USD",
-                "Payment_type": "Wire",
-                "Sender_bank_location": "USA",
-                "Receiver_bank_location": "UK"
+                "date": "2024-01-15",
+                "time": "14:30:00",
+                "amount": 15000.50,
+                "paymentCurrency": "USD",
+                "receivedCurrency": "USD",
+                "senderBankLocation": "US",
+                "receiverBankLocation": "GB",
+                "paymentType": "Wire"
             }
         }
-
 
 class BatchTransactionInput(BaseModel):
     """Input schema for batch transaction analysis"""
@@ -50,7 +46,7 @@ class BatchTransactionInput(BaseModel):
 
 class TransactionPrediction(BaseModel):
     """Output schema for a single transaction prediction"""
-    transaction_id: Optional[str] = None
+    payment_id: Optional[str] = None
     is_suspicious: bool = Field(..., description="Whether transaction is flagged as suspicious")
     fraud_probability: float = Field(..., ge=0, le=1, description="Probability of fraud (0-1)")
     risk_score: float = Field(..., ge=0, le=100, description="Risk score (0-100)")

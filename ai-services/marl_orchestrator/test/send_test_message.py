@@ -68,14 +68,14 @@ test_data = {
 }
 
 print("🚀 Sending test message to Kafka...")
-print(f"Topic: fraud.detection.request")
+print(f"Topic: fraud.analysis.requested")
 print(f"Key: {test_data['requestId']}")
 
 # Fetch schema from Schema Registry
 print("\n📥 Fetching schema from Schema Registry...")
 schema_registry_url = 'http://localhost:8081'
 # Use the correct subject name with dots to match Kafka topic naming convention
-response = requests.get(f"{schema_registry_url}/subjects/fraud.detection.request-value/versions/latest")
+response = requests.get(f"{schema_registry_url}/subjects/fraud.analysis.requested-value/versions/latest")
 response.raise_for_status()
 schema_str = response.json()['schema']
 value_schema = avro.loads(schema_str)
@@ -93,7 +93,7 @@ producer = AvroProducer({
 # Produce message
 print(f"\n📤 Producing message...")
 producer.produce(
-    topic='fraud.detection.request',
+    topic='fraud.analysis.requested',
     key=test_data['requestId'],
     value=test_data
 )

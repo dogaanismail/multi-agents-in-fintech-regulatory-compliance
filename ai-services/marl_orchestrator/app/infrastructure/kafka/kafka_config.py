@@ -44,7 +44,6 @@ class KafkaConfig:
             'auto.offset.reset': auto_offset_reset,
             'enable.auto.commit': enable_auto_commit,
             'schema.registry.url': settings.schema_registry_url,
-            # Performance tuning
             'session.timeout.ms': 30000,
             'heartbeat.interval.ms': 10000,
             'max.poll.interval.ms': 300000,

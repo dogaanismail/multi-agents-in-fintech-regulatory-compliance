@@ -1,6 +1,6 @@
 {
     "model_name": "XGBoost Transaction Pattern Agent V2",
-    "training_date": "2025-11-21 23:15:42",
+    "training_date": "2026-01-25 13:56:00",
     "optimal_threshold": 0.13224509358406067,
     "performance_metrics": {
         "recall": 0.8909520594193113,

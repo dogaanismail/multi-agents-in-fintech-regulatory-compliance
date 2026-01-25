@@ -1,5 +1,5 @@
 """
-Fraud Decision Service - Business logic for coordinated fraud detection
+Fraud Decision Service - Business logic for coordinated fraud analysis
 
 This service encapsulates the core business logic for making fraud decisions.
 Can be called from both REST endpoints and Kafka consumers.
@@ -37,13 +37,13 @@ class FraudDecisionService:
     
     async def make_decision(
         self,
-        transaction_id: str,
+        payment_id: str,
         transaction_features: Dict[str, Any],
         customer_features: Dict[str, Any],
         network_features: Dict[str, Any]
     ) -> CoordinatedDecisionResponse:
         """
-        Make coordinated fraud detection decision.
+        Make coordinated fraud analysis decision.
         
         Workflow:
         1. Get observations from all 3 detection agents (parallel)
@@ -52,7 +52,7 @@ class FraudDecisionService:
         4. Build and return response
         
         Args:
-            transaction_id: Unique transaction identifier
+            payment_id: Unique payment identifier
             transaction_features: Transaction feature dict
             customer_features: Customer feature dict
             network_features: Network feature dict
@@ -84,14 +84,14 @@ class FraudDecisionService:
             
             # Step 5: Build response
             response = self._build_decision_response(
-                transaction_id=transaction_id,
+                payment_id=payment_id,
                 decision=decision,
                 observations=observations,
                 processing_time=processing_time
             )
             
             logger.info(
-                f"Decision made for transaction {transaction_id}: "
+                f"Decision made for payment {payment_id}: "
                 f"{response.action} (confidence: {response.confidence:.3f}, "
                 f"time: {processing_time:.2f}ms)"
             )
@@ -99,7 +99,7 @@ class FraudDecisionService:
             return response
             
         except Exception as e:
-            logger.error(f"Error making decision for transaction {transaction_id}: {str(e)}")
+            logger.error(f"Error making decision for payment {payment_id}: {str(e)}")
             raise
     
     async def _get_agent_observations(
@@ -188,7 +188,7 @@ class FraudDecisionService:
     
     def _build_decision_response(
         self,
-        transaction_id: str,
+        payment_id: str,
         decision: Dict[str, Any],
         observations: Dict[str, AgentObservation],
         processing_time: float
@@ -197,7 +197,7 @@ class FraudDecisionService:
         Build coordinated decision response.
         
         Args:
-            transaction_id: Transaction identifier
+            payment_id: Payment identifier
             decision: MADDPG decision result
             observations: Agent observations
             processing_time: Processing time in milliseconds
@@ -206,7 +206,7 @@ class FraudDecisionService:
             CoordinatedDecisionResponse
         """
         return CoordinatedDecisionResponse(
-            transaction_id=transaction_id,
+            payment_id=payment_id,
             action=ActionType(decision['action']),
             confidence=decision['confidence'],
             maddpg_q_value=decision['q_value'],

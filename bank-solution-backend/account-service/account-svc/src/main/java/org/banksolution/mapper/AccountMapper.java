@@ -53,7 +53,7 @@ public class AccountMapper {
                 .id(entity.getId())
                 .customerId(entity.getCustomerId())
                 .accountNumber(entity.getAccountNumber())
-                .bankLocation(entity.getBankLocation())
+                .bankLocation(entity.getBankLocation().name().toUpperCase())
                 .accountType(entity.getAccountType())
                 .accountStatus(entity.getAccountStatus())
                 .openingDate(entity.getOpeningDate())

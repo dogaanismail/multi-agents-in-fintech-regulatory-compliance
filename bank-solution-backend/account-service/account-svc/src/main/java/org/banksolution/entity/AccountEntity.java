@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.banksolution.enums.AccountStatus;
 import org.banksolution.enums.AccountType;
+import org.banksolution.enums.BankLocation;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,8 +36,9 @@ public class AccountEntity extends BaseEntity {
     @Column(name = "account_number", nullable = false, unique = true, length = 20)
     private String accountNumber;
 
-    @Column(name = "bank_location", nullable = false, length = 50)
-    private String bankLocation;
+    @Column(name = "bank_location", nullable = false, length = 2)
+    @Enumerated(EnumType.STRING)
+    private BankLocation bankLocation;
 
     @Column(name = "account_type", nullable = false, length = 50)
     @Builder.Default
