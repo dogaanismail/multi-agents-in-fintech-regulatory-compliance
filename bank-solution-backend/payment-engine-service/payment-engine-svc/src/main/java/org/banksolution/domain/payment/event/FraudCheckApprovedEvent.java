@@ -1,11 +1,10 @@
 package org.banksolution.domain.payment.event;
 
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.enums.PaymentStatus;
+import org.banksolution.domain.payment.valueobject.RiskAssessment;
 
-public record PaymentCompletedEvent(
+public record FraudCheckApprovedEvent(
         PaymentId paymentId,
-        PaymentStatus finalStatus,
-        String reason
+        RiskAssessment riskAssessment
 ) {
 }

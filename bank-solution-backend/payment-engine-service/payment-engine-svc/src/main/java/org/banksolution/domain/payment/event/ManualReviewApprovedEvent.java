@@ -1,11 +1,10 @@
 package org.banksolution.domain.payment.event;
 
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.enums.PaymentStatus;
 
-public record PaymentCompletedEvent(
+public record ManualReviewApprovedEvent(
         PaymentId paymentId,
-        PaymentStatus finalStatus,
-        String reason
+        String approvedBy,
+        String approvalNotes
 ) {
 }

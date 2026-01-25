@@ -9,9 +9,10 @@ import java.time.Instant;
 @UtilityClass
 public class PaymentAggregateSnapshotMapper {
 
-    public static PaymentSnapshotEvent toSnapshot(PaymentAggregate aggregate) {
+    public static PaymentSnapshotEvent toSnapshot(PaymentAggregate aggregate, String eventTrigger) {
         PaymentSnapshotEvent.Builder builder = PaymentSnapshotEvent.newBuilder()
                 .setPaymentId(aggregate.getPaymentId().toString())
+                .setReferenceNumber(aggregate.getPaymentId().toString()) // Using paymentId as reference for now
                 .setCustomerId(aggregate.getCustomerId().toString())
                 .setSourceAccountId(aggregate.getSourceAccountId().toString())
                 .setDestinationAccountId(aggregate.getDestinationAccountId().toString())
@@ -21,8 +22,9 @@ public class PaymentAggregateSnapshotMapper {
                 .setDescription(aggregate.getDescription())
                 .setStatus(PaymentStatusMapper.toAvro(aggregate.getStatus()))
                 .setFraudStatus(FraudCheckStatusMapper.toAvro(aggregate.getFraudStatus()))
+                .setVersion(aggregate.getVersion() != null ? aggregate.getVersion().intValue() : 0)
                 .setSnapshotTimestamp(Instant.now().toEpochMilli())
-                .setEventTrigger("AXON_SNAPSHOT");
+                .setEventTrigger(eventTrigger);
 
         // Map timestamps
         mapTimestamp(builder, "initiatedAt", aggregate.getInitiatedAt());

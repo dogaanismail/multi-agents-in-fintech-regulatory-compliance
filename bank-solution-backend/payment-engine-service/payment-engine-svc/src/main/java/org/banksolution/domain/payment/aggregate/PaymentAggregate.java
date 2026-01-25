@@ -42,14 +42,11 @@ public class PaymentAggregate {
     private String paymentType;
     private String description;
 
-    // Status
     private PaymentStatus status;
     private FraudAnalysisStatus fraudStatus;
 
-    // Risk Assessment (includes MARL assessment if escalated)
     private RiskAssessment riskAssessment;
 
-    // Lifecycle Timestamps
     private Instant initiatedAt;
     private Instant riskAssessmentRequestedAt;
     private Instant riskAssessmentCompletedAt;
@@ -95,15 +92,15 @@ public class PaymentAggregate {
             throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_PENDING status");
         }
 
-        apply(new PaymentCompletedEvent(command.paymentId()));
+        apply(new FraudCheckApprovedEvent(command.paymentId(), command.riskAssessment()));
     }
 
     @CommandHandler
     public void handle(BlockPaymentCommand command) {
         log.info("Handling BlockPaymentCommand for payment: {}", command.paymentId());
 
-        if (this.status != PaymentStatus.FRAUD_CHECK_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_PENDING status");
+        if (this.status != PaymentStatus.FRAUD_CHECK_PENDING && this.status != PaymentStatus.ACCOUNT_CHARGE_PENDING) {
+            throw new InvalidPaymentStateException("Payment cannot be blocked from current status: " + this.status);
         }
 
         String riskLevel = command.riskAssessment().riskLevel();
@@ -116,6 +113,12 @@ public class PaymentAggregate {
                 command.riskAssessment().riskScore(),
                 command.riskAssessment().marlAssessment() != null ?
                         command.riskAssessment().marlAssessment().maddpgQValue() : null
+        ));
+
+        apply(new PaymentCompletedEvent(
+                command.paymentId(),
+                PaymentStatus.BLOCKED,
+                reason
         ));
     }
 
@@ -132,6 +135,95 @@ public class PaymentAggregate {
                 command.riskAssessment().riskScore(),
                 command.riskAssessment().marlAssessment() != null ?
                         command.riskAssessment().marlAssessment().maddpgQValue() : null
+        ));
+    }
+
+    @CommandHandler
+    public void handle(ApproveManualReviewCommand command) {
+        log.info("Handling ApproveManualReviewCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.MANUAL_REVIEW_REQUIRED) {
+            throw new InvalidPaymentStateException("Payment is not in MANUAL_REVIEW_REQUIRED status");
+        }
+
+        apply(new ManualReviewApprovedEvent(
+                command.paymentId(),
+                command.approvedBy(),
+                command.approvalNotes()
+        ));
+    }
+
+    @CommandHandler
+    public void handle(RejectManualReviewCommand command) {
+        log.info("Handling RejectManualReviewCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.MANUAL_REVIEW_REQUIRED) {
+            throw new InvalidPaymentStateException("Payment is not in MANUAL_REVIEW_REQUIRED status");
+        }
+
+        apply(new ManualReviewRejectedEvent(
+                command.paymentId(),
+                command.rejectedBy(),
+                command.rejectionReason()
+        ));
+    }
+
+    @CommandHandler
+    public void handle(ChargeAccountCommand command) {
+        log.info("Handling ChargeAccountCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.FRAUD_CHECK_APPROVED) {
+            throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_APPROVED status");
+        }
+
+        apply(new AccountChargeInitiatedEvent(
+                command.paymentId(),
+                command.customerId(),
+                command.sourceAccountId(),
+                command.destinationAccountId(),
+                command.amount(),
+                command.currency(),
+                command.paymentType(),
+                command.description()
+        ));
+    }
+
+    @CommandHandler
+    public void handle(ConfirmAccountChargedCommand command) {
+        log.info("Handling ConfirmAccountChargedCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.ACCOUNT_CHARGE_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in ACCOUNT_CHARGE_PENDING status");
+        }
+
+        apply(new AccountChargedEvent(
+                command.paymentId(),
+                command.sourceAccountId(),
+                command.destinationAccountId(),
+                command.amount(),
+                command.currency(),
+                command.paymentType()
+        ));
+
+        apply(new PaymentCompletedEvent(
+                command.paymentId(),
+                PaymentStatus.COMPLETED,
+                "Payment successfully processed and account charged"
+        ));
+    }
+
+    @CommandHandler
+    public void handle(FailAccountChargeCommand command) {
+        log.error("Handling FailAccountChargeCommand for payment: {}, reason: {}",
+                command.paymentId(), command.failureReason());
+
+        if (this.status != PaymentStatus.ACCOUNT_CHARGE_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in ACCOUNT_CHARGE_PENDING status");
+        }
+
+        apply(new AccountChargeFailedEvent(
+                command.paymentId(),
+                command.failureReason()
         ));
     }
 
@@ -166,6 +258,36 @@ public class PaymentAggregate {
     }
 
     @EventSourcingHandler
+    public void on(FraudCheckApprovedEvent event) {
+        this.status = PaymentStatus.FRAUD_CHECK_APPROVED;
+        this.fraudStatus = FraudAnalysisStatus.APPROVED;
+        log.info("Fraud check approved for payment: {}", event.paymentId());
+
+        apply(new AccountChargeInitiatedEvent(
+                this.paymentId,
+                this.customerId,
+                this.sourceAccountId,
+                this.destinationAccountId,
+                this.amount,
+                this.currency,
+                this.paymentType,
+                this.description
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(AccountChargeInitiatedEvent event) {
+        this.status = PaymentStatus.ACCOUNT_CHARGE_PENDING;
+        log.info("Account charge initiated for payment: {}", event.paymentId());
+    }
+
+    @EventSourcingHandler
+    public void on(AccountChargedEvent event) {
+        this.status = PaymentStatus.ACCOUNT_CHARGED;
+        log.info("Account charged for payment: {}", event.paymentId());
+    }
+
+    @EventSourcingHandler
     public void on(PaymentBlockedEvent event) {
         this.status = PaymentStatus.BLOCKED;
         this.fraudStatus = FraudAnalysisStatus.BLOCKED;
@@ -182,10 +304,58 @@ public class PaymentAggregate {
     }
 
     @EventSourcingHandler
+    public void on(ManualReviewApprovedEvent event) {
+        this.status = PaymentStatus.FRAUD_CHECK_APPROVED;
+        this.fraudStatus = FraudAnalysisStatus.APPROVED;
+        log.info("Manual review approved for payment: {} by {}", event.paymentId(), event.approvedBy());
+
+        apply(new AccountChargeInitiatedEvent(
+                this.paymentId,
+                this.customerId,
+                this.sourceAccountId,
+                this.destinationAccountId,
+                this.amount,
+                this.currency,
+                this.paymentType,
+                this.description
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(ManualReviewRejectedEvent event) {
+        this.status = PaymentStatus.BLOCKED;
+        this.fraudStatus = FraudAnalysisStatus.BLOCKED;
+        this.blockedAt = Instant.now();
+        log.info("Manual review rejected for payment: {} by: {}, reason: {}",
+                event.paymentId(),
+                event.rejectedBy(),
+                event.rejectionReason());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.BLOCKED,
+                "Manual review rejected: " + event.rejectionReason()
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(AccountChargeFailedEvent event) {
+        this.status = PaymentStatus.FAILED;
+        this.fraudStatus = FraudAnalysisStatus.APPROVED;
+        log.error("Account charge failed for payment: {}, reason: {}", event.paymentId(), event.failureReason());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.FAILED,
+                "Account charge failed: " + event.failureReason()
+        ));
+    }
+
+    @EventSourcingHandler
     public void on(PaymentCompletedEvent event) {
-        this.status = PaymentStatus.COMPLETED;
+        this.status = event.finalStatus();
         this.completedAt = Instant.now();
-        log.info("Payment completed: {}", event.paymentId());
+        log.info("Payment completed with status: {} - {}", event.finalStatus(), event.reason());
     }
 
 }

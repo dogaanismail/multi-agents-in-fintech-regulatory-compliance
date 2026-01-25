@@ -98,9 +98,16 @@ public class PaymentRiskSaga {
         }
     }
 
+    @EndSaga
     @DeadlineHandler(deadlineName = RISK_ASSESSMENT_TIMEOUT_DEADLINE)
     public void on(PaymentId paymentId) {
         log.info("Risk check timeout for payment: {}", paymentId);
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
+    public void on(FraudCheckApprovedEvent event) {
+        log.info("Fraud check approved, ending PaymentRiskSaga for payment: {}", event.paymentId());
     }
 
     @EndSaga
