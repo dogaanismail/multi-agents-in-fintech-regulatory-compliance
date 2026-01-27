@@ -13,6 +13,8 @@ import org.banksolution.infrastructure.messaging.kafka.producer.PaymentCompleted
 import org.banksolution.infrastructure.messaging.kafka.producer.PaymentSnapshotEventProducer;
 import org.springframework.stereotype.Component;
 
+import static org.banksolution.enums.PaymentEventTrigger.*;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -24,67 +26,67 @@ public class PaymentEventHandler {
     @EventHandler
     @AllowReplay
     public void on(PaymentInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.PAYMENT_INITIATED);
+        publishSnapshotAfterCommit(event.paymentId(), PAYMENT_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(RiskAssessmentInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.RISK_ASSESSMENT_INITIATED);
+        publishSnapshotAfterCommit(event.paymentId(), RISK_ASSESSMENT_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(RiskAssessmentCompletedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.RISK_ASSESSMENT_COMPLETED);
+        publishSnapshotAfterCommit(event.paymentId(), RISK_ASSESSMENT_COMPLETED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(FraudCheckApprovedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.FRAUD_CHECK_APPROVED);
+        publishSnapshotAfterCommit(event.paymentId(), FRAUD_CHECK_APPROVED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(PaymentBlockedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.PAYMENT_BLOCKED);
+        publishSnapshotAfterCommit(event.paymentId(), PAYMENT_BLOCKED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(ManualReviewRequestedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.MANUAL_REVIEW_REQUESTED);
+        publishSnapshotAfterCommit(event.paymentId(), MANUAL_REVIEW_REQUESTED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(ManualReviewApprovedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.MANUAL_REVIEW_APPROVED);
+        publishSnapshotAfterCommit(event.paymentId(), MANUAL_REVIEW_APPROVED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(ManualReviewRejectedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.MANUAL_REVIEW_REJECTED);
+        publishSnapshotAfterCommit(event.paymentId(), MANUAL_REVIEW_REJECTED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(AccountChargeInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.ACCOUNT_CHARGE_INITIATED);
+        publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGE_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(AccountChargedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.ACCOUNT_CHARGED);
+        publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGED);
     }
 
     @EventHandler
     @AllowReplay
     public void on(AccountChargeFailedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PaymentEventTrigger.ACCOUNT_CHARGE_FAILED);
+        publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGE_FAILED);
     }
 
     @EventHandler

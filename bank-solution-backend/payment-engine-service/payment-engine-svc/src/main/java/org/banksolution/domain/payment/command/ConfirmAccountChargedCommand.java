@@ -1,11 +1,13 @@
 package org.banksolution.domain.payment.command;
 
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public record ConfirmAccountChargedCommand(
+        @TargetAggregateIdentifier
         PaymentId paymentId,
         UUID sourceAccountId,
         UUID destinationAccountId,
