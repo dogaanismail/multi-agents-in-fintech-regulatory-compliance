@@ -19,6 +19,7 @@ public record PaymentResponse(
         String currency,
         PaymentType paymentType,
         String description,
+        boolean isCrossBorderPayment,
         PaymentStatus status,
         FraudAnalysisStatus fraudStatus,
         RiskAssessment riskAssessment,

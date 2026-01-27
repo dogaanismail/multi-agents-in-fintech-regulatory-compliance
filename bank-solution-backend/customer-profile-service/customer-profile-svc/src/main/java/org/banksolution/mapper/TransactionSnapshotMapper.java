@@ -18,7 +18,6 @@ public class TransactionSnapshotMapper {
         LocalDateTime txTime = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
 
         TransactionSnapshotEntity transactionSnapshotEntity = TransactionSnapshotEntity.builder()
-                .id(UUID.randomUUID())
                 .customerId(UUID.fromString(event.getCustomerId()))
                 .accountId(UUID.fromString(event.getSourceAccountId()))
                 .paymentId(event.getPaymentId())

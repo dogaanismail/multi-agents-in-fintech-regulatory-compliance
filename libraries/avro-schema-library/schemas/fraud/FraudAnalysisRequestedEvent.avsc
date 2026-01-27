@@ -21,6 +21,12 @@
       "doc": "Request timestamp in milliseconds since epoch"
     },
     {
+      "name": "isCrossBorderPayment",
+      "type": "boolean",
+      "default": false,
+      "doc": "Whether this is a cross-border payment (sender and receiver in different countries)"
+    },
+    {
       "name": "transactionFeatures",
       "type": {
         "type": "record",

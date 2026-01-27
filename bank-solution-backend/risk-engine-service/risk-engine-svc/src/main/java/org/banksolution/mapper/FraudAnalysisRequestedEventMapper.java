@@ -20,9 +20,18 @@ public class FraudAnalysisRequestedEventMapper {
                 .setPaymentId(transactionFeatures.getPaymentId())
                 .setRiskCheckRequestId(riskCheckRequestId)
                 .setTimestamp(timestamp)
+                .setIsCrossBorderPayment(isCrossBorder(transactionFeatures.getSenderBankLocation(), transactionFeatures.getSenderBankLocation()))
                 .setTransactionFeatures(transactionFeatures)
                 .setCustomerFeatures(customerFeatures)
                 .setNetworkFeatures(networkFeatures)
                 .build();
+    }
+
+    public boolean isCrossBorder(String senderLocation, String receiverLocation) {
+        if (senderLocation == null || receiverLocation == null) {
+            return false;
+        }
+
+        return !senderLocation.equalsIgnoreCase(receiverLocation);
     }
 }

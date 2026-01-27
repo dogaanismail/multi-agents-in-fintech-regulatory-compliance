@@ -43,6 +43,7 @@ public class PaymentAggregate {
     private String currency;
     private String paymentType;
     private String description;
+    private boolean isCrossBorderPayment;
 
     private PaymentStatus status;
     private FraudAnalysisStatus fraudStatus;
@@ -245,7 +246,7 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(PaymentInitiatedEvent event) {
         this.paymentId = event.paymentId();
-        this.referenceNumber = "PAY-" + event.paymentId().toString().substring(0, 8).toUpperCase();
+        this.referenceNumber = "PAY-" + event.paymentId().toString().substring(0, 8).toUpperCase(); //TODO: Handle payment reference
         this.customerId = event.customerId();
         this.sourceAccountId = event.sourceAccountId();
         this.destinationAccountId = event.destinationAccountId();

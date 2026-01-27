@@ -41,6 +41,7 @@ public class KafkaConfigurationProperties {
             private String riskAssessmentRequested;
             private String paymentSnapshotEvents;
             private String accountChargeRequested;
+            private String paymentCompleted;
         }
     }
 }

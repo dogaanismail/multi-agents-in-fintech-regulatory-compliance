@@ -6,10 +6,11 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.banksolution.domain.payment.aggregate.PaymentAggregate;
 import org.axonframework.eventsourcing.EventSourcingRepository;
 import org.banksolution.enums.PaymentType;
+import org.banksolution.exception.PaymentNotFoundException;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class PaymentQueryHandler {
 
@@ -18,44 +19,44 @@ public class PaymentQueryHandler {
     @QueryHandler
     public PaymentResponse handle(FindPaymentQuery query) {
         log.debug("Handling FindPaymentQuery for paymentId: {}", query.paymentId());
-        
+
         try {
-            var aggregate = paymentRepository.load(query.paymentId()).getWrappedAggregate().getAggregateRoot();
-            
+            PaymentAggregate paymentAggregate = paymentRepository.load(query.paymentId()).getWrappedAggregate().getAggregateRoot();
+
             return new PaymentResponse(
-                    aggregate.getPaymentId().toString(),
-                    aggregate.getReferenceNumber(),
-                    aggregate.getCustomerId().toString(),
-                    aggregate.getSourceAccountId().toString(),
-                    aggregate.getDestinationAccountId().toString(),
-                    aggregate.getAmount(),
-                    aggregate.getCurrency(),
-                    PaymentType.valueOf(aggregate.getPaymentType()),
-                    aggregate.getDescription(),
-                    aggregate.getStatus(),
-                    aggregate.getFraudStatus(),
-                    aggregate.getRiskAssessment(),
-                    aggregate.getVersion(),
-                    aggregate.getInitiatedAt(),
-                    aggregate.getRiskAssessmentRequestedAt(),
-                    aggregate.getRiskAssessmentCompletedAt(),
-                    aggregate.getFraudCheckApprovedAt(),
-                    aggregate.getManualReviewRequestedAt(),
-                    aggregate.getManualReviewApprovedAt(),
-                    aggregate.getManualReviewRejectedAt(),
-                    aggregate.getAccountChargeInitiatedAt(),
-                    aggregate.getAccountChargedAt(),
-                    aggregate.getAccountChargeFailedAt(),
-                    aggregate.getCompletedAt(),
-                    aggregate.getBlockedAt(),
-                    aggregate.getManualReviewedBy(),
-                    aggregate.getManualReviewNotes(),
-                    aggregate.getBlockReason(),
-                    aggregate.getFailureReason()
-            );
+                    paymentAggregate.getPaymentId().toString(),
+                    paymentAggregate.getReferenceNumber(),
+                    paymentAggregate.getCustomerId().toString(),
+                    paymentAggregate.getSourceAccountId().toString(),
+                    paymentAggregate.getDestinationAccountId().toString(),
+                    paymentAggregate.getAmount(),
+                    paymentAggregate.getCurrency(),
+                    PaymentType.valueOf(paymentAggregate.getPaymentType()),
+                    paymentAggregate.getDescription(),
+                    paymentAggregate.isCrossBorderPayment(),
+                    paymentAggregate.getStatus(),
+                    paymentAggregate.getFraudStatus(),
+                    paymentAggregate.getRiskAssessment(),
+                    paymentAggregate.getVersion(),
+                    paymentAggregate.getInitiatedAt(),
+                    paymentAggregate.getRiskAssessmentRequestedAt(),
+                    paymentAggregate.getRiskAssessmentCompletedAt(),
+                    paymentAggregate.getFraudCheckApprovedAt(),
+                    paymentAggregate.getManualReviewRequestedAt(),
+                    paymentAggregate.getManualReviewApprovedAt(),
+                    paymentAggregate.getManualReviewRejectedAt(),
+                    paymentAggregate.getAccountChargeInitiatedAt(),
+                    paymentAggregate.getAccountChargedAt(),
+                    paymentAggregate.getAccountChargeFailedAt(),
+                    paymentAggregate.getCompletedAt(),
+                    paymentAggregate.getBlockedAt(),
+                    paymentAggregate.getManualReviewedBy(),
+                    paymentAggregate.getManualReviewNotes(),
+                    paymentAggregate.getBlockReason(),
+                    paymentAggregate.getFailureReason());
         } catch (Exception e) {
             log.error("Failed to load payment aggregate: {}", query.paymentId(), e);
-            throw new IllegalStateException("Payment not found: " + query.paymentId(), e);
+            throw new PaymentNotFoundException("Failed to load for paymentId: %s", e, query.paymentId());
         }
     }
 }

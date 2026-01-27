@@ -6,10 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.config.KafkaConfigurationProperties;
 import org.banksolution.domain.payment.event.AccountChargeInitiatedEvent;
+import org.banksolution.infrastructure.messaging.kafka.mapper.AccountChargeRequestedEventMapper;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-
-import static org.banksolution.infrastructure.messaging.kafka.mapper.AccountChargeRequestedEventMapper.toAvroRequest;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +23,7 @@ public class AccountChargeRequestedEventProducer {
             String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getAccountChargeRequested();
             String messageKey = event.paymentId().toString();
 
-            AccountChargeRequestedEvent request = toAvroRequest(event);
+            AccountChargeRequestedEvent request = AccountChargeRequestedEventMapper.toAvroRequest(event);
             accountChargeRequestedEventKafkaTemplate.send(topic, messageKey, request);
             log.info("Successfully published AccountChargeRequestedEvent for payment: {}", event.paymentId());
         } catch (Exception e) {

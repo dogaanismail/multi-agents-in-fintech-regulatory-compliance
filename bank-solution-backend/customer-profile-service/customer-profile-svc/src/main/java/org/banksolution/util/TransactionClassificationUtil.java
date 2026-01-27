@@ -7,8 +7,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.aml.payment.PaymentType.DEPOSIT;
-import static com.aml.payment.PaymentType.WITHDRAWAL;
+import static com.aml.payment.PaymentType.*;
 
 @UtilityClass
 public class TransactionClassificationUtil {
@@ -22,7 +21,7 @@ public class TransactionClassificationUtil {
         if (senderLocation == null || receiverLocation == null) {
             return false;
         }
-        return !senderLocation.equals(receiverLocation);
+        return !senderLocation.equalsIgnoreCase(receiverLocation);
     }
 
     public boolean isCashTransaction(String paymentType) {

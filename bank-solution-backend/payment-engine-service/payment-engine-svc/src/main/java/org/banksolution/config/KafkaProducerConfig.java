@@ -1,6 +1,7 @@
 package org.banksolution.config;
 
 import com.aml.account.AccountChargeRequestedEvent;
+import com.aml.payment.PaymentCompletedEvent;
 import com.aml.payment.PaymentSnapshotEvent;
 import com.aml.risk.RiskAssessmentRequestedEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -40,6 +41,11 @@ public class KafkaProducerConfig {
     }
 
     @Bean
+    public ProducerFactory<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
+    }
+
+    @Bean
     public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentRequestedEventKafkaTemplate() {
         return new KafkaTemplate<>(riskAssessmentProducerFactory());
     }
@@ -52,6 +58,11 @@ public class KafkaProducerConfig {
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull AccountChargeRequestedEvent> accountChargeRequestedEventKafkaTemplate() {
         return new KafkaTemplate<>(accountChargeRequestedProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventKafkaTemplate() {
+        return new KafkaTemplate<>(paymentCompletedProducerFactory());
     }
 
     private Map<String, Object> getCommonProducerProps() {
