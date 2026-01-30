@@ -1,84 +1,67 @@
 -- Create payment_history table for comprehensive payment audit trail
--- Stores complete payment lifecycle including risk assessments and MARL agent observations
 CREATE TABLE payment_history
 (
-    payment_id               UUID PRIMARY KEY,
-    reference_number         VARCHAR(255) NOT NULL UNIQUE,
-    
+    payment_id                  UUID PRIMARY KEY,
+    reference_number            VARCHAR(255)   NOT NULL UNIQUE,
+
     -- Payment Details
-    customer_id              UUID         NOT NULL,
-    source_account_id        UUID         NOT NULL,
-    destination_account_id   UUID         NOT NULL,
-    amount                   DECIMAL(19, 2) NOT NULL,
-    currency                 VARCHAR(3)   NOT NULL,
-    payment_type             VARCHAR(50),
-    description              VARCHAR(1000),
-    
+    customer_id                 UUID           NOT NULL,
+    source_account_id           UUID           NOT NULL,
+    destination_account_id      UUID           NOT NULL,
+    amount                      DECIMAL(19, 2) NOT NULL,
+    currency                    VARCHAR(3)     NOT NULL,
+    payment_type                VARCHAR(50),
+    description                 VARCHAR(1000),
+
     -- Status Tracking
-    status                   VARCHAR(50)  NOT NULL,
-    fraud_status             VARCHAR(50),
-    
+    status                      VARCHAR(50)    NOT NULL,
+    fraud_status                VARCHAR(50),
+
     -- Risk Assessment
-    risk_score               DOUBLE PRECISION,
-    risk_level               VARCHAR(20),
-    risk_action              VARCHAR(20),
-    fraud_indicators         JSONB,
-    
+    risk_score                  DOUBLE PRECISION,
+    risk_level                  VARCHAR(20),
+    risk_action                 VARCHAR(20),
+    fraud_indicators            JSONB,
+
     -- MARL Assessment (stored as JSONB for complex nested structure)
-    marl_assessment          JSONB,
-    
+    marl_assessment             JSONB,
+
     -- Lifecycle Timestamps
-    initiated_at             TIMESTAMP,
-    risk_check_requested_at  TIMESTAMP,
-    risk_check_completed_at  TIMESTAMP,
-    fraud_check_approved_at  TIMESTAMP,
-    manual_review_requested_at TIMESTAMP,
-    manual_review_approved_at TIMESTAMP,
-    manual_review_rejected_at TIMESTAMP,
+    initiated_at                TIMESTAMP,
+    risk_check_requested_at     TIMESTAMP,
+    risk_check_completed_at     TIMESTAMP,
+    fraud_check_approved_at     TIMESTAMP,
+    manual_review_requested_at  TIMESTAMP,
+    manual_review_approved_at   TIMESTAMP,
+    manual_review_rejected_at   TIMESTAMP,
     account_charge_initiated_at TIMESTAMP,
-    account_charged_at       TIMESTAMP,
-    account_charge_failed_at TIMESTAMP,
-    completed_at             TIMESTAMP,
-    blocked_at               TIMESTAMP,
-    
+    account_charged_at          TIMESTAMP,
+    account_charge_failed_at    TIMESTAMP,
+    completed_at                TIMESTAMP,
+    blocked_at                  TIMESTAMP,
+
     -- Decision Metadata
-    manual_reviewed_by       VARCHAR(255),
-    manual_review_notes      VARCHAR(2000),
-    block_reason             VARCHAR(1000),
-    failure_reason           VARCHAR(1000),
-    
+    manual_reviewed_by          VARCHAR(255),
+    manual_review_notes         VARCHAR(2000),
+    block_reason                VARCHAR(1000),
+    failure_reason              VARCHAR(1000),
+
     -- Processing Metadata
-    risk_processing_time_ms  BIGINT,
-    marl_processing_time_ms  BIGINT,
-    ml_model_version         VARCHAR(50),
-    aggregate_version        INTEGER,
-    entity_version           SMALLINT     NOT NULL DEFAULT 0,
-    
-    created_at               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT chk_payment_history_amount CHECK (amount > 0),
-    CONSTRAINT chk_payment_history_currency CHECK (currency IN ('TRY', 'USD', 'EUR', 'GBP', 'JPY', 'CHF')),
-    CONSTRAINT chk_payment_history_status CHECK (status IN ('PENDING', 'INITIATED', 'RISK_CHECK_PENDING', 
-                                                              'FRAUD_CHECK_PENDING', 'APPROVED', 'COMPLETED', 
-                                                              'BLOCKED', 'REJECTED', 'FAILED')),
-    CONSTRAINT chk_payment_history_fraud_status CHECK (fraud_status IN ('PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW')),
-    CONSTRAINT chk_payment_history_risk_level CHECK (risk_level IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
-    CONSTRAINT chk_payment_history_risk_action CHECK (risk_action IN ('APPROVE', 'REVIEW', 'REJECT'))
+    risk_processing_time_ms     BIGINT,
+    marl_processing_time_ms     BIGINT,
+    ml_model_version            VARCHAR(50),
+    aggregate_version           INTEGER,
+    entity_version              SMALLINT       NOT NULL DEFAULT 0,
+
+    created_at                  TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                  TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT chk_payment_history_amount CHECK (amount > 0)
 );
 
 -- Create indexes for frequent query patterns
 CREATE INDEX idx_payment_history_customer_id ON payment_history (customer_id);
 CREATE INDEX idx_payment_history_reference_number ON payment_history (reference_number);
-CREATE INDEX idx_payment_history_status ON payment_history (status);
-CREATE INDEX idx_payment_history_fraud_status ON payment_history (fraud_status);
-CREATE INDEX idx_payment_history_risk_level ON payment_history (risk_level);
-CREATE INDEX idx_payment_history_created_at ON payment_history (created_at DESC);
-CREATE INDEX idx_payment_history_initiated_at ON payment_history (initiated_at DESC);
-CREATE INDEX idx_payment_history_manual_review_requested ON payment_history (manual_review_requested_at DESC);
-CREATE INDEX idx_payment_history_account_charged ON payment_history (account_charged_at DESC);
-CREATE INDEX idx_payment_history_manual_reviewed_by ON payment_history (manual_reviewed_by);
-CREATE INDEX idx_payment_history_completed_at ON payment_history (completed_at DESC);
 
 -- Composite indexes for common query combinations
 CREATE INDEX idx_payment_history_customer_status ON payment_history (customer_id, status);

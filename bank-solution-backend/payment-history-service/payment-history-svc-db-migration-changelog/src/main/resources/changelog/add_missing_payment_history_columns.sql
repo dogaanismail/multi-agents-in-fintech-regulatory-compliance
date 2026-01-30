@@ -1,6 +1,3 @@
--- Add missing columns to payment_history table
--- These columns are required for the PaymentHistoryEntity but were not in the original migration
-
 -- Lifecycle Timestamps
 ALTER TABLE payment_history ADD COLUMN IF NOT EXISTS fraud_check_approved_at TIMESTAMP;
 ALTER TABLE payment_history ADD COLUMN IF NOT EXISTS manual_review_requested_at TIMESTAMP;
