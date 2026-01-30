@@ -51,23 +51,23 @@ public class TransactionSnapshotEntity {
 
     @Column(name = "is_cross_border", nullable = false)
     @Builder.Default
-    private Boolean isCrossBorder = false;
+    private boolean isCrossBorder = false;
 
     @Column(name = "is_cash_transaction", nullable = false)
     @Builder.Default
-    private Boolean isCashTransaction = false;
+    private boolean isCashTransaction = false;
 
     @Column(name = "is_large_transaction", nullable = false)
     @Builder.Default
-    private Boolean isLargeTransaction = false;
+    private boolean isLargeTransaction = false;
 
     @Column(name = "is_night_transaction", nullable = false)
     @Builder.Default
-    private Boolean isNightTransaction = false;
+    private boolean isNightTransaction = false;
 
     @Column(name = "is_weekend_transaction", nullable = false)
     @Builder.Default
-    private Boolean isWeekendTransaction = false;
+    private boolean isWeekendTransaction = false;
 
     @Column(name = "receiver_account_id", length = 100)
     private String receiverAccountId;

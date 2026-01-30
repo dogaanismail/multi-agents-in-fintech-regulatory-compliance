@@ -24,10 +24,10 @@ public class PaymentService {
 
     private final PaymentRequestRepository paymentRequestRepository;
     private final PaymentCreatedEventProducer paymentCreatedEventProducer;
+    private final AccountService accountService;
 
     @Transactional
     public PaymentRequestResponse requestPayment(PaymentRequest request) {
-
         log.info("Processing payment request for customer: {}, type: {}, amount: {} {}",
                 request.getCustomerId(),
                 request.getPaymentType(),
@@ -39,11 +39,14 @@ public class PaymentService {
         PaymentRequestEntity entity = toEntity(request);
         PaymentRequestEntity savedEntity = paymentRequestRepository.save(entity);
 
+        boolean isCrossOrderPayment = accountService.isCrossOrderPayment(
+                request.getSourceAccountId(),
+                request.getDestinationAccountId());
+
         //TODO: Investigate and implement outbox pattern
-        paymentCreatedEventProducer.publishPaymentCreatedEvent(savedEntity);
+        paymentCreatedEventProducer.publishPaymentCreatedEvent(savedEntity, isCrossOrderPayment);
 
         log.info("Payment request created: id:{}", savedEntity.getId());
-
         return toResponse(savedEntity, "Payment request submitted successfully and is being processed");
     }
 

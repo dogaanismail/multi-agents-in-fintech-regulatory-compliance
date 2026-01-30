@@ -39,7 +39,6 @@ public class CustomerProfileMapper {
 
     public CustomerProfileEntity createDefaultProfile(UUID customerId, UUID accountId) {
         return CustomerProfileEntity.builder()
-                .id(UUID.randomUUID())
                 .customerId(customerId)
                 .accountId(accountId)
                 .transactionCount(0)

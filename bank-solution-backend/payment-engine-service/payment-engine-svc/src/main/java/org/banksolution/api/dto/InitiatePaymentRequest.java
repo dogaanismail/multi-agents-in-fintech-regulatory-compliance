@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InitiatePaymentRequest {
-    
+
     private UUID paymentId;
     private UUID customerId;
     private UUID sourceAccountId;
@@ -19,5 +19,6 @@ public class InitiatePaymentRequest {
     private BigDecimal amount;
     private String currency;
     private String paymentType;
+    private boolean isCrossBorderPayment;
     private String description;
 }

@@ -15,5 +15,6 @@ public record InitiatePaymentCommand(
         BigDecimal amount,
         String currency,
         String paymentType,
+        boolean isCrossBorderPayment,
         String description) {
 }

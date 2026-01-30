@@ -33,7 +33,6 @@ public class PaymentController {
                 request.getCurrency());
 
         PaymentRequestResponse response = paymentService.requestPayment(request);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -43,7 +42,6 @@ public class PaymentController {
         log.info("GET /api/v1/payments/customer/{}", customerId);
 
         List<PaymentRequestResponse> responses = paymentService.getPaymentsByCustomerId(customerId);
-
         return ResponseEntity.ok(responses);
     }
 }

@@ -7,8 +7,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.aml.payment.PaymentType.DEPOSIT;
-import static com.aml.payment.PaymentType.WITHDRAWAL;
+import static com.aml.payment.PaymentType.*;
 
 @UtilityClass
 public class TransactionClassificationUtil {
@@ -17,13 +16,6 @@ public class TransactionClassificationUtil {
     private static final BigDecimal LARGE_TRANSACTION_THRESHOLD = new BigDecimal("10000");
     private static final int NIGHT_START_HOUR = 22;
     private static final int NIGHT_END_HOUR = 6;
-
-    public boolean isCrossBorder(String senderLocation, String receiverLocation) {
-        if (senderLocation == null || receiverLocation == null) {
-            return false;
-        }
-        return !senderLocation.equals(receiverLocation);
-    }
 
     public boolean isCashTransaction(String paymentType) {
         return CASH_TRANSACTION_TYPES.contains(paymentType);

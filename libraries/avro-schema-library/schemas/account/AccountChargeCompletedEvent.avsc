@@ -1,0 +1,80 @@
+{
+  "namespace": "com.aml.account",
+  "type": "record",
+  "name": "AccountChargeCompletedEvent",
+  "doc": "Event published by account-service when account is successfully charged",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID)"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Payment identifier"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp"
+    },
+    {
+      "name": "sourceAccountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Source account ID that was charged"
+    },
+    {
+      "name": "destinationAccountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Destination account ID that was credited"
+    },
+    {
+      "name": "amount",
+      "type": "string",
+      "doc": "Amount charged as string to preserve precision (use BigDecimal)"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Currency (ISO 4217 code)"
+    },
+    {
+      "name": "paymentType",
+      "type": {
+        "type": "enum",
+        "name": "PaymentType",
+        "symbols": [
+          "TRANSFER_IN",
+          "TRANSFER_OUT",
+          "DEPOSIT",
+          "WITHDRAWAL"
+        ]
+      },
+      "doc": "Type of payment operation"
+    },
+    {
+      "name": "success",
+      "type": "boolean",
+      "doc": "Whether the account charge was successful"
+    },
+    {
+      "name": "failureReason",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Reason for failure if success is false"
+    }
+  ]
+}

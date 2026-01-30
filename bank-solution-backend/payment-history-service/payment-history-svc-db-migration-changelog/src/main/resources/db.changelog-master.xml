@@ -10,4 +10,9 @@
         <sqlFile path="changelog/add_payment_history_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-01-26-03-00" author="Ismail Dogan">
+        <comment>Add missing columns to payment_history table</comment>
+        <sqlFile path="changelog/add_missing_payment_history_columns.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

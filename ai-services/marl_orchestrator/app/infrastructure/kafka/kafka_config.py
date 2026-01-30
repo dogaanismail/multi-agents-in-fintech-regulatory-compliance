@@ -3,10 +3,15 @@ Kafka Configuration - Factory for creating Kafka clients
 
 Provides reusable, pre-configured Kafka consumer and producer instances
 with Avro serialization and Schema Registry integration.
+
+Uses the new confluent_kafka.schema_registry module (replacing deprecated confluent_kafka.avro).
 """
 
-from typing import Dict, Any
-from confluent_kafka.avro import AvroConsumer, AvroProducer
+from typing import Dict, Any, Tuple
+from confluent_kafka import Consumer
+from confluent_kafka.avro import AvroProducer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroDeserializer
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -19,15 +24,38 @@ class KafkaConfig:
     for creating Avro-enabled Kafka clients.
     """
     
+    _schema_registry_client = None
+    _avro_deserializer = None
+    
+    @classmethod
+    def get_schema_registry_client(cls) -> SchemaRegistryClient:
+        """Get or create a singleton Schema Registry client."""
+        if cls._schema_registry_client is None:
+            schema_registry_conf = {'url': settings.schema_registry_url}
+            cls._schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+            logger.info(f"Schema Registry client created for: {settings.schema_registry_url}")
+        return cls._schema_registry_client
+    
+    @classmethod
+    def get_avro_deserializer(cls) -> AvroDeserializer:
+        """Get or create a singleton Avro deserializer."""
+        if cls._avro_deserializer is None:
+            cls._avro_deserializer = AvroDeserializer(cls.get_schema_registry_client())
+            logger.info("Avro deserializer created")
+        return cls._avro_deserializer
+    
     @staticmethod
-    def create_avro_consumer(
+    def create_consumer_with_deserializer(
         group_id: str,
         auto_offset_reset: str = 'latest',
         enable_auto_commit: bool = True,
         additional_config: Dict[str, Any] = None
-    ) -> AvroConsumer:
+    ) -> Tuple[Consumer, AvroDeserializer]:
         """
-        Create pre-configured Avro consumer with Schema Registry support.
+        Create pre-configured Kafka consumer with Schema Registry Avro deserializer.
+        
+        Uses the new confluent_kafka.schema_registry module which properly handles
+        the Schema Registry wire format (magic byte + schema ID + Avro binary data).
         
         Args:
             group_id: Consumer group identifier
@@ -36,14 +64,13 @@ class KafkaConfig:
             additional_config: Additional Kafka consumer configuration
         
         Returns:
-            Configured AvroConsumer instance
+            Tuple of (Consumer, AvroDeserializer) for manual deserialization
         """
         consumer_config = {
             'bootstrap.servers': settings.kafka_bootstrap_servers,
             'group.id': group_id,
             'auto.offset.reset': auto_offset_reset,
             'enable.auto.commit': enable_auto_commit,
-            'schema.registry.url': settings.schema_registry_url,
             'session.timeout.ms': 30000,
             'heartbeat.interval.ms': 10000,
             'max.poll.interval.ms': 300000,
@@ -53,8 +80,11 @@ class KafkaConfig:
         if additional_config:
             consumer_config.update(additional_config)
         
-        logger.info(f"Creating Avro consumer with group_id: {group_id}")
-        return AvroConsumer(consumer_config)
+        logger.info(f"Creating Kafka consumer with group_id: {group_id}")
+        consumer = Consumer(consumer_config)
+        deserializer = KafkaConfig.get_avro_deserializer()
+        
+        return consumer, deserializer
     
     @staticmethod
     def create_avro_producer(
@@ -132,6 +162,4 @@ class KafkaConfig:
             default_key_schema=key_schema
         )
 
-
-# Singleton factory instance
 kafka_config = KafkaConfig()

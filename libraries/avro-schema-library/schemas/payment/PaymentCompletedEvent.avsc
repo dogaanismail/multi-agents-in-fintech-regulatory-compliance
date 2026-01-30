@@ -103,6 +103,12 @@
       "name": "processingTimeMs",
       "type": "double",
       "doc": "Total processing time in milliseconds"
+    },
+    {
+      "name": "isCrossBorderPayment",
+      "type": "boolean",
+      "default": false,
+      "doc": "Whether this is a cross-border payment (sender and receiver in different countries)"
     }
   ]
 }

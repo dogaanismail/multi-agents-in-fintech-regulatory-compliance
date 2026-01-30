@@ -62,9 +62,13 @@
           "INITIATED",
           "FRAUD_CHECK_PENDING",
           "FRAUD_CHECK_APPROVED",
-          "BLOCKED",
+          "FRAUD_CHECK_FAILED",
           "MANUAL_REVIEW_REQUIRED",
-          "COMPLETED"
+          "ACCOUNT_CHARGE_PENDING",
+          "ACCOUNT_CHARGED",
+          "COMPLETED",
+          "BLOCKED",
+          "FAILED"
         ]
       },
       "doc": "Current payment status"
@@ -78,7 +82,8 @@
           "PENDING",
           "APPROVED",
           "BLOCKED",
-          "REVIEW_REQUIRED"
+          "REVIEW_REQUIRED",
+          "FAILED"
         ]
       },
       "doc": "Fraud check status"
@@ -318,6 +323,94 @@
       "doc": "Risk check completion timestamp"
     },
     {
+      "name": "fraudCheckApprovedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Fraud check approval timestamp (when risk assessment passed)"
+    },
+    {
+      "name": "manualReviewRequestedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Manual review request timestamp"
+    },
+    {
+      "name": "manualReviewApprovedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Manual review approval timestamp"
+    },
+    {
+      "name": "manualReviewRejectedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Manual review rejection timestamp"
+    },
+    {
+      "name": "manualReviewedBy",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Compliance officer who approved/rejected (email or ID)"
+    },
+    {
+      "name": "manualReviewNotes",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Notes from compliance officer (approval notes or rejection reason)"
+    },
+    {
+      "name": "accountChargeInitiatedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Account charge initiation timestamp"
+    },
+    {
+      "name": "accountChargedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Account successfully charged timestamp"
+    },
+    {
+      "name": "accountChargeFailedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Account charge failure timestamp"
+    },
+    {
       "name": "completedAt",
       "type": [
         "null",
@@ -325,7 +418,7 @@
       ],
       "default": null,
       "logicalType": "timestamp-millis",
-      "doc": "Payment completion timestamp"
+      "doc": "Payment completion timestamp (final state reached)"
     },
     {
       "name": "blockedAt",
@@ -338,14 +431,22 @@
       "doc": "Payment blocked timestamp"
     },
     {
-      "name": "manualReviewRequestedAt",
+      "name": "blockReason",
       "type": [
         "null",
-        "long"
+        "string"
       ],
       "default": null,
-      "logicalType": "timestamp-millis",
-      "doc": "Manual review request timestamp"
+      "doc": "Reason for blocking (if status = BLOCKED)"
+    },
+    {
+      "name": "failureReason",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Reason for failure (if status = FAILED, e.g., insufficient funds)"
     },
     {
       "name": "version",
@@ -361,7 +462,7 @@
     {
       "name": "eventTrigger",
       "type": "string",
-      "doc": "What triggered this snapshot: PAYMENT_INITIATED, RISK_CHECK_REQUESTED, RISK_CHECK_COMPLETED, FRAUD_CHECK_APPROVED, PAYMENT_BLOCKED, MANUAL_REVIEW_REQUESTED, PAYMENT_COMPLETED"
+      "doc": "What triggered this snapshot: PAYMENT_INITIATED, RISK_CHECK_REQUESTED, RISK_CHECK_COMPLETED, FRAUD_CHECK_APPROVED, MANUAL_REVIEW_REQUESTED, MANUAL_REVIEW_APPROVED, MANUAL_REVIEW_REJECTED, ACCOUNT_CHARGE_INITIATED, ACCOUNT_CHARGED, ACCOUNT_CHARGE_FAILED, PAYMENT_BLOCKED, PAYMENT_COMPLETED"
     }
   ]
 }

@@ -22,8 +22,9 @@ pydantic-settings==2.6.1    # Settings management
 python-dotenv==1.0.1        # Environment variables
 
 # Kafka
-confluent-kafka==2.6.0      # Kafka client with Avro support
+confluent-kafka[avro]==2.6.0  # Kafka client with Avro support
 avro-python3==1.10.2        # Avro serialization
+urllib3==2.2.3              # HTTP library required by confluent-kafka avro
 
 # Monitoring & Logging
 python-json-logger==3.2.1   # Structured JSON logging

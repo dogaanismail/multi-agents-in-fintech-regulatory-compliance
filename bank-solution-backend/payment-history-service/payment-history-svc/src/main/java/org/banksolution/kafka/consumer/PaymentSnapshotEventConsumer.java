@@ -30,10 +30,12 @@ public class PaymentSnapshotEventConsumer {
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment
     ) {
-        log.info("Consumed PaymentSnapshotEvent from topic: {}, partition: {}, offset: {}, " + "referenceNumber: {}, version: {}, trigger: {}",
+        log.info("Consumed PaymentSnapshotEvent from topic: {}, partition: {}, offset: {}, " +
+                        "paymentId: {}, referenceNumber: {}, version: {}, trigger: {}",
                 topic,
                 partition,
                 offset,
+                snapshot.getPaymentId(),
                 snapshot.getReferenceNumber(),
                 snapshot.getVersion(),
                 snapshot.getEventTrigger());
@@ -41,11 +43,13 @@ public class PaymentSnapshotEventConsumer {
         try {
             historyService.processPaymentSnapshotEvent(snapshot);
             acknowledgment.acknowledge();
-            log.info("Successfully processed PaymentSnapshotEvent for referenceNumber: {}, version: {}",
+            log.info("Successfully processed PaymentSnapshotEvent for paymentId: {}, referenceNumber: {}, version: {}",
+                    snapshot.getPaymentId(),
                     snapshot.getReferenceNumber(),
                     snapshot.getVersion());
         } catch (Exception e) {
-            log.error("Error processing PaymentSnapshotEvent for referenceNumber: {}",
+            log.error("Error processing PaymentSnapshotEvent for paymentId: {}, referenceNumber: {}",
+                    snapshot.getPaymentId(),
                     snapshot.getReferenceNumber(),
                     e);
             throw e;

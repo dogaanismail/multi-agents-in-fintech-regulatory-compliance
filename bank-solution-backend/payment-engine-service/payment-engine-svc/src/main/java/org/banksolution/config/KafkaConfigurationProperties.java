@@ -33,12 +33,15 @@ public class KafkaConfigurationProperties {
         public static class Incoming {
             private String paymentCreated;
             private String riskAssessmentCompleted;
+            private String accountChargeCompleted;
         }
 
         @Data
         public static class Outgoing {
             private String riskAssessmentRequested;
             private String paymentSnapshotEvents;
+            private String accountChargeRequested;
+            private String paymentCompleted;
         }
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EntityScan(basePackages = {
@@ -13,6 +14,7 @@ import org.springframework.kafka.annotation.EnableKafka;
         "org.axonframework.modelling.saga.repository.jpa"
 })
 @EnableKafka
+@EnableAsync
 public class PaymentEngineServiceApplication {
 
     private PaymentEngineServiceApplication() {

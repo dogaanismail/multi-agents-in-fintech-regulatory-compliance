@@ -58,7 +58,7 @@ public class PaymentRiskSaga {
 
         if (deadlineId != null && !riskAssessmentCompleted) {
             deadlineManager.cancelSchedule(RISK_ASSESSMENT_TIMEOUT_DEADLINE, deadlineId);
-            log.info("Cancelled risk check timeout deadline for payment: {}", paymentId);
+            log.info("Cancelled risk check timeout deadline for payment: {}", event.paymentId());
         }
 
         this.riskAssessmentCompleted = true;
@@ -66,7 +66,7 @@ public class PaymentRiskSaga {
         RiskAssessment riskAssessment = event.riskAssessment();
 
         if (riskAssessment == null) {
-            log.error("Risk assessment is null for payment: {}, ending saga", paymentId);
+            log.error("Risk assessment is null for payment: {}, ending saga", event.paymentId());
             SagaLifecycle.end();
             return;
         }
@@ -76,31 +76,38 @@ public class PaymentRiskSaga {
         try {
             switch (riskAction) {
                 case "PROCEED" -> {
-                    log.info("Risk action: PROCEED - Approving payment: {}", paymentId);
-                    commandGateway.sendAndWait(new ApproveFraudCheckCommand(paymentId, riskAssessment));
+                    log.info("Risk action: PROCEED - Approving payment: {}", event.paymentId());
+                    commandGateway.sendAndWait(new ApproveFraudCheckCommand(event.paymentId(), riskAssessment));
                 }
                 case "ESCALATE" -> {
-                    log.info("Risk action: ESCALATE - Requesting manual review for payment: {}", paymentId);
-                    commandGateway.sendAndWait(new RequestManualReviewCommand(paymentId, riskAssessment));
+                    log.info("Risk action: ESCALATE - Requesting manual review for payment: {}", event.paymentId());
+                    commandGateway.sendAndWait(new RequestManualReviewCommand(event.paymentId(), riskAssessment));
                 }
                 case "BLOCK" -> {
-                    log.info("Risk action: BLOCK - Blocking payment: {}", paymentId);
-                    commandGateway.sendAndWait(new BlockPaymentCommand(paymentId, riskAssessment));
+                    log.info("Risk action: BLOCK - Blocking payment: {}", event.paymentId());
+                    commandGateway.sendAndWait(new BlockPaymentCommand(event.paymentId(), riskAssessment));
                 }
                 default -> {
-                    log.warn("Unknown risk action: {} for payment: {}, ending saga", riskAction, paymentId);
+                    log.warn("Unknown risk action: {} for payment: {}, ending saga", riskAction, event.paymentId());
                     SagaLifecycle.end();
                 }
             }
         } catch (Exception e) {
-            log.error("Error processing risk action for payment: {}", paymentId, e);
+            log.error("Error processing risk action for payment: {}", event.paymentId(), e);
             SagaLifecycle.end();
         }
     }
 
+    @EndSaga
     @DeadlineHandler(deadlineName = RISK_ASSESSMENT_TIMEOUT_DEADLINE)
     public void on(PaymentId paymentId) {
         log.info("Risk check timeout for payment: {}", paymentId);
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = PAYMENT_ID_ASSOCIATION)
+    public void on(FraudCheckApprovedEvent event) {
+        log.info("Fraud check approved, ending PaymentRiskSaga for payment: {}", event.paymentId());
     }
 
     @EndSaga

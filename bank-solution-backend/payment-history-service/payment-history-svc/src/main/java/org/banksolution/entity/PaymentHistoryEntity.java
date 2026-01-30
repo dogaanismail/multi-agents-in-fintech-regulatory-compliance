@@ -51,17 +51,17 @@ public class PaymentHistoryEntity {
 
     // Status Tracking
     @Column(name = "status", length = 50, nullable = false)
-    private String status; // INITIATED, RISK_CHECK_PENDING, APPROVED, BLOCKED, COMPLETED
+    private String status;
 
     @Column(name = "fraud_status", length = 50)
-    private String fraudStatus; // PENDING, APPROVED, BLOCKED, REVIEW_REQUIRED
+    private String fraudStatus;
 
     // Risk Assessment from Risk-Engine
     @Column(name = "risk_score")
     private Double riskScore;
 
     @Column(name = "risk_level", length = 20)
-    private String riskLevel; // LOW, MEDIUM, HIGH, CRITICAL
+    private String riskLevel;
 
     @Column(name = "risk_action", length = 20)
     private String riskAction;
@@ -83,11 +83,44 @@ public class PaymentHistoryEntity {
     @Column(name = "risk_check_completed_at")
     private Instant riskCheckCompletedAt;
 
+    @Column(name = "fraud_check_approved_at")
+    private Instant fraudCheckApprovedAt;
+
+    @Column(name = "manual_review_requested_at")
+    private Instant manualReviewRequestedAt;
+
+    @Column(name = "manual_review_approved_at")
+    private Instant manualReviewApprovedAt;
+
+    @Column(name = "manual_review_rejected_at")
+    private Instant manualReviewRejectedAt;
+
+    @Column(name = "manual_reviewed_by", length = 255)
+    private String manualReviewedBy;
+
+    @Column(name = "manual_review_notes", length = 2000)
+    private String manualReviewNotes;
+
+    @Column(name = "account_charge_initiated_at")
+    private Instant accountChargeInitiatedAt;
+
+    @Column(name = "account_charged_at")
+    private Instant accountChargedAt;
+
+    @Column(name = "account_charge_failed_at")
+    private Instant accountChargeFailedAt;
+
     @Column(name = "completed_at")
     private Instant completedAt;
 
     @Column(name = "blocked_at")
     private Instant blockedAt;
+
+    @Column(name = "block_reason", length = 1000)
+    private String blockReason;
+
+    @Column(name = "failure_reason", length = 1000)
+    private String failureReason;
 
     // Processing Metadata
     @Column(name = "risk_processing_time_ms")

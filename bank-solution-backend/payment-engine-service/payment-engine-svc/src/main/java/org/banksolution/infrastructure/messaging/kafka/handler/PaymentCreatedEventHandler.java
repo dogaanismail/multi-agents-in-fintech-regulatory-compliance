@@ -34,11 +34,11 @@ public class PaymentCreatedEventHandler {
                 new BigDecimal(event.getAmount()),
                 event.getCurrency(),
                 event.getPaymentType().toString(),
+                event.getIsCrossBorderPayment(),
                 event.getDescription()
         );
 
         commandGateway.send(command);
-
         log.info("Payment initiated for paymentId:{} successfully", paymentId);
     }
 }

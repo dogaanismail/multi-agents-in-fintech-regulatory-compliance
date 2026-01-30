@@ -3,31 +3,37 @@ Fraud Analysis Requested Listener - Consumes FraudAnalysisRequested from Kafka
 
 Thin Kafka consumer that listens to fraud analysis requests
 and delegates processing to FraudAnalysisRequestedHandler.
+
+Uses the new confluent_kafka.schema_registry module for proper Avro deserialization.
 """
 
 import asyncio
 from threading import Thread
-from confluent_kafka import KafkaError
+from confluent_kafka import KafkaError, KafkaException
 
 from app.infrastructure.kafka.kafka_config import kafka_config
 from app.handlers.fraud_analysis_requested_handler import fraud_analysis_requested_handler
 from app.core.config import settings
 from app.core.logging import logger
 
-#TODO: Refactor kafka listener in marl orchestrator
+
 class FraudAnalysisRequestedListener:
     """
     Kafka consumer for fraud analysis requests.
     
     Runs Kafka polling in a separate thread to avoid blocking the async event loop.
     Async message processing is submitted back to the main event loop.
+    
+    Uses the new Schema Registry AvroDeserializer for proper message deserialization.
     """
     
     def __init__(self):
-        """Initialize listener with Kafka consumer and handler."""
-        # Get consumer from factory
-        self.consumer = kafka_config.create_avro_consumer(
-            group_id=settings.kafka_consumer_group
+        """Initialize listener with Kafka consumer and deserializer."""
+        # Get consumer and deserializer from factory
+        # Use 'latest' to skip existing messages and only process new ones
+        self.consumer, self.deserializer = kafka_config.create_consumer_with_deserializer(
+            group_id=settings.kafka_consumer_group,
+            auto_offset_reset='latest'
         )
         
         # Inject handler
@@ -58,8 +64,8 @@ class FraudAnalysisRequestedListener:
     
     def _consume_loop(self):
         """Blocking loop that runs in separate thread."""
-        try:
-            while self.running:
+        while self.running:
+            try:
                 msg = self.consumer.poll(timeout=1.0)
                 
                 if msg is None:
@@ -70,12 +76,39 @@ class FraudAnalysisRequestedListener:
                         logger.error(f"Kafka error: {msg.error()}")
                     continue
                 
+                # Log raw message info for debugging
+                logger.info(f"Received message from {msg.topic()} partition {msg.partition()} offset {msg.offset()}")
+                
+                # Get raw bytes and deserialize using Schema Registry deserializer
+                raw_value = msg.value()
+                if raw_value is None:
+                    logger.warning(
+                        f"Skipping message with null value at {msg.topic()} "
+                        f"[{msg.partition()}] offset {msg.offset()}."
+                    )
+                    continue
+                
+                # Deserialize Avro message using Schema Registry
                 try:
-                    # Log raw message info for debugging
-                    logger.info(f"Received message from {msg.topic()} partition {msg.partition()} offset {msg.offset()}")
-                    
+                    deserialized_value = self.deserializer(raw_value, None)
+                except Exception as deser_error:
+                    logger.warning(
+                        f"Skipping message with Avro deserialization error at {msg.topic()} "
+                        f"[{msg.partition()}] offset {msg.offset()}: {str(deser_error)}. "
+                        f"Ensure all producers are using Avro serialization with Schema Registry."
+                    )
+                    continue
+                
+                if deserialized_value is None:
+                    logger.warning(
+                        f"Skipping message with failed deserialization at {msg.topic()} "
+                        f"[{msg.partition()}] offset {msg.offset()}."
+                    )
+                    continue
+                
+                try:
                     future = asyncio.run_coroutine_threadsafe(
-                        self.handler.handle(msg.value()),
+                        self.handler.handle(deserialized_value),
                         self._loop
                     )
                     
@@ -84,10 +117,17 @@ class FraudAnalysisRequestedListener:
                     logger.error(f"Error processing message: {str(e)}")
                     logger.debug(f"Message details - Topic: {msg.topic()}, Partition: {msg.partition()}, Offset: {msg.offset()}")
                     # TODO: Publish to DLQ or retry queue
-        except Exception as e:
-            logger.error(f"Error in consumer loop: {str(e)}")
-        finally:
-            self._cleanup()
+                    
+            except KafkaException as e:
+                logger.error(f"Kafka exception in consumer loop: {str(e)}")
+                continue
+            except Exception as e:
+                logger.error(f"Unexpected error in consumer loop: {str(e)}")
+                # Don't break the loop, continue processing
+                continue
+        
+        # Cleanup after loop exits
+        self._cleanup()
     
     def stop(self):
         """Stop the listener gracefully."""

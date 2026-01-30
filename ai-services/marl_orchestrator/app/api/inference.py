@@ -36,7 +36,7 @@ async def coordinated_predict(request: CoordinatedDecisionRequest):
     try:
         # Delegate to service layer
         response = await fraud_decision_service.make_decision(
-            transaction_id=request.transaction_id,
+            payment_id=request.payment_id,
             transaction_features=request.transaction.model_dump(),
             customer_features=request.customer.model_dump(),
             network_features=request.network.model_dump()
@@ -45,7 +45,7 @@ async def coordinated_predict(request: CoordinatedDecisionRequest):
         return response
         
     except Exception as e:
-        logger.error(f"REST prediction error for transaction {request.transaction_id}: {str(e)}")
+        logger.error(f"REST prediction error for payment {request.payment_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Prediction failed: {str(e)}"
