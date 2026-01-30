@@ -32,7 +32,7 @@ public class CustomerProfileEntity {
 
     @Column(name = "transaction_count", nullable = false)
     @Builder.Default
-    private Integer transactionCount = 0;
+    private int transactionCount = 0;
 
     @Column(name = "total_amount", precision = 19, scale = 4, nullable = false)
     @Builder.Default
@@ -60,7 +60,7 @@ public class CustomerProfileEntity {
 
     @Column(name = "active_days", nullable = false)
     @Builder.Default
-    private Integer activeDays = 0;
+    private int activeDays = 0;
 
     @Column(name = "transactions_per_day", precision = 10, scale = 4, nullable = false)
     @Builder.Default
@@ -74,23 +74,23 @@ public class CustomerProfileEntity {
 
     @Column(name = "cross_border_count", nullable = false)
     @Builder.Default
-    private Integer crossBorderCount = 0;
+    private int crossBorderCount = 0;
 
     @Column(name = "cash_transaction_count", nullable = false)
     @Builder.Default
-    private Integer cashTransactionCount = 0;
+    private int cashTransactionCount = 0;
 
     @Column(name = "large_transaction_count", nullable = false)
     @Builder.Default
-    private Integer largeTransactionCount = 0;
+    private int largeTransactionCount = 0;
 
     @Column(name = "night_transaction_count", nullable = false)
     @Builder.Default
-    private Integer nightTransactionCount = 0;
+    private int nightTransactionCount = 0;
 
     @Column(name = "weekend_transaction_count", nullable = false)
     @Builder.Default
-    private Integer weekendTransactionCount = 0;
+    private int weekendTransactionCount = 0;
 
     @Column(name = "cross_border_ratio", precision = 5, scale = 4, nullable = false)
     @Builder.Default
@@ -114,11 +114,11 @@ public class CustomerProfileEntity {
 
     @Column(name = "unique_receivers", nullable = false)
     @Builder.Default
-    private Integer uniqueReceivers = 0;
+    private int uniqueReceivers = 0;
 
     @Column(name = "unique_receiver_countries", nullable = false)
     @Builder.Default
-    private Integer uniqueReceiverCountries = 0;
+    private int uniqueReceiverCountries = 0;
 
     @Column(name = "receiver_diversity", precision = 5, scale = 4, nullable = false)
     @Builder.Default
@@ -126,7 +126,7 @@ public class CustomerProfileEntity {
 
     @Column(name = "unique_currencies", nullable = false)
     @Builder.Default
-    private Integer uniqueCurrencies = 0;
+    private int uniqueCurrencies = 0;
 
     @Column(name = "amount_consistency", precision = 5, scale = 4, nullable = false)
     @Builder.Default

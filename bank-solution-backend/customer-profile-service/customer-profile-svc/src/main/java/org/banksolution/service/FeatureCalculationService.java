@@ -102,27 +102,27 @@ public class FeatureCalculationService {
         int totalCount = transactions.size();
 
         // Cross-border
-        int crossBorderCount = countByPredicate(transactions, TransactionSnapshotEntity::getIsCrossBorder);
+        int crossBorderCount = countByPredicate(transactions, TransactionSnapshotEntity::isCrossBorder);
         profile.setCrossBorderCount(crossBorderCount);
         profile.setCrossBorderRatio(calculateRatio(crossBorderCount, totalCount));
 
         // Cash transactions
-        int cashCount = countByPredicate(transactions, TransactionSnapshotEntity::getIsCashTransaction);
+        int cashCount = countByPredicate(transactions, TransactionSnapshotEntity::isCashTransaction);
         profile.setCashTransactionCount(cashCount);
         profile.setCashTransactionRatio(calculateRatio(cashCount, totalCount));
 
         // Large transactions
-        int largeCount = countByPredicate(transactions, TransactionSnapshotEntity::getIsLargeTransaction);
+        int largeCount = countByPredicate(transactions, TransactionSnapshotEntity::isLargeTransaction);
         profile.setLargeTransactionCount(largeCount);
         profile.setLargeTransactionRatio(calculateRatio(largeCount, totalCount));
 
         // Night transactions
-        int nightCount = countByPredicate(transactions, TransactionSnapshotEntity::getIsNightTransaction);
+        int nightCount = countByPredicate(transactions, TransactionSnapshotEntity::isNightTransaction);
         profile.setNightTransactionCount(nightCount);
         profile.setNightTransactionRatio(calculateRatio(nightCount, totalCount));
 
         // Weekend transactions
-        int weekendCount = countByPredicate(transactions, TransactionSnapshotEntity::getIsWeekendTransaction);
+        int weekendCount = countByPredicate(transactions, TransactionSnapshotEntity::isWeekendTransaction);
         profile.setWeekendTransactionCount(weekendCount);
         profile.setWeekendTransactionRatio(calculateRatio(weekendCount, totalCount));
     }

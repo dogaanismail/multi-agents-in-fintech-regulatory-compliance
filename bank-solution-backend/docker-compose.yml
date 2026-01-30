@@ -154,6 +154,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
       SERVER_PORT: 5003
     depends_on:
       payment-db-migration:

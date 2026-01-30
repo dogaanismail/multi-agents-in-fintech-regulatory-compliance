@@ -38,6 +38,7 @@ public class PaymentCommandController {
                 request.getAmount(),
                 request.getCurrency(),
                 request.getPaymentType(),
+                request.isCrossBorderPayment(),
                 request.getDescription()
         );
         commandGateway.sendAndWait(command);

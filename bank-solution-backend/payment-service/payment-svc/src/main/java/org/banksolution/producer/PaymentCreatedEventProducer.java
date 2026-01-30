@@ -19,12 +19,15 @@ public class PaymentCreatedEventProducer {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull PaymentCreatedEvent> paymentCreatedEventKafkaTemplate;
 
-    public void publishPaymentCreatedEvent(PaymentRequestEntity paymentRequest) {
+    public void publishPaymentCreatedEvent(
+            PaymentRequestEntity paymentRequest,
+            boolean isCrossOrderPayment) {
+
         log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequest.getId());
 
         String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCreated();
         String messageKey = paymentRequest.getId().toString();
-        PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest);
+        PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest, isCrossOrderPayment);
         paymentCreatedEventKafkaTemplate.send(topic, messageKey, event);
 
         log.info("Published PaymentCreatedEvent: eventId:{}, paymentId:{}, type:{}",

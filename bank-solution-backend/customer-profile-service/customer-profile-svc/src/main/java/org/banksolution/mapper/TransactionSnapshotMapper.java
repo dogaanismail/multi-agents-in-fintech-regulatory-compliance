@@ -30,6 +30,7 @@ public class TransactionSnapshotMapper {
                 .transactionTimestamp(timestamp)
                 .transactionDate(txTime.toLocalDate())
                 .transactionTime(txTime.toLocalTime())
+                .isCrossBorder(event.getIsCrossBorderPayment())
                 .build();
 
         enrichWithClassifications(transactionSnapshotEntity, txTime);
@@ -37,11 +38,10 @@ public class TransactionSnapshotMapper {
     }
 
     private void enrichWithClassifications(TransactionSnapshotEntity transactionSnapshotEntity, LocalDateTime txTime) {
-        transactionSnapshotEntity.setIsCrossBorder(isCrossBorder(transactionSnapshotEntity.getSenderBankLocation(), transactionSnapshotEntity.getReceiverBankLocation()));
-        transactionSnapshotEntity.setIsCashTransaction(isCashTransaction(transactionSnapshotEntity.getPaymentType()));
-        transactionSnapshotEntity.setIsLargeTransaction(isLargeTransaction(transactionSnapshotEntity.getAmount()));
-        transactionSnapshotEntity.setIsNightTransaction(isNightTransaction(txTime));
-        transactionSnapshotEntity.setIsWeekendTransaction(isWeekendTransaction(txTime));
+        transactionSnapshotEntity.setCashTransaction(isCashTransaction(transactionSnapshotEntity.getPaymentType()));
+        transactionSnapshotEntity.setLargeTransaction(isLargeTransaction(transactionSnapshotEntity.getAmount()));
+        transactionSnapshotEntity.setNightTransaction(isNightTransaction(txTime));
+        transactionSnapshotEntity.setWeekendTransaction(isWeekendTransaction(txTime));
         transactionSnapshotEntity.setReceiverCountry(transactionSnapshotEntity.getReceiverBankLocation());
     }
 

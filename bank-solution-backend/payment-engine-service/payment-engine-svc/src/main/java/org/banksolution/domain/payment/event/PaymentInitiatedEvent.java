@@ -13,6 +13,7 @@ public record PaymentInitiatedEvent(
         BigDecimal amount,
         String currency,
         String paymentType,
+        boolean isCrossBorderPayment,
         String description) {
 
 }

@@ -10,7 +10,10 @@ import java.util.UUID;
 @UtilityClass
 public class PaymentCreatedEventMapper {
 
-    public static PaymentCreatedEvent toPaymentCreatedEvent(PaymentRequestEntity paymentRequestEntity) {
+    public static PaymentCreatedEvent toPaymentCreatedEvent(
+            PaymentRequestEntity paymentRequestEntity,
+            boolean isCrossOrderPayment) {
+
         return PaymentCreatedEvent.newBuilder()
                 .setPaymentId(paymentRequestEntity.getId().toString())
                 .setEventId(UUID.randomUUID().toString())
@@ -23,6 +26,7 @@ public class PaymentCreatedEventMapper {
                 .setAmount(paymentRequestEntity.getAmount().toString())
                 .setCurrency(paymentRequestEntity.getCurrency().name())
                 .setPaymentType(com.aml.payment.PaymentType.valueOf(paymentRequestEntity.getPaymentType().name()))
+                .setIsCrossBorderPayment(isCrossOrderPayment)
                 .setDescription(paymentRequestEntity.getDescription())
                 .build();
     }

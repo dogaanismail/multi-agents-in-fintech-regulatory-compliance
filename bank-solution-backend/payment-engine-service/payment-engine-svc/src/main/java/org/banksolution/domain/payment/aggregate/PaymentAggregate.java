@@ -83,6 +83,7 @@ public class PaymentAggregate {
                 command.amount(),
                 command.currency(),
                 command.paymentType(),
+                command.isCrossBorderPayment(),
                 command.description()
         ));
 
@@ -253,6 +254,7 @@ public class PaymentAggregate {
         this.amount = event.amount();
         this.currency = event.currency();
         this.paymentType = event.paymentType();
+        this.isCrossBorderPayment = event.isCrossBorderPayment();
         this.description = event.description();
         this.status = PaymentStatus.INITIATED;
         this.fraudStatus = FraudAnalysisStatus.PENDING;

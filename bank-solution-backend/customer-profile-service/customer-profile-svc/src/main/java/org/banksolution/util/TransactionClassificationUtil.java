@@ -17,13 +17,6 @@ public class TransactionClassificationUtil {
     private static final int NIGHT_START_HOUR = 22;
     private static final int NIGHT_END_HOUR = 6;
 
-    public boolean isCrossBorder(String senderLocation, String receiverLocation) {
-        if (senderLocation == null || receiverLocation == null) {
-            return false;
-        }
-        return !senderLocation.equalsIgnoreCase(receiverLocation);
-    }
-
     public boolean isCashTransaction(String paymentType) {
         return CASH_TRANSACTION_TYPES.contains(paymentType);
     }
