@@ -14,10 +14,8 @@ import java.math.BigDecimal;
 @Slf4j
 public class TransactionGraphService {
 
-    private final NetworkFeatureService networkFeatureService;
     private final NetworkGraphRepository networkGraphRepository;
 
-    @Transactional
     public void createTransactionRelationship(PaymentCompletedEvent event) {
         String sourceAccountId = event.getSourceAccountId();
         String destinationAccountId = event.getDestinationAccountId();
@@ -28,10 +26,6 @@ public class TransactionGraphService {
                 destinationAccountId,
                 paymentId);
 
-        String sourceCustomerId = event.getCustomerId();
-        networkFeatureService.getOrCreateAccount(sourceAccountId, sourceCustomerId);
-        networkFeatureService.getOrCreateAccount(destinationAccountId, null);
-
         networkGraphRepository.createTransactionRelationship(
                 sourceAccountId,
                 destinationAccountId,
@@ -40,7 +34,8 @@ public class TransactionGraphService {
                 event.getCurrency(),
                 event.getPaymentType().name(),
                 event.getTimestamp(),
-                event.getRiskCheckPassed()
+                event.getRiskCheckPassed(),
+                event.getCustomerId()
         );
 
         log.info("Transaction relationship created for payment: {}", paymentId);

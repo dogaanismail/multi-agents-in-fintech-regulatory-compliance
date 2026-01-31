@@ -7,6 +7,7 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ public class GraphAlgorithmScheduledService {
     private boolean algorithmEnabled;
 
     @Scheduled(fixedRateString = "${app.graph.algorithm.interval-ms:300000}", initialDelay = 60000)
+    @Async
     public void computeAllMetrics() {
         if (!algorithmEnabled) {
             log.debug("Graph algorithms disabled, skipping computation");

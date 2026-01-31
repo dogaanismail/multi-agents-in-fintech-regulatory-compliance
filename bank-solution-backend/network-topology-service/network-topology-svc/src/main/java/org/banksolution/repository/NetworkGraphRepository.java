@@ -88,11 +88,26 @@ public class NetworkGraphRepository {
             String currency,
             String paymentType,
             long timestamp,
-            boolean riskCheckPassed) {
+            boolean riskCheckPassed,
+            String customerId) {
         try (Session session = neo4jDriver.session()) {
             String query = """
-                    MATCH (source:Account {accountId: $sourceAccountId})
-                    MATCH (dest:Account {accountId: $destAccountId})
+                    MERGE (source:Account {accountId: $sourceAccountId})
+                    ON CREATE SET source.customerId = 'UNKNOWN',
+                                  source.createdAt = datetime(),
+                                  source.lastActivityAt = datetime(),
+                                  source.transactionCount = 1
+                    ON MATCH SET source.lastActivityAt = datetime(),
+                                 source.transactionCount = source.transactionCount + 1
+                    
+                    MERGE (dest:Account {accountId: $destAccountId})
+                    ON CREATE SET dest.customerId = 'UNKNOWN',
+                                  dest.createdAt = datetime(),
+                                  dest.lastActivityAt = datetime(),
+                                  dest.transactionCount = 1
+                    ON MATCH SET dest.lastActivityAt = datetime(),
+                                 dest.transactionCount = dest.transactionCount + 1
+                    
                     CREATE (source)-[r:TRANSFERRED_TO {
                         paymentId: $paymentId,
                         amount: $amount,
@@ -111,10 +126,11 @@ public class NetworkGraphRepository {
                     "currency", currency,
                     "paymentType", paymentType,
                     "timestamp", timestamp,
-                    "riskCheckPassed", riskCheckPassed
+                    "riskCheckPassed", riskCheckPassed,
+                    "customerId", customerId
             ));
 
-            log.debug("Transaction relationship created: {} -> {} for payment: {} riskCheckPassed: {}",
+            log.info("Transaction relationship created: {} -> {} for payment: {} riskCheckPassed: {}",
                     sourceAccountId,
                     destAccountId,
                     paymentId,

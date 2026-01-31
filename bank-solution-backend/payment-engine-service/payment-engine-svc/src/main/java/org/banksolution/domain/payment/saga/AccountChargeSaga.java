@@ -56,15 +56,15 @@ public class AccountChargeSaga {
         this.accountChargeCompleted = false;
 
         try {
-            log.info("Scheduling account charge timeout deadline for payment: {}", this.paymentId);
-            this.deadlineId = deadlineManager.schedule(ACCOUNT_CHARGE_TIMEOUT, ACCOUNT_CHARGE_TIMEOUT_DEADLINE, this.paymentId);
+            log.info("Scheduling account charge timeout deadline for payment: {}", event.paymentId());
+            this.deadlineId = deadlineManager.schedule(ACCOUNT_CHARGE_TIMEOUT, ACCOUNT_CHARGE_TIMEOUT_DEADLINE, event.paymentId());
 
-            log.info("Publishing AccountChargeRequest to Kafka for payment: {}", this.paymentId);
+            log.info("Publishing AccountChargeRequest to Kafka for payment: {}", event.paymentId());
             accountChargeRequestedEventProducer.publishAccountChargeRequestedEvent(event);
 
-            log.info("Account charge request published, awaiting confirmation");
+            log.info("Account charge request published, awaiting confirmation for payment: {}", event.paymentId());
         } catch (Exception e) {
-            log.error("Error initiating account charge for payment: {}", paymentId, e);
+            log.error("Error initiating account charge for payment: {}", event.paymentId(), e);
             SagaLifecycle.end();
         }
     }
@@ -77,11 +77,10 @@ public class AccountChargeSaga {
 
         if (deadlineId != null && !accountChargeCompleted) {
             deadlineManager.cancelSchedule(ACCOUNT_CHARGE_TIMEOUT_DEADLINE, deadlineId);
-            log.info("Cancelled account charge timeout deadline for payment: {}", paymentId);
+            log.info("Cancelled account charge timeout deadline for payment: {}", event.paymentId());
         }
 
         this.accountChargeCompleted = true;
-
         try {
             commandGateway.sendAndWait(new ConfirmAccountChargedCommand(
                     event.paymentId(),
@@ -91,9 +90,9 @@ public class AccountChargeSaga {
                     event.currency(),
                     event.paymentType()
             ));
-            log.info("Payment completion command sent for payment: {}", paymentId);
+            log.info("Payment completion command sent for payment: {}", event.paymentId());
         } catch (Exception e) {
-            log.error("Error confirming account charge for payment: {}", paymentId, e);
+            log.error("Error confirming account charge for payment: {}", event.paymentId(), e);
             SagaLifecycle.end();
         }
     }
@@ -103,10 +102,8 @@ public class AccountChargeSaga {
         log.warn("Account charge timeout for payment: {}, failing the payment", paymentId);
 
         try {
-            commandGateway.sendAndWait(new FailAccountChargeCommand(
-                    paymentId,
-                    "Account charge timeout after " + ACCOUNT_CHARGE_TIMEOUT.toMinutes() + " minutes"
-            ));
+            String failureReason = String.format("Account charge timeout after minutes: %s", ACCOUNT_CHARGE_TIMEOUT.toMinutes());
+            commandGateway.sendAndWait(new FailAccountChargeCommand(paymentId, failureReason));
             log.info("FailAccountChargeCommand sent due to timeout for payment: {}", paymentId);
         } catch (Exception e) {
             log.error("Error handling account charge timeout for payment: {}", paymentId, e);
