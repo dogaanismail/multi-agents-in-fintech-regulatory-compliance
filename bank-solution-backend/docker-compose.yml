@@ -388,6 +388,35 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # Backoffice Gateway
+  backoffice-gateway:
+    image: backoffice-gateway-svc:latest
+    container_name: backoffice-gateway-app
+    build:
+      context: ./backoffice-gateway/backoffice-gateway-svc
+      dockerfile: Dockerfile
+    ports:
+      - "3030:3030"
+    environment:
+      CUSTOMER_SERVICE_URL: http://customer-service:5001
+      ACCOUNT_SERVICE_URL: http://account-service:5002
+      PAYMENT_SERVICE_URL: http://payment-service:5003
+      PAYMENT_ENGINE_SERVICE_URL: http://payment-engine-service:5004
+      PAYMENT_HISTORY_SERVICE_URL: http://payment-history-service:5005
+      RISK_ENGINE_SERVICE_URL: http://risk-engine-service:5006
+      NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-svc:5007
+      CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-svc:5008
+      CORS_ORIGINS: http://localhost:3000
+    networks:
+      - bank-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:2020/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
