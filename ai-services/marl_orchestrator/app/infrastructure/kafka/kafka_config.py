@@ -48,7 +48,7 @@ class KafkaConfig:
     def create_consumer_with_deserializer(
         group_id: str,
         auto_offset_reset: str = 'latest',
-        enable_auto_commit: bool = True,
+        enable_auto_commit: bool = False,
         additional_config: Dict[str, Any] = None
     ) -> Tuple[Consumer, AvroDeserializer]:
         """
@@ -105,7 +105,7 @@ class KafkaConfig:
             'bootstrap.servers': settings.kafka_bootstrap_servers,
             'schema.registry.url': settings.schema_registry_url,
             # Reliability settings
-            'acks': 'all',  # Wait for all replicas
+            'acks': 'all',
             'retries': 3,
             'max.in.flight.requests.per.connection': 5,
             # Performance tuning

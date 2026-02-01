@@ -417,6 +417,23 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # Backoffice UI for Compliance Officers
+  backoffice-ui:
+    image: backoffice-ui:latest
+    container_name: backoffice-ui-app
+    build:
+      context: ../bank-solution-backoffice
+      dockerfile: Dockerfile
+    ports:
+      - "6060:80"
+    environment:
+      BACKEND_URL: http://backoffice-gateway:3030
+    depends_on:
+      - backoffice-gateway
+    networks:
+      - bank-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
