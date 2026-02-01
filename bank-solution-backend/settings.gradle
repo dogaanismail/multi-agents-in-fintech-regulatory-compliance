@@ -58,3 +58,6 @@ include 'payment-service'
 include 'payment-service:payment-svc'
 include 'payment-service:payment-svc-db-migration'
 include 'payment-service:payment-svc-db-migration-changelog'
+
+include 'backoffice-gateway'
+include 'backoffice-gateway:backoffice-gateway-svc'
