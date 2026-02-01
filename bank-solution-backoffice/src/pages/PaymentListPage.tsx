@@ -24,7 +24,53 @@ export const PaymentListPage: React.FC = () => {
 
   const loadPayments = async () => {
     // Determine which API to call based on filters
-    if (filters.customerId) {
+    if (filters.paymentId) {
+      // For payment ID, get single payment and wrap in page structure
+      try {
+        const payment = await paymentService.getPaymentById(filters.paymentId);
+        await execute(() => Promise.resolve({
+          content: [payment],
+          pageable: {
+            pageNumber: 0,
+            pageSize: 1,
+            sort: { empty: true, sorted: false, unsorted: true },
+            offset: 0,
+            paged: true,
+            unpaged: false
+          },
+          totalPages: 1,
+          totalElements: 1,
+          last: true,
+          size: 1,
+          number: 0,
+          sort: { empty: true, sorted: false, unsorted: true },
+          numberOfElements: 1,
+          first: true,
+          empty: false,
+        } as Page<PaymentHistoryResponse>));
+      } catch (err) {
+        await execute(() => Promise.resolve({
+          content: [],
+          pageable: {
+            pageNumber: 0,
+            pageSize: 0,
+            sort: { empty: true, sorted: false, unsorted: true },
+            offset: 0,
+            paged: true,
+            unpaged: false
+          },
+          totalPages: 0,
+          totalElements: 0,
+          last: true,
+          size: 0,
+          number: 0,
+          sort: { empty: true, sorted: false, unsorted: true },
+          numberOfElements: 0,
+          first: true,
+          empty: true,
+        } as Page<PaymentHistoryResponse>));
+      }
+    } else if (filters.customerId) {
       await execute(() =>
         paymentService.getPaymentsByCustomerId(filters.customerId, currentPage, pageSize)
       );
@@ -99,9 +145,13 @@ export const PaymentListPage: React.FC = () => {
               { value: 'INITIATED', label: 'Initiated' },
               { value: 'FRAUD_CHECK_PENDING', label: 'Fraud Check Pending' },
               { value: 'FRAUD_CHECK_APPROVED', label: 'Fraud Check Approved' },
+              { value: 'FRAUD_CHECK_FAILED', label: 'Fraud Check Failed' },
               { value: 'MANUAL_REVIEW_REQUIRED', label: 'Manual Review Required' },
+              { value: 'ACCOUNT_CHARGE_PENDING', label: 'Account Charge Pending' },
+              { value: 'ACCOUNT_CHARGED', label: 'Account Charged' },
               { value: 'COMPLETED', label: 'Completed' },
               { value: 'BLOCKED', label: 'Blocked' },
+              { value: 'FAILED', label: 'Failed' },
             ]}
           />
           <Select
@@ -114,6 +164,7 @@ export const PaymentListPage: React.FC = () => {
               { value: 'APPROVED', label: 'Approved' },
               { value: 'REVIEW_REQUIRED', label: 'Review Required' },
               { value: 'BLOCKED', label: 'Blocked' },
+              { value: 'FAILED', label: 'Failed' },
             ]}
           />
           <Select

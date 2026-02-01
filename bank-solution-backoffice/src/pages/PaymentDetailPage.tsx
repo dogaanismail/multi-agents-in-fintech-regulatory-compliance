@@ -3,8 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { paymentService } from '@/api';
 import { PaymentHistoryResponse } from '@/types';
 import { useApi } from '@/hooks/useApi';
-import { Card, LoadingSpinner, Badge, Button, Input } from '@/components/common';
-import { formatDate, formatCurrency, getStatusColor, getRiskLevelColor } from '@/utils/formatters';
+import { Card, LoadingSpinner, Badge, Button, Input, CopyButton } from '@/components/common';
+import { formatDate, formatCurrency, getStatusColor, getRiskLevelColor, getRiskActionColor } from '@/utils/formatters';
 
 export const PaymentDetailPage: React.FC = () => {
   const { paymentId } = useParams<{ paymentId: string }>();
@@ -128,7 +128,7 @@ export const PaymentDetailPage: React.FC = () => {
       {/* Payment Information */}
       <Card title="Payment Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow label="Payment ID" value={payment.paymentId} />
+          <InfoRow label="Payment ID" value={<CopyButton text={payment.paymentId} />} />
           <InfoRow label="Reference Number" value={payment.referenceNumber} />
           <InfoRow
             label="Amount"
@@ -180,7 +180,11 @@ export const PaymentDetailPage: React.FC = () => {
           />
           <InfoRow
             label="Destination Account"
-            value={payment.destinationAccountId}
+            value={
+              <Link to={`/accounts/${payment.destinationAccountId}`} className="text-blue-600 hover:underline">
+                {payment.destinationAccountId}
+              </Link>
+            }
           />
         </div>
       </Card>
@@ -190,7 +194,16 @@ export const PaymentDetailPage: React.FC = () => {
         <Card title="Risk Assessment">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InfoRow label="Risk Score" value={payment.riskScore?.toFixed(4) || 'N/A'} />
-            <InfoRow label="Risk Action" value={payment.riskAction || 'N/A'} />
+            <InfoRow 
+              label="Risk Action" 
+              value={
+                payment.riskAction ? (
+                  <Badge className={getRiskActionColor(payment.riskAction)}>
+                    {payment.riskAction}
+                  </Badge>
+                ) : 'N/A'
+              } 
+            />
             {payment.fraudIndicators && payment.fraudIndicators.length > 0 && (
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,10 +226,25 @@ export const PaymentDetailPage: React.FC = () => {
       {payment.marlAssessment && (
         <Card title="MARL Assessment">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoRow label="Action" value={payment.marlAssessment.action} />
+            <InfoRow 
+              label="Action" 
+              value={
+                <Badge className={payment.marlAssessment.action === 'ALLOW' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                  {payment.marlAssessment.action}
+                </Badge>
+              } 
+            />
             <InfoRow
               label="Confidence"
-              value={`${(payment.marlAssessment.confidence * 100).toFixed(2)}%`}
+              value={
+                <Badge className={
+                  payment.marlAssessment.confidence >= 0.8 ? 'bg-green-100 text-green-800' :
+                  payment.marlAssessment.confidence >= 0.6 ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
+                }>
+                  {`${(payment.marlAssessment.confidence * 100).toFixed(2)}%`}
+                </Badge>
+              }
             />
             <InfoRow
               label="MADDPG Q-Value"
@@ -352,7 +380,7 @@ export const PaymentDetailPage: React.FC = () => {
 // Helper Components
 const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <label className="block text-sm font-bold text-gray-700">{label}</label>
     <div className="mt-1 text-sm text-gray-900">{value}</div>
   </div>
 );
@@ -375,19 +403,26 @@ const AgentCard: React.FC<{ agent: any }> = ({ agent }) => (
     <h5 className="font-semibold mb-2">{agent.agentName}</h5>
     <div className="grid grid-cols-2 gap-2 text-sm">
       <div>
-        <span className="text-gray-600">Suspicious:</span>{' '}
+        <span className="font-bold text-gray-600">Suspicious:</span>{' '}
         <Badge className={agent.isSuspicious ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}>
           {agent.isSuspicious ? 'Yes' : 'No'}
         </Badge>
       </div>
       <div>
-        <span className="text-gray-600">Probability:</span> {(agent.probability * 100).toFixed(2)}%
+        <span className="font-bold text-gray-600">Probability:</span> {(agent.probability * 100).toFixed(2)}%
       </div>
       <div>
-        <span className="text-gray-600">Risk Score:</span> {agent.riskScore.toFixed(4)}
+        <span className="font-bold text-gray-600">Risk Score:</span> {agent.riskScore.toFixed(4)}
       </div>
       <div>
-        <span className="text-gray-600">Confidence:</span> {agent.confidence}
+        <span className="font-bold text-gray-600">Confidence:</span>{' '}
+        <Badge className={
+          agent.confidence === 'HIGH' ? 'bg-green-100 text-green-800' :
+          agent.confidence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+          'bg-red-100 text-red-800'
+        }>
+          {agent.confidence}
+        </Badge>
       </div>
     </div>
   </div>

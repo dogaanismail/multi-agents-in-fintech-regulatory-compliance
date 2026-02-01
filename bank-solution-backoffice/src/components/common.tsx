@@ -115,3 +115,31 @@ export const Select: React.FC<SelectProps> = ({ label, options, className = '', 
     </div>
   );
 };
+
+interface CopyButtonProps {
+  text: string;
+  label?: string;
+}
+
+export const CopyButton: React.FC<CopyButtonProps> = ({ text, label }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="font-mono text-sm">{label || text}</span>
+      <button
+        onClick={handleCopy}
+        className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+        title="Copy to clipboard"
+      >
+        {copied ? '✓ Copied' : '📋 Copy'}
+      </button>
+    </div>
+  );
+};
