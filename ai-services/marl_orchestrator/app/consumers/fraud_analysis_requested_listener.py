@@ -29,20 +29,18 @@ class FraudAnalysisRequestedListener:
     
     def __init__(self):
         """Initialize listener with Kafka consumer and deserializer."""
-        # Get consumer and deserializer from factory
-        # Use 'latest' to skip existing messages and only process new ones
         self.consumer, self.deserializer = kafka_config.create_consumer_with_deserializer(
             group_id=settings.kafka_consumer_group,
-            auto_offset_reset='latest'
+            auto_offset_reset='latest',
+            enable_auto_commit=False
         )
         
-        # Inject handler
         self.handler = fraud_analysis_requested_handler
         
         self.topic = settings.fraud_analysis_requested_topic
         self.running = False
         self._thread = None
-        self._loop = None  # Reference to main event loop
+        self._loop = None 
         
         logger.info(f"FraudAnalysisRequestedListener initialized for topic: {self.topic}")
     
