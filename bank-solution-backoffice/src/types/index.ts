@@ -160,3 +160,33 @@ export interface ManualReviewResponse {
   message: string;
   reviewedBy: string;
 }
+
+export type ConfigCategory = 'OFFLINE_RETRAINING' | 'AUTO_REWARD' | 'MANUAL_REWARD' | 'ESCALATION';
+export type ConfigType = 'STRING' | 'FLOAT' | 'INTEGER' | 'BOOLEAN';
+
+export interface ConfigurationResponse {
+  id: string;
+  configKey: string;
+  configValue: string;
+  configType: ConfigType;
+  category: ConfigCategory;
+  description: string | null;
+  defaultValue: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateConfigRequest {
+  configKey: string;
+  configValue: string;
+  configType: ConfigType;
+  category: ConfigCategory;
+  description?: string;
+  defaultValue: string;
+}
+
+export interface UpdateConfigRequest {
+  configValue: string;
+  configType: ConfigType;
+  description?: string;
+}
