@@ -72,12 +72,12 @@ class ModelPersistence:
             actor_path = path / f"actor_{name}.pth"
             
             if actor_path.exists():
-                state_dict = torch.load(actor_path, map_location=self.device)
+                state_dict = torch.load(actor_path, map_location=self.device, weights_only=True)
                 actors[name].load_state_dict(state_dict)
                 actor_targets[name].load_state_dict(state_dict)
                 
-                # Set to evaluation mode
-                actors[name].eval()
+                # Online actor trains; target actor stays frozen for inference
+                actors[name].train()
                 actor_targets[name].eval()
                 
                 logger.info(f"Loaded actor: {name} <- {actor_path}")
@@ -96,12 +96,12 @@ class ModelPersistence:
         critic_path = path / "critic.pth"
         
         if critic_path.exists():
-            state_dict = torch.load(critic_path, map_location=self.device)
+            state_dict = torch.load(critic_path, map_location=self.device, weights_only=True)
             critic.load_state_dict(state_dict)
             critic_target.load_state_dict(state_dict)
             
-            # Set to evaluation mode
-            critic.eval()
+            # Online critic trains; target critic stays frozen for Q-target inference
+            critic.train()
             critic_target.eval()
             
             logger.info(f"Loaded critic <- {critic_path}")

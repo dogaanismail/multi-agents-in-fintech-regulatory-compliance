@@ -56,10 +56,6 @@ class Settings(BaseSettings):
     
     # Model Paths
     model_path: str = os.getenv("MODEL_PATH", "./trained_models")
-    actor_txn_path: str = os.path.join(model_path, "actor_transaction.pth")
-    actor_cust_path: str = os.path.join(model_path, "actor_customer.pth")
-    actor_net_path: str = os.path.join(model_path, "actor_network.pth")
-    critic_path: str = os.path.join(model_path, "critic.pth")
     
     # Kafka
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
@@ -67,7 +63,41 @@ class Settings(BaseSettings):
     kafka_consumer_group: str = "marl-orchestrator-group"
     fraud_analysis_requested_topic: str = "fraud.analysis.requested"
     fraud_analysis_completed_topic: str = "fraud.analysis.completed"
-    
+    agent_manual_feedback_topic: str = "agent.manual.feedback"
+
+    # Database (Offline Replay Buffer Persistence)
+    database_url: str = os.getenv(
+        "DATABASE_URL",
+        "postgresql+asyncpg://marl_user:marl_password@localhost:5438/marl_orchestrator_db"
+    )
+
+    # Offline Batch Retraining
+    training_interval_seconds: int = int(os.getenv("TRAINING_INTERVAL_SECONDS", "300"))
+    min_experiences_for_training: int = int(os.getenv("MIN_EXPERIENCES_FOR_TRAINING", "64"))
+    training_batch_size: int = int(os.getenv("TRAINING_BATCH_SIZE", "64"))
+    max_experiences_per_batch: int = int(os.getenv("MAX_EXPERIENCES_PER_BATCH", "1000"))
+    save_model_after_training: bool = os.getenv("SAVE_MODEL_AFTER_TRAINING", "True").lower() == "true"
+
+    # Reward Configuration (Configurable - per professor's recommendation)
+    # Automated rewards (heuristic, before manual review)
+    reward_auto_high_risk_block: float = float(os.getenv("REWARD_AUTO_HIGH_RISK_BLOCK", "0.3"))
+    reward_auto_low_risk_allow: float = float(os.getenv("REWARD_AUTO_LOW_RISK_ALLOW", "0.3"))
+    reward_auto_conflict: float = float(os.getenv("REWARD_AUTO_CONFLICT", "-0.3"))
+    reward_auto_risk_threshold: float = float(os.getenv("REWARD_AUTO_RISK_THRESHOLD", "0.5"))
+    # Manual review rewards (verified expert judgement - higher weight)
+    reward_manual_correct_block: float = float(os.getenv("REWARD_MANUAL_CORRECT_BLOCK", "1.0"))
+    reward_manual_correct_allow: float = float(os.getenv("REWARD_MANUAL_CORRECT_ALLOW", "0.5"))
+    reward_manual_wrong_block: float = float(os.getenv("REWARD_MANUAL_WRONG_BLOCK", "-0.5"))
+    reward_manual_wrong_allow: float = float(os.getenv("REWARD_MANUAL_WRONG_ALLOW", "-1.0"))
+    reward_manual_weight_multiplier: float = float(os.getenv("REWARD_MANUAL_WEIGHT_MULTIPLIER", "2.0"))
+    # Escalation rewards
+    reward_escalation_mode: str = os.getenv("REWARD_ESCALATION_MODE", "final_decision")  # none | positive | final_decision
+    reward_escalation_positive: float = float(os.getenv("REWARD_ESCALATION_POSITIVE", "0.3"))
+    # Confidence weighting
+    reward_use_confidence_weighting: bool = os.getenv("REWARD_USE_CONFIDENCE_WEIGHTING", "True").lower() == "true"
+    # Confidence threshold for auto-escalation
+    escalation_confidence_threshold: float = float(os.getenv("ESCALATION_CONFIDENCE_THRESHOLD", "0.6"))
+
     # Logging
     log_path: str = "./logs"
     
