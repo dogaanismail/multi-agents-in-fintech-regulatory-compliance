@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: default
       POSTGRES_PASSWORD: default
-      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db,customer_profile_db
+      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db,customer_profile_db,configuration_service_db
     ports:
       - "5433:5432"
     volumes:
@@ -388,6 +388,53 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # Configuration Service Database Migration
+  configuration-db-migration:
+    image: configuration-svc-db-migration-app:latest
+    container_name: configuration-svc-db-migration-service
+    build:
+      context: ./configuration-service/configuration-svc-db-migration
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/configuration_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_LIQUIBASE_ENABLED: "true"
+    depends_on:
+      bank-solution-postgres:
+        condition: service_healthy
+    networks:
+      - bank-network
+    restart: on-failure
+
+  # Configuration Service
+  configuration-service:
+    image: configuration-svc-api:latest
+    container_name: configuration-svc-app
+    build:
+      context: ./configuration-service/configuration-svc
+      dockerfile: Dockerfile
+    ports:
+      - "5009:5009"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/configuration_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SERVER_PORT: 5009
+    depends_on:
+      configuration-db-migration:
+        condition: service_completed_successfully
+    networks:
+      - bank-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5009/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
   # Backoffice Gateway
   backoffice-gateway:
     image: backoffice-gateway-svc:latest
@@ -406,6 +453,7 @@ services:
       RISK_ENGINE_SERVICE_URL: http://risk-engine-service:5006
       NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-svc:5007
       CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-svc:5008
+      CONFIGURATION_SERVICE_URL: http://configuration-service:5009
       CORS_ORIGINS: http://localhost:3000
     networks:
       - bank-network

@@ -34,6 +34,9 @@ export const Layout: React.FC = () => {
               <NavLink to="/accounts" active={isActive('/accounts')}>
                 Accounts
               </NavLink>
+              <NavLink to="/configurations" active={isActive('/configurations')}>
+                Configurations
+              </NavLink>
             </nav>
           </div>
         </div>

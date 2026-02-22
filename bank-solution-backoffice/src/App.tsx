@@ -7,6 +7,8 @@ import { CustomerListPage } from './pages/CustomerListPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { AccountListPage } from './pages/AccountListPage';
 import { AccountDetailPage } from './pages/AccountDetailPage';
+import { ConfigurationListPage } from './pages/ConfigurationListPage';
+import { ConfigurationDetailPage } from './pages/ConfigurationDetailPage';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Route path="customers/:customerId" element={<CustomerDetailPage />} />
           <Route path="accounts" element={<AccountListPage />} />
           <Route path="accounts/:accountId" element={<AccountDetailPage />} />
+          <Route path="configurations" element={<ConfigurationListPage />} />
+          <Route path="configurations/:configId" element={<ConfigurationDetailPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
