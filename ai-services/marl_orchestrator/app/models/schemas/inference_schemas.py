@@ -1,25 +1,30 @@
 """
-Pydantic schemas for MARL Orchestrator
+Inference schemas — Pydantic models for the MARL Orchestrator REST API.
+
+Covers: agent observations, transaction/customer/network features,
+coordinated decision request/response, health and model info.
 
 Author: Ismail Dogan
+Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 """
 
-from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, List
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class ActionType(str, Enum):
-    """Decision action types"""
+    """Decision action types."""
     BLOCK = "BLOCK"
     ALLOW = "ALLOW"
     REVIEW = "REVIEW"
 
 
-#TODO: Refactor schemas in marl orchestrator
+# TODO: Refactor schemas in marl orchestrator
 class TransactionFeatures(BaseModel):
-    """Transaction features for Transaction Pattern Agent"""
+    """Transaction features for Transaction Pattern Agent."""
     Date: str
     Time: str
     From_Bank: str
@@ -34,8 +39,9 @@ class TransactionFeatures(BaseModel):
     Sender_bank_location: str
     Receiver_bank_location: str
 
+
 class CustomerFeatures(BaseModel):
-    """Customer features for Customer Risk Agent"""
+    """Customer features for Customer Risk Agent."""
     transaction_count: int
     total_amount: float
     avg_amount: float
@@ -58,7 +64,7 @@ class CustomerFeatures(BaseModel):
 
 
 class NetworkFeatures(BaseModel):
-    """Network topology features for Network Analysis Agent"""
+    """Network topology features for Network Analysis Agent."""
     in_degree: int
     out_degree: int
     degree_centrality: float
@@ -73,17 +79,17 @@ class NetworkFeatures(BaseModel):
 
 
 class AgentObservation(BaseModel):
-    """Observation from a single detection agent"""
+    """Observation returned by a single detection agent."""
     agent_name: str
     is_suspicious: bool
-    probability: float  # fraud_probability or risk_probability
+    probability: float
     risk_score: float
     confidence: Optional[str] = None
     response_time_ms: Optional[float] = None
 
 
 class EnrichedTransactionEvent(BaseModel):
-    """Complete enriched transaction event (from Kafka)"""
+    """Complete enriched transaction event (consumed from Kafka)."""
     transaction_id: str
     customer_id: str
     timestamp: str
@@ -93,38 +99,35 @@ class EnrichedTransactionEvent(BaseModel):
 
 
 class CoordinatedDecisionRequest(BaseModel):
-    """Request for coordinated decision (REST API)"""
+    """REST API request for a coordinated MADDPG decision."""
     transaction: TransactionFeatures
     customer: CustomerFeatures
     network: NetworkFeatures
-    payment_id: str = Field(..., description="Payment identifier from the request")
+    payment_id: str = Field(..., description="Payment identifier")
+
 
 class CoordinatedDecisionResponse(BaseModel):
-    """Coordinated decision from MADDPG"""
-    payment_id: str = Field(..., description="Payment identifier from the request")
+    """Coordinated MADDPG decision response."""
+    payment_id: str = Field(..., description="Payment identifier")
     action: ActionType
-    confidence: float = Field(..., ge=0, le=1, description="Confidence in decision (0-1)")
-    maddpg_q_value: float = Field(..., description="Q-value from centralized critic")
-    
-    # Agent observations
+    confidence: float = Field(..., ge=0, le=1, description="Decision confidence (0-1)")
+    maddpg_q_value: float = Field(..., description="Q-value from centralised critic")
+
     transaction_agent_observation: AgentObservation
     customer_agent_observation: AgentObservation
     network_agent_observation: AgentObservation
-    
-    # Agent contributions (actor outputs)
+
     agent_contributions: Dict[str, float] = Field(
-        ..., 
-        description="How much each agent contributed to the decision"
+        ..., description="Per-agent contribution to the final decision"
     )
-    
-    # Metadata
+
     processing_time_ms: float
     timestamp: str
-    mode: str = Field(..., description="inference or training")
+    mode: str = Field(..., description="inference | training")
 
 
 class HealthResponse(BaseModel):
-    """Health check response"""
+    """Health check response."""
     status: str
     maddpg_loaded: bool
     detection_agents_status: Dict[str, str]
@@ -132,7 +135,7 @@ class HealthResponse(BaseModel):
 
 
 class ModelInfoResponse(BaseModel):
-    """MADDPG model information"""
+    """MADDPG model information."""
     model_name: str
     version: str
     architecture: Dict[str, Any]

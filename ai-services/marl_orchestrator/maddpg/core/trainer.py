@@ -76,6 +76,7 @@ class MADDPGTrainer:
         
         return {
             "critic_loss": critic_loss,
+            "training_step": self.training_step,
             **{f"actor_loss_{name}": loss for name, loss in actor_losses.items()}
         }
     
@@ -162,9 +163,11 @@ class MADDPGTrainer:
             # Backpropagation
             self.network_manager.actor_optimizers[name].zero_grad()
             actor_loss.backward()
+            
             torch.nn.utils.clip_grad_norm_(
                 self.network_manager.actors[name].parameters(), 1.0
             )
+            
             self.network_manager.actor_optimizers[name].step()
             
             actor_losses[name] = actor_loss.item()

@@ -71,7 +71,7 @@ class ReplayBuffer:
         num_agents = len(actions[0])
         actions_tensors = []
         for i in range(num_agents):
-            agent_actions = torch.FloatTensor([a[i] for a in actions])
+            agent_actions = torch.FloatTensor(np.array([a[i] for a in actions]))
             actions_tensors.append(agent_actions)
         
         return states, actions_tensors, rewards, next_states, dones

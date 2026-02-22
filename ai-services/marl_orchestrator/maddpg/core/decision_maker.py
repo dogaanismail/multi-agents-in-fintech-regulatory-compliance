@@ -72,16 +72,19 @@ class DecisionMaker:
         # Confidence = probability of selected action
         confidence = final_action_probs[0][action].item()
         
-        # Calculate individual agent contributions
+        # Calculate individual agent contributions and per-agent actions
         contributions = {}
+        agent_actions = {}
         for i, name in enumerate(self.agent_names):
             contributions[name] = action_probs[i][0][action].item()
+            agent_actions[name] = int(torch.argmax(action_probs[i], dim=-1).item())
         
         decision = {
             "action": ACTION_LABELS[action],
             "confidence": float(confidence),
             "q_value": float(q_value.item()),
-            "contributions": contributions
+            "contributions": contributions,
+            "agent_actions": agent_actions,
         }
         
         logger.debug(f"Decision: {decision['action']} (confidence: {confidence:.2%})")

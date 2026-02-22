@@ -109,8 +109,10 @@ class FraudAnalysisRequestedListener:
                         self.handler.handle(deserialized_value),
                         self._loop
                     )
-                    
                     future.result(timeout=30)
+                    # Commit offset only after successful processing
+                    # (enable_auto_commit=False, so we control exactly-once commits)
+                    self.consumer.commit(message=msg)
                 except Exception as e:
                     logger.error(f"Error processing message: {str(e)}")
                     logger.debug(f"Message details - Topic: {msg.topic()}, Partition: {msg.partition()}, Offset: {msg.offset()}")

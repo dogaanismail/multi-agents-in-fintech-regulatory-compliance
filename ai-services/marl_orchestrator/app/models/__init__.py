@@ -1,5 +1,6 @@
 """
-Models package initialization
+Models package initialization.
+All schemas are now in app/models/schemas/.
 """
 
 from .schemas import (
@@ -12,7 +13,11 @@ from .schemas import (
     CoordinatedDecisionRequest,
     CoordinatedDecisionResponse,
     HealthResponse,
-    ModelInfoResponse
+    ModelInfoResponse,
+    TrainingStatusResponse,
+    TriggerTrainingResponse,
+    TrainingRunResponse,
+    BufferStatsResponse,
 )
 
 __all__ = [
@@ -25,5 +30,9 @@ __all__ = [
     "CoordinatedDecisionRequest",
     "CoordinatedDecisionResponse",
     "HealthResponse",
-    "ModelInfoResponse"
+    "ModelInfoResponse",
+    "TrainingStatusResponse",
+    "TriggerTrainingResponse",
+    "TrainingRunResponse",
+    "BufferStatsResponse",
 ]

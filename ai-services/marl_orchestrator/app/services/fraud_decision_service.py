@@ -5,9 +5,12 @@ This service encapsulates the core business logic for making fraud decisions.
 Can be called from both REST endpoints and Kafka consumers.
 """
 
+import asyncio
 import time
 from datetime import datetime
 from typing import Dict, Any
+
+import numpy as np
 
 from ..models.schemas import (
     CoordinatedDecisionResponse,
@@ -15,6 +18,8 @@ from ..models.schemas import (
     AgentObservation
 )
 from .agent_orchestrator import agent_orchestrator
+from .experience_buffer_service import experience_buffer_service
+from ..core.reward_config import reward_calculator
 from maddpg.core import maddpg_coordinator
 from ..core.logging import logger
 from ..core.config import settings
@@ -34,6 +39,8 @@ class FraudDecisionService:
     def __init__(self):
         self.agent_orchestrator = agent_orchestrator
         self.maddpg_coordinator = maddpg_coordinator
+        self.experience_buffer = experience_buffer_service
+        self.reward_calculator = reward_calculator
     
     async def make_decision(
         self,
@@ -88,6 +95,17 @@ class FraudDecisionService:
                 decision=decision,
                 observations=observations,
                 processing_time=processing_time
+            )
+            
+            # Step 6: Persist experience to replay buffer (async, non-blocking)
+            # Fire-and-forget: do not await so inference latency is unaffected
+            asyncio.create_task(
+                self._store_experience(
+                    payment_id=payment_id,
+                    state=state,
+                    observations=observations,
+                    decision=decision,
+                )
             )
             
             logger.info(
@@ -219,6 +237,78 @@ class FraudDecisionService:
             mode=settings.maddpg_mode
         )
 
+    async def _store_experience(
+        self,
+        payment_id: str,
+        state: Dict[str, Dict[str, float]],
+        observations: Dict[str, AgentObservation],
+        decision: Dict[str, Any],
+    ) -> None:
+        """
+        Persist the current (s, a, r, s', done) tuple to the DB replay buffer.
 
-# Singleton instance
+        Runs as a fire-and-forget asyncio task after each decision so it
+        never adds latency to the inference path.
+
+        The MADDPG state vector is computed from `state` (the observations dict).
+        next_state is set to zeros because each payment is a single-step episode.
+
+        Args:
+            payment_id:   Unique payment identifier.
+            state:        Raw observations dict used to compute the state vector.
+            observations: Full AgentObservation objects (for confidence/risk scores).
+            decision:     MADDPG decision dict (action, confidence, q_value, contributions).
+        """
+        try:
+            # ── Build state vector ────────────────────────────────────────────
+            state_vector = self.maddpg_coordinator.state_manager.observations_to_state(state)
+
+            # ── Joint actions from per-agent decisions ────────────────────────
+            # agent_actions = {name: int} where 0=BLOCK, 1=ALLOW
+            # Falls back to the joint action if somehow missing
+            joint_action_int = 0 if decision["action"] == "BLOCK" else 1
+            agent_actions = decision.get("agent_actions", {})
+            actions_dict = {
+                name: agent_actions.get(name, joint_action_int)
+                for name in ["transaction", "customer", "network"]
+            }
+
+            # ── Zero next_state (single-step episode) ─────────────────────────
+            next_state_vector = np.zeros_like(state_vector)
+
+            # ── Mean risk score across agents ─────────────────────────────────
+            mean_risk_score = float(np.mean([
+                observations["transaction"].risk_score / 100.0,
+                observations["customer"].risk_score / 100.0,
+                observations["network"].risk_score / 100.0,
+            ]))
+
+            # ── Automated reward ──────────────────────────────────────────────
+            automated_reward = self.reward_calculator.calculate_automated_reward(
+                marl_action=decision["action"],
+                mean_risk_score=mean_risk_score,
+                confidence=decision["confidence"],
+            )
+
+            # ── Persist ───────────────────────────────────────────────────────
+            await self.experience_buffer.save_experience(
+                payment_id=payment_id,
+                state=state_vector.tolist(),
+                actions=actions_dict,
+                automated_reward=automated_reward,
+                next_state=next_state_vector.tolist(),
+                done=True,  # Each payment is a single-step episode
+                marl_action=decision["action"],
+                marl_confidence=decision["confidence"],
+                marl_q_value=float(decision["q_value"]),
+                mean_risk_score=mean_risk_score,
+            )
+
+        except Exception as exc:
+            # Never let storage errors surface to the caller
+            logger.error(
+                f"⚠️  Failed to store experience for payment {payment_id}: {exc}",
+                exc_info=True
+            )
+
 fraud_decision_service = FraudDecisionService()

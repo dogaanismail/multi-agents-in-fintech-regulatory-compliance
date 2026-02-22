@@ -23,23 +23,35 @@ class FraudAnalysisCompletedPublisher:
     """
     
     def __init__(self):
-        """Initialize publisher with Kafka producer from factory."""
-        # Fetch response schema from Schema Registry
-        self.value_schema = self._load_schema_from_registry()
-        
-        # Define string schema for key (transaction ID)
-        self.key_schema = avro.loads('{"type": "string"}')
-        
-        # Create producer with schemas
-        producer = kafka_config.create_avro_producer_with_schema(
-            value_schema=self.value_schema,
-            key_schema=self.key_schema
-        )
-        
-        self.producer_wrapper = AvroProducerWrapper(producer)
+        """Declare publisher — actual Kafka/Schema Registry connection is deferred to first use."""
+        self.value_schema = None
+        self.key_schema = None
+        self.producer_wrapper = None
         self.topic = settings.fraud_analysis_completed_topic
-        
-        logger.info(f"FraudAnalysisCompletedPublisher initialized for topic: {self.topic}")
+        self._initialized = False
+        logger.info(f"FraudAnalysisCompletedPublisher created (lazy) for topic: {self.topic}")
+
+    def _ensure_initialized(self) -> bool:
+        """Connect to Schema Registry and create producer on first use."""
+        if self._initialized:
+            return True
+        try:
+            self.value_schema = self._load_schema_from_registry()
+            self.key_schema = avro.loads('{"type": "string"}')
+            producer = kafka_config.create_avro_producer_with_schema(
+                value_schema=self.value_schema,
+                key_schema=self.key_schema
+            )
+            self.producer_wrapper = AvroProducerWrapper(producer)
+            self._initialized = True
+            logger.info(f"✅ FraudAnalysisCompletedPublisher connected to Schema Registry and Kafka")
+            return True
+        except Exception as e:
+            logger.warning(
+                f"⚠️ FraudAnalysisCompletedPublisher not yet available "
+                f"(Schema Registry unreachable): {e}"
+            )
+            return False
     
     def _load_schema_from_registry(self):
         """Load FraudAnalysisCompletedEvent schema from Schema Registry."""
@@ -69,6 +81,13 @@ class FraudAnalysisCompletedPublisher:
         Returns:
             True if published successfully
         """
+        if not self._ensure_initialized():
+            logger.warning(
+                f"Cannot publish fraud analysis completed event for payment {payment_id}: "
+                f"Schema Registry / Kafka not available yet"
+            )
+            return False
+
         try:
             # Convert to Avro format if needed
             avro_response = self._to_avro_format(response)
@@ -151,6 +170,4 @@ class FraudAnalysisCompletedPublisher:
         """Close producer and flush messages."""
         self.producer_wrapper.close()
 
-
-# Singleton instance for dependency injection
 fraud_analysis_completed_publisher = FraudAnalysisCompletedPublisher()

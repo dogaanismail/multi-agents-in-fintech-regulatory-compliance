@@ -1,5 +1,25 @@
 services:
 
+  marl-orchestrator-db:
+    image: postgres:16-alpine
+    container_name: marl-orchestrator-db
+    environment:
+      POSTGRES_DB: marl_orchestrator_db
+      POSTGRES_USER: marl_user
+      POSTGRES_PASSWORD: marl_password
+    ports:
+      - "5438:5432"
+    volumes:
+      - marl_orchestrator_db_data:/var/lib/postgresql/data
+    networks:
+      - aml-multi-agent-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marl_user -d marl_orchestrator_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   transaction-pattern-agent:
     build:
       context: agents/transaction_pattern_agent
@@ -80,10 +100,21 @@ services:
       - NETWORK_AGENT_URL=http://network-analysis-agent:1003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      - DATABASE_URL=postgresql+asyncpg://marl_user:marl_password@marl-orchestrator-db:5432/marl_orchestrator_db
+      - TRAINING_INTERVAL_SECONDS=30
+      - MIN_EXPERIENCES_FOR_TRAINING=1
+      - TRAINING_BATCH_SIZE=1
     depends_on:
-      - transaction-pattern-agent
-      - customer-risk-agent
-      - network-analysis-agent
+      marl-orchestrator-db:
+        condition: service_healthy
+      transaction-pattern-agent:
+        condition: service_started
+      customer-risk-agent:
+        condition: service_started
+      network-analysis-agent:
+        condition: service_started
+    volumes:
+      - marl_trained_models:/app/trained_models
     networks:
       - aml-multi-agent-network
       - aml-network
@@ -102,3 +133,9 @@ networks:
   aml-network:
     external: true
     name: avro-schema-library_default
+
+volumes:
+  marl_orchestrator_db_data:
+    name: marl_orchestrator_db_data
+  marl_trained_models:
+    name: marl_trained_models
