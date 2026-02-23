@@ -37,6 +37,9 @@ export const Layout: React.FC = () => {
               <NavLink to="/configurations" active={isActive('/configurations')}>
                 Configurations
               </NavLink>
+              <NavLink to="/marl-training" active={isActive('/marl-training')}>
+                MARL Training
+              </NavLink>
             </nav>
           </div>
         </div>

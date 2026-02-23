@@ -454,9 +454,11 @@ services:
       NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-svc:5007
       CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-svc:5008
       CONFIGURATION_SERVICE_URL: http://configuration-service:5009
+      MARL_ORCHESTRATOR_URL: http://marl-orchestrator:1004
       CORS_ORIGINS: http://localhost:6060
     networks:
       - bank-network
+      - aml-multi-agent-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:2020/actuator/health" ]
       interval: 30s
@@ -494,3 +496,6 @@ networks:
   aml-network:
     external: true
     name: avro-schema-library_default
+  aml-multi-agent-network:
+    external: true
+    name: aml-multi-agent-network

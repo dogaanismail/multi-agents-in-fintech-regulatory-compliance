@@ -9,6 +9,7 @@ import { AccountListPage } from './pages/AccountListPage';
 import { AccountDetailPage } from './pages/AccountDetailPage';
 import { ConfigurationListPage } from './pages/ConfigurationListPage';
 import { ConfigurationDetailPage } from './pages/ConfigurationDetailPage';
+import { MarlTrainingPage } from './pages/MarlTrainingPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="accounts/:accountId" element={<AccountDetailPage />} />
           <Route path="configurations" element={<ConfigurationListPage />} />
           <Route path="configurations/:configId" element={<ConfigurationDetailPage />} />
+          <Route path="marl-training" element={<MarlTrainingPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

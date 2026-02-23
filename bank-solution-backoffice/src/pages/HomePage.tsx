@@ -81,6 +81,52 @@ export const HomePage: React.FC = () => {
             </div>
           </Card>
         </Link>
+
+        {/* Configurations Card */}
+        <Link to="/configurations">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-orange-500 text-white text-2xl">
+                  ⚙️
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Configurations</h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Manage MARL reward weights, training thresholds, and system parameters
+                  dynamically without redeployment.
+                </p>
+                <div className="mt-3 text-sm text-orange-600 font-medium">
+                  View Configurations →
+                </div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        {/* MARL Training Card */}
+        <Link to="/marl-training">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-600 text-white text-2xl">
+                  🤖
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">MARL Training</h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Monitor MADDPG offline training, view replay buffer stats, training loss history,
+                  and manually trigger training cycles.
+                </p>
+                <div className="mt-3 text-sm text-indigo-600 font-medium">
+                  View Training →
+                </div>
+              </div>
+            </div>
+          </Card>
+        </Link>
       </div>
 
       {/* Features Overview */}

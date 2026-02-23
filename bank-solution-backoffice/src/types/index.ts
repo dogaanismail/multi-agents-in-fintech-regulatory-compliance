@@ -201,3 +201,47 @@ export interface UpdateConfigRequest {
   configType: ConfigType;
   description?: string;
 }
+
+// ─── MARL Training ────────────────────────────────────────────────────────────
+
+export interface TrainingStatusResponse {
+  scheduler_running: boolean;
+  is_training: boolean;
+  training_interval_seconds: number;
+  min_experiences_required: number;
+  unused_experiences: number;
+  total_experiences: number;
+  last_training_run_id: string | null;
+  last_training_at: string | null;
+  total_training_runs: number;
+  total_experiences_trained: number;
+}
+
+export interface TriggerTrainingResponse {
+  triggered: boolean;
+  reason: string | null;
+  available_experiences: number | null;
+  batch_size: number | null;
+}
+
+export interface TrainingRunResponse {
+  id: string;
+  status: 'SUCCESS' | 'FAILED' | 'SKIPPED' | string;
+  experiences_count: number;
+  train_steps_completed: number;
+  batch_size: number;
+  critic_loss: number | null;
+  actor_transaction_loss: number | null;
+  actor_customer_loss: number | null;
+  actor_network_loss: number | null;
+  model_saved: boolean;
+  error_message: string | null;
+  started_at: string;
+  completed_at: string | null;
+}
+
+export interface BufferStatsResponse {
+  total_experiences: number;
+  unused_experiences: number;
+  used_experiences: number;
+}
