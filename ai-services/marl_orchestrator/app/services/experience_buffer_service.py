@@ -127,8 +127,30 @@ class ExperienceBufferService:
             payment_id, manual_reward, reviewed_by
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # Helper: convert DB entries → numpy arrays for in-memory ReplayBuffer
+    # ──────────────────────────────────────────────────────────────────────────────
+    # Write path: evict stale experiences
+    # ──────────────────────────────────────────────────────────────────────────────
+    async def evict_old_experiences(self, retention_days: int) -> int:
+        """
+        Remove replay buffer entries older than *retention_days* days.
+
+        Only already-trained entries are removed so brand-new un-trained
+        samples are never silently discarded.
+
+        Args:
+            retention_days: Retention window; 0 means keep forever.
+
+        Returns:
+            Number of rows deleted.
+        """
+        if retention_days <= 0:
+            return 0
+        count = await replay_buffer_repository.evict_older_than(retention_days)
+        logger.info(
+            f"🗑️  Experience eviction complete: {count} rows removed "
+            f"(retention={retention_days} days)"
+        )
+        return count
     # ──────────────────────────────────────────────────────────────────────────
     @staticmethod
     def entries_to_numpy(

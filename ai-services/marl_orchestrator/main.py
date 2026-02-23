@@ -4,8 +4,9 @@ MARL Orchestrator — entry point.
 Startup order:
   1. Database tables initialised
   2. MADDPG model weights loaded (if available)
-  3. Offline training scheduler started
-  4. Kafka listener started
+  3. Dynamic config pre-warmed from configuration-service
+  4. Offline training scheduler started
+  5. Kafka listener started
 
 Author: Ismail Dogan
 Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
@@ -21,6 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import api_router
 from app.consumers.fraud_analysis_requested_listener import fraud_analysis_requested_listener
 from app.core.config import settings
+from app.core.dynamic_config import dynamic_config
 from app.core.logging import logger
 from app.infrastructure.database.database import init_db
 from app.services.offline_trainer_service import offline_trainer_service
@@ -38,6 +40,30 @@ async def _init_database() -> None:
     except Exception as exc:
         logger.error(f"❌ Database initialisation failed: {exc}")
         logger.warning("⚠️  Continuing without database — offline learning disabled")
+
+
+async def _warm_dynamic_config() -> None:
+    """
+    Pre-warm the in-memory dynamic config cache by fetching from configuration-service.
+
+    Must be called before the training scheduler starts so that
+    the initial APScheduler interval and reward weights are read from the DB
+    rather than from env-var defaults.
+    Falls back silently to env-var values when configuration-service is unreachable.
+    """
+    logger.info("🔧 Pre-warming dynamic config from configuration-service…")
+    success = await dynamic_config.refresh()
+    if success:
+        logger.info(
+            f"✅ Dynamic config ready — "
+            f"{dynamic_config.cache_size} entries loaded "
+            f"(configuration-service is healthy)"
+        )
+    else:
+        logger.warning(
+            "⚠️  Dynamic config pre-warm failed — "
+            "using env-var defaults; configuration-service may be starting up"
+        )
 
 
 def _load_model_weights() -> None:
@@ -93,6 +119,7 @@ async def lifespan(app: FastAPI):
 
     await _init_database()
     _load_model_weights()
+    await _warm_dynamic_config()
     _start_training_scheduler()
 
     logger.info("🎧 Starting Kafka listener...")

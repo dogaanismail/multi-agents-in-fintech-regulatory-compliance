@@ -15,4 +15,19 @@
         <sqlFile path="changelog/seed_default_configurations.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-02-23-01-03" author="Ismail Dogan">
+        <comment>Add system_config_audit_log table for regulatory compliance audit trail</comment>
+        <sqlFile path="changelog/add_config_audit_log_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-02-23-01-04" author="Ismail Dogan">
+        <comment>Extend chk_category constraint to include AGENT_BEHAVIOR</comment>
+        <sqlFile path="changelog/alter_category_constraint.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-02-23-01-05" author="Ismail Dogan">
+        <comment>Seed 7 new agent-behaviour and operational configurations</comment>
+        <sqlFile path="changelog/seed_new_configurations.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

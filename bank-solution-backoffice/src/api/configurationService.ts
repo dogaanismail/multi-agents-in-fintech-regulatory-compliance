@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { ConfigurationResponse, CreateConfigRequest, UpdateConfigRequest } from '@/types';
+import { ConfigurationResponse, CreateConfigRequest, UpdateConfigRequest, ConfigAuditLogResponse } from '@/types';
 
 export const configurationService = {
   getAllConfigurations: async (): Promise<ConfigurationResponse[]> => {
@@ -29,5 +29,10 @@ export const configurationService = {
 
   deleteConfiguration: async (id: string): Promise<void> => {
     await apiClient.delete(`/configurations/${id}`);
+  },
+
+  getAuditLogByKey: async (configKey: string): Promise<ConfigAuditLogResponse[]> => {
+    const response = await apiClient.get<ConfigAuditLogResponse[]>(`/configurations/key/${configKey}/audit-log`);
+    return response.data;
   },
 };

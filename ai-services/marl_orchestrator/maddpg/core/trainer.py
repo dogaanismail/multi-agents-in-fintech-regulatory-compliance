@@ -50,11 +50,18 @@ class MADDPGTrainer:
         Returns:
             Dict of losses or None if not enough samples
         """
-        if len(self.replay_buffer) < batch_size:
+        if len(self.replay_buffer) == 0:
             return None
-        
-        # Sample batch
-        states, actions, rewards, next_states, dones = self.replay_buffer.sample(batch_size)
+
+        effective_batch_size = min(batch_size, len(self.replay_buffer))
+        if effective_batch_size < batch_size:
+            logger.info(
+                f"  Buffer has {len(self.replay_buffer)} experiences "
+                f"(< configured batch_size={batch_size}); "
+                f"training with effective_batch_size={effective_batch_size}"
+            )
+
+        states, actions, rewards, next_states, dones = self.replay_buffer.sample(effective_batch_size)
         
         device = self.network_manager.device
         states = states.to(device)

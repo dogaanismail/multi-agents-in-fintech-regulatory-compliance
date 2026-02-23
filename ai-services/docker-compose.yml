@@ -104,6 +104,8 @@ services:
       - TRAINING_INTERVAL_SECONDS=30
       - MIN_EXPERIENCES_FOR_TRAINING=1
       - TRAINING_BATCH_SIZE=1
+      # configuration-service URL — reachable via the shared aml-network (bank-solution-backend compose)
+      - CONFIGURATION_SERVICE_URL=http://configuration-service:5009
     depends_on:
       marl-orchestrator-db:
         condition: service_healthy
@@ -118,6 +120,7 @@ services:
     networks:
       - aml-multi-agent-network
       - aml-network
+      - bank-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:1004/api/v1/health"]
@@ -133,6 +136,9 @@ networks:
   aml-network:
     external: true
     name: avro-schema-library_default
+  bank-network:
+    external: true
+    name: bank-solution-backend_bank-network
 
 volumes:
   marl_orchestrator_db_data:

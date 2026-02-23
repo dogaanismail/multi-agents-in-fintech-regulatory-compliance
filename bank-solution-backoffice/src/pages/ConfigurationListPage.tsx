@@ -11,6 +11,7 @@ const CATEGORY_OPTIONS: { value: ConfigCategory; label: string }[] = [
   { value: 'AUTO_REWARD', label: 'Auto Reward' },
   { value: 'MANUAL_REWARD', label: 'Manual Reward' },
   { value: 'ESCALATION', label: 'Escalation' },
+  { value: 'AGENT_BEHAVIOR', label: 'Agent Behavior' },
 ];
 
 const TYPE_OPTIONS: { value: ConfigType; label: string }[] = [
@@ -26,6 +27,7 @@ const getCategoryColor = (category: ConfigCategory): string => {
     AUTO_REWARD: 'bg-green-100 text-green-800',
     MANUAL_REWARD: 'bg-purple-100 text-purple-800',
     ESCALATION: 'bg-orange-100 text-orange-800',
+    AGENT_BEHAVIOR: 'bg-teal-100 text-teal-800',
   };
   return colors[category] || 'bg-gray-100 text-gray-800';
 };
@@ -36,6 +38,7 @@ const getCategoryLabel = (category: ConfigCategory): string => {
     AUTO_REWARD: 'Auto Reward',
     MANUAL_REWARD: 'Manual Reward',
     ESCALATION: 'Escalation',
+    AGENT_BEHAVIOR: 'Agent Behavior',
   };
   return labels[category] || category;
 };

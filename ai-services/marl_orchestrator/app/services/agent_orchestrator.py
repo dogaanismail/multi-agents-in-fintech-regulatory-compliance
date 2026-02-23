@@ -11,6 +11,8 @@ import time
 from typing import Dict
 
 from ..core.logging import logger
+from ..core.config import settings
+from ..core.dynamic_config import dynamic_config
 from ..models.schemas import AgentObservation
 from .transaction_agent_client import transaction_agent_client
 from .customer_agent_client import customer_agent_client
@@ -111,23 +113,31 @@ class AgentOrchestrator:
     
     def _get_fallback_observation(self, agent_name: str, error: Exception = None) -> AgentObservation:
         """
-        Return fallback observation when agent fails
+        Return fallback observation when agent fails.
+
+        The risk score is configurable via FALLBACK_AGENT_RISK_SCORE so that
+        compliance officers can decide the posture (safe / neutral / risky) when
+        a detection agent is unreachable.
         
         Args:
             agent_name: Name of the failed agent
             error: The exception that occurred
         
         Returns:
-            Safe fallback observation with minimal risk
+            Safe fallback observation with configurable risk score
         """
         if error:
             logger.warning(f"Using fallback observation for {agent_name}: {str(error)}")
+
+        risk_score = dynamic_config.get_float(
+            "FALLBACK_AGENT_RISK_SCORE", settings.fallback_agent_risk_score
+        )
         
         return AgentObservation(
             agent_name=agent_name,
-            is_suspicious=False,
-            probability=0.0,
-            risk_score=0.0,
+            is_suspicious=risk_score >= 50.0,
+            probability=risk_score / 100.0,
+            risk_score=risk_score,
             confidence="UNKNOWN",
             response_time_ms=0.0
         )

@@ -132,6 +132,12 @@ class HealthResponse(BaseModel):
     maddpg_loaded: bool
     detection_agents_status: Dict[str, str]
     timestamp: str
+    # Configuration-service integration
+    configuration_service_healthy: bool = False
+    dynamic_config_last_refreshed: Optional[str] = None
+    dynamic_config_cache_size: int = 0
+    # Compliance controls
+    freeze_training_active: bool = False
 
 
 class ModelInfoResponse(BaseModel):

@@ -19,10 +19,11 @@ from ..models.schemas import (
 )
 from .agent_orchestrator import agent_orchestrator
 from .experience_buffer_service import experience_buffer_service
-from ..core.reward_config import reward_calculator
+from app.services.reward_calculator_service import reward_calculator_service
 from maddpg.core import maddpg_coordinator
 from ..core.logging import logger
 from ..core.config import settings
+from ..core.dynamic_config import dynamic_config
 
 
 class FraudDecisionService:
@@ -40,7 +41,7 @@ class FraudDecisionService:
         self.agent_orchestrator = agent_orchestrator
         self.maddpg_coordinator = maddpg_coordinator
         self.experience_buffer = experience_buffer_service
-        self.reward_calculator = reward_calculator
+        self.reward_calculator = reward_calculator_service
     
     async def make_decision(
         self,
@@ -159,26 +160,35 @@ class FraudDecisionService:
     ) -> Dict[str, Dict[str, float]]:
         """
         Convert agent observations to MADDPG state representation.
-        
+
+        Each agent's probability and risk_score are scaled by the
+        dynamically-configurable trust weight for that agent so that
+        compliance officers can increase/decrease the influence of a
+        specific detection model at runtime.
+
         Args:
             observations: Agent observations
-        
+
         Returns:
             State dictionary for MADDPG
         """
+        w_tx  = dynamic_config.get_float("AGENT_WEIGHT_TRANSACTION", settings.agent_weight_transaction)
+        w_cx  = dynamic_config.get_float("AGENT_WEIGHT_CUSTOMER", settings.agent_weight_customer)
+        w_net = dynamic_config.get_float("AGENT_WEIGHT_NETWORK", settings.agent_weight_network)
+
         return {
             'transaction': {
-                'probability': observations['transaction'].probability,
-                'risk_score': observations['transaction'].risk_score
+                'probability': observations['transaction'].probability * w_tx,
+                'risk_score':  observations['transaction'].risk_score  * w_tx,
             },
             'customer': {
-                'probability': observations['customer'].probability,
-                'risk_score': observations['customer'].risk_score
+                'probability': observations['customer'].probability * w_cx,
+                'risk_score':  observations['customer'].risk_score  * w_cx,
             },
             'network': {
-                'probability': observations['network'].probability,
-                'risk_score': observations['network'].risk_score
-            }
+                'probability': observations['network'].probability * w_net,
+                'risk_score':  observations['network'].risk_score  * w_net,
+            },
         }
     
     def _make_maddpg_decision(
@@ -276,12 +286,18 @@ class FraudDecisionService:
             # ── Zero next_state (single-step episode) ─────────────────────────
             next_state_vector = np.zeros_like(state_vector)
 
-            # ── Mean risk score across agents ─────────────────────────────────
-            mean_risk_score = float(np.mean([
-                observations["transaction"].risk_score / 100.0,
-                observations["customer"].risk_score / 100.0,
-                observations["network"].risk_score / 100.0,
-            ]))
+            # ── Mean risk score across agents (weighted) ─────────────────────────────
+            # Weights are the same values used in _prepare_maddpg_state so the
+            # stored reward signal is consistent with the state representation.
+            w_tx  = dynamic_config.get_float("AGENT_WEIGHT_TRANSACTION", settings.agent_weight_transaction)
+            w_cx  = dynamic_config.get_float("AGENT_WEIGHT_CUSTOMER",    settings.agent_weight_customer)
+            w_net = dynamic_config.get_float("AGENT_WEIGHT_NETWORK",     settings.agent_weight_network)
+            total_weight = w_tx + w_cx + w_net or 1.0  # guard against zero-sum
+            mean_risk_score = (
+                observations["transaction"].risk_score / 100.0 * w_tx
+                + observations["customer"].risk_score  / 100.0 * w_cx
+                + observations["network"].risk_score   / 100.0 * w_net
+            ) / total_weight
 
             # ── Automated reward ──────────────────────────────────────────────
             automated_reward = self.reward_calculator.calculate_automated_reward(

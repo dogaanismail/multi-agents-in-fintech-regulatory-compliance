@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { configurationService } from '@/api';
-import { ConfigurationResponse, UpdateConfigRequest, ConfigType } from '@/types';
+import { ConfigurationResponse, UpdateConfigRequest, ConfigType, ConfigAuditLogResponse } from '@/types';
 import { useApi } from '@/hooks/useApi';
 import { Card, LoadingSpinner, Badge, Button, Input } from '@/components/common';
 import { formatDate } from '@/utils/formatters';
@@ -18,6 +18,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   AUTO_REWARD: 'Auto Reward',
   MANUAL_REWARD: 'Manual Reward',
   ESCALATION: 'Escalation',
+  AGENT_BEHAVIOR: 'Agent Behavior',
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -25,6 +26,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   AUTO_REWARD: 'bg-green-100 text-green-800',
   MANUAL_REWARD: 'bg-purple-100 text-purple-800',
   ESCALATION: 'bg-orange-100 text-orange-800',
+  AGENT_BEHAVIOR: 'bg-teal-100 text-teal-800',
+};
+
+const CHANGE_TYPE_COLORS: Record<string, string> = {
+  CREATED: 'bg-green-100 text-green-800',
+  UPDATED: 'bg-yellow-100 text-yellow-800',
+  DELETED: 'bg-red-100 text-red-800',
 };
 
 export const ConfigurationDetailPage: React.FC = () => {
@@ -34,6 +42,8 @@ export const ConfigurationDetailPage: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<UpdateConfigRequest>({ configValue: '', configType: 'FLOAT', description: '' });
   const [actionLoading, setActionLoading] = useState(false);
+  const [auditLog, setAuditLog] = useState<ConfigAuditLogResponse[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
 
   useEffect(() => {
     if (configId) {
@@ -48,6 +58,13 @@ export const ConfigurationDetailPage: React.FC = () => {
         configType: config.configType,
         description: config.description || '',
       });
+      // Fetch audit log for this key
+      setAuditLoading(true);
+      configurationService
+        .getAuditLogByKey(config.configKey)
+        .then(setAuditLog)
+        .catch(() => setAuditLog([]))
+        .finally(() => setAuditLoading(false));
     }
   }, [config]);
 
@@ -219,6 +236,49 @@ export const ConfigurationDetailPage: React.FC = () => {
           </dl>
         </Card>
       </div>
+
+      {/* Audit Log */}
+      <Card>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Audit Log</h2>
+        {auditLoading && <LoadingSpinner />}
+        {!auditLoading && auditLog.length === 0 && (
+          <p className="text-sm text-gray-500">No audit entries found.</p>
+        )}
+        {!auditLoading && auditLog.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">When</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Old Value</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Value</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">By</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {[...auditLog].reverse().map((entry) => (
+                  <tr key={entry.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatDate(entry.createdAt)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <Badge className={CHANGE_TYPE_COLORS[entry.changeType] || 'bg-gray-100 text-gray-700'}>
+                        {entry.changeType}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap font-mono text-gray-500">
+                      {entry.oldValue ?? <span className="italic text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap font-mono font-semibold text-indigo-700">
+                      {entry.newValue ?? <span className="italic text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-500">{entry.changedBy}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 };

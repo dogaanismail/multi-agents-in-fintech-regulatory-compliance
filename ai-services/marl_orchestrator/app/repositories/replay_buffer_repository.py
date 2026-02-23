@@ -98,6 +98,32 @@ class ReplayBufferRepository:
             f"✅ Marked {len(entry_ids)} experiences as used (run={training_run_id})"
         )
 
+    async def evict_older_than(self, days: int) -> int:
+        """
+        Delete experiences whose ``created_at`` is older than *days* days.
+
+        Only rows where ``is_used_in_training=True`` are removed so that
+        brand-new but un-trained samples are never evicted accidentally.
+
+        Args:
+            days: Retention window in days.
+
+        Returns:
+            Number of rows deleted.
+        """
+        from sqlalchemy import delete, text
+        cutoff_expr = text(f"NOW() - INTERVAL '{days} days'")
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                delete(AgentReplayBufferEntry)
+                .where(AgentReplayBufferEntry.is_used_in_training == True)  # noqa: E712
+                .where(AgentReplayBufferEntry.created_at < cutoff_expr)
+            )
+            await session.commit()
+        deleted = result.rowcount
+        logger.debug(f"🗑️  Evicted {deleted} replay buffer entries older than {days} days")
+        return deleted
+
     async def apply_manual_reward(
         self,
         payment_id: str,

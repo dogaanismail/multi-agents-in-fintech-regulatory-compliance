@@ -119,9 +119,10 @@ export const Select: React.FC<SelectProps> = ({ label, options, className = '', 
 interface CopyButtonProps {
   text: string;
   label?: string;
+  hideLabel?: boolean;
 }
 
-export const CopyButton: React.FC<CopyButtonProps> = ({ text, label }) => {
+export const CopyButton: React.FC<CopyButtonProps> = ({ text, label, hideLabel = false }) => {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
@@ -132,7 +133,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, label }) => {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-sm">{label || text}</span>
+      {!hideLabel && <span className="font-mono text-sm">{label || text}</span>}
       <button
         onClick={handleCopy}
         className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"

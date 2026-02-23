@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.banksolution.enums.ConfigCategory;
 import org.banksolution.model.request.CreateConfigRequest;
 import org.banksolution.model.request.UpdateConfigRequest;
+import org.banksolution.model.response.ConfigAuditLogResponse;
 import org.banksolution.model.response.ConfigurationResponse;
 import org.banksolution.service.ConfigurationService;
 import org.springframework.http.HttpStatus;
@@ -68,5 +69,11 @@ public class ConfigurationController {
         log.info("DELETE /api/v1/configurations/{} - Deleting configuration", id);
         configurationService.deleteConfiguration(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/key/{key}/audit-log")
+    public ResponseEntity<@NonNull List<ConfigAuditLogResponse>> getAuditLogByKey(@PathVariable String key) {
+        log.info("GET /api/v1/configurations/key/{}/audit-log - Fetching audit log", key);
+        return ResponseEntity.ok(configurationService.getAuditLogByKey(key));
     }
 }
