@@ -3,6 +3,7 @@ package org.banksolution.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.config.CacheConfig;
+import org.banksolution.entity.ConfigAuditLogEntity;
 import org.banksolution.entity.SystemConfigEntity;
 import org.banksolution.enums.ConfigCategory;
 import org.banksolution.exception.ConfigAlreadyExistsException;
@@ -10,7 +11,9 @@ import org.banksolution.exception.ConfigNotFoundException;
 import org.banksolution.mapper.ConfigurationMapper;
 import org.banksolution.model.request.CreateConfigRequest;
 import org.banksolution.model.request.UpdateConfigRequest;
+import org.banksolution.model.response.ConfigAuditLogResponse;
 import org.banksolution.model.response.ConfigurationResponse;
+import org.banksolution.repository.ConfigAuditLogRepository;
 import org.banksolution.repository.ConfigurationRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,6 +21,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +31,7 @@ import java.util.UUID;
 public class ConfigurationService {
 
     private final ConfigurationRepository configurationRepository;
+    private final ConfigAuditLogRepository auditLogRepository;
 
     @Transactional
     @Caching(evict = {
@@ -44,6 +49,16 @@ public class ConfigurationService {
 
         SystemConfigEntity entity = ConfigurationMapper.toEntity(request);
         SystemConfigEntity saved = configurationRepository.save(entity);
+
+        auditLogRepository.save(ConfigAuditLogEntity.builder()
+                .configId(saved.getId())
+                .configKey(saved.getConfigKey())
+                .oldValue(null)
+                .newValue(saved.getConfigValue())
+                .changeType("CREATED")
+                .changedBy("SYSTEM")
+                .createdAt(Instant.now())
+                .build());
 
         log.info("Configuration created with id: {}", saved.getId());
         return ConfigurationMapper.toResponse(saved);
@@ -98,6 +113,8 @@ public class ConfigurationService {
         SystemConfigEntity entity = configurationRepository.findById(id)
                 .orElseThrow(() -> new ConfigNotFoundException(id));
 
+        String previousValue = entity.getConfigValue();
+
         entity.setConfigValue(request.getConfigValue());
         entity.setConfigType(request.getConfigType());
         if (request.getDescription() != null) {
@@ -105,6 +122,16 @@ public class ConfigurationService {
         }
 
         SystemConfigEntity saved = configurationRepository.save(entity);
+
+        auditLogRepository.save(ConfigAuditLogEntity.builder()
+                .configId(saved.getId())
+                .configKey(saved.getConfigKey())
+                .oldValue(previousValue)
+                .newValue(saved.getConfigValue())
+                .changeType("UPDATED")
+                .changedBy("SYSTEM")
+                .createdAt(Instant.now())
+                .build());
 
         log.info("Configuration updated with id: {}", saved.getId());
         return ConfigurationMapper.toResponse(saved);
@@ -119,11 +146,38 @@ public class ConfigurationService {
     public void deleteConfiguration(UUID id) {
         log.info("Deleting configuration with id: {}", id);
 
-        if (!configurationRepository.existsById(id)) {
-            throw new ConfigNotFoundException(id);
-        }
+        SystemConfigEntity entity = configurationRepository.findById(id)
+                .orElseThrow(() -> new ConfigNotFoundException(id));
+
+        auditLogRepository.save(ConfigAuditLogEntity.builder()
+                .configId(entity.getId())
+                .configKey(entity.getConfigKey())
+                .oldValue(entity.getConfigValue())
+                .newValue(null)
+                .changeType("DELETED")
+                .changedBy("SYSTEM")
+                .createdAt(Instant.now())
+                .build());
 
         configurationRepository.deleteById(id);
         log.info("Configuration deleted with id: {}", id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConfigAuditLogResponse> getAuditLogByKey(String configKey) {
+        log.info("Fetching audit log for config key: {}", configKey);
+        return auditLogRepository.findByConfigKeyOrderByCreatedAtAsc(configKey.toUpperCase())
+                .stream()
+                .map(entry -> ConfigAuditLogResponse.builder()
+                        .id(entry.getId())
+                        .configId(entry.getConfigId())
+                        .configKey(entry.getConfigKey())
+                        .oldValue(entry.getOldValue())
+                        .newValue(entry.getNewValue())
+                        .changeType(entry.getChangeType())
+                        .changedBy(entry.getChangedBy())
+                        .createdAt(entry.getCreatedAt())
+                        .build())
+                .toList();
     }
 }

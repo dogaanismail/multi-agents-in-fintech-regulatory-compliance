@@ -165,25 +165,34 @@ export const PaymentDetailPage: React.FC = () => {
           <InfoRow
             label="Customer ID"
             value={
-              <Link to={`/customers/${payment.customerId}`} className="text-blue-600 hover:underline">
-                {payment.customerId}
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link to={`/customers/${payment.customerId}`} className="text-blue-600 hover:underline font-mono text-sm">
+                  {payment.customerId}
+                </Link>
+                <CopyButton text={payment.customerId} hideLabel />
+              </div>
             }
           />
           <InfoRow
             label="Source Account"
             value={
-              <Link to={`/accounts/${payment.sourceAccountId}`} className="text-blue-600 hover:underline">
-                {payment.sourceAccountId}
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link to={`/accounts/${payment.sourceAccountId}`} className="text-blue-600 hover:underline font-mono text-sm">
+                  {payment.sourceAccountId}
+                </Link>
+                <CopyButton text={payment.sourceAccountId} hideLabel />
+              </div>
             }
           />
           <InfoRow
             label="Destination Account"
             value={
-              <Link to={`/accounts/${payment.destinationAccountId}`} className="text-blue-600 hover:underline">
-                {payment.destinationAccountId}
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link to={`/accounts/${payment.destinationAccountId}`} className="text-blue-600 hover:underline font-mono text-sm">
+                  {payment.destinationAccountId}
+                </Link>
+                <CopyButton text={payment.destinationAccountId} hideLabel />
+              </div>
             }
           />
         </div>

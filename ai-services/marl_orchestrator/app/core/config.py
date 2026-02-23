@@ -78,6 +78,23 @@ class Settings(BaseSettings):
     max_experiences_per_batch: int = int(os.getenv("MAX_EXPERIENCES_PER_BATCH", "1000"))
     save_model_after_training: bool = os.getenv("SAVE_MODEL_AFTER_TRAINING", "True").lower() == "true"
 
+    # Agent trust weights — must sum to ~1.0; used to blend per-agent risk scores
+    agent_weight_transaction: float = float(os.getenv("AGENT_WEIGHT_TRANSACTION", "0.333"))
+    agent_weight_customer: float = float(os.getenv("AGENT_WEIGHT_CUSTOMER", "0.333"))
+    agent_weight_network: float = float(os.getenv("AGENT_WEIGHT_NETWORK", "0.334"))
+
+    # Freeze training — compliance officers can pause learning during audits
+    freeze_training: bool = os.getenv("FREEZE_TRAINING", "False").lower() == "true"
+
+    # Fallback risk score when an agent is unreachable (0-100); default 50 = neutral
+    fallback_agent_risk_score: float = float(os.getenv("FALLBACK_AGENT_RISK_SCORE", "50.0"))
+
+    # Experience buffer retention (days); 0 = keep forever
+    experience_retention_days: int = int(os.getenv("EXPERIENCE_RETENTION_DAYS", "90"))
+
+    # How often the in-memory config cache refreshes from configuration-service (seconds)
+    config_refresh_interval_seconds: int = int(os.getenv("CONFIG_REFRESH_INTERVAL_SECONDS", "300"))
+
     # Reward Configuration (Configurable - per professor's recommendation)
     # Automated rewards (heuristic, before manual review)
     reward_auto_high_risk_block: float = float(os.getenv("REWARD_AUTO_HIGH_RISK_BLOCK", "0.3"))

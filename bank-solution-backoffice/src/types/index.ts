@@ -161,8 +161,19 @@ export interface ManualReviewResponse {
   reviewedBy: string;
 }
 
-export type ConfigCategory = 'OFFLINE_RETRAINING' | 'AUTO_REWARD' | 'MANUAL_REWARD' | 'ESCALATION';
+export type ConfigCategory = 'OFFLINE_RETRAINING' | 'AUTO_REWARD' | 'MANUAL_REWARD' | 'ESCALATION' | 'AGENT_BEHAVIOR';
 export type ConfigType = 'STRING' | 'FLOAT' | 'INTEGER' | 'BOOLEAN';
+
+export interface ConfigAuditLogResponse {
+  id: string;
+  configId: string;
+  configKey: string;
+  oldValue: string | null;
+  newValue: string | null;
+  changeType: 'CREATED' | 'UPDATED' | 'DELETED';
+  changedBy: string;
+  createdAt: string;
+}
 
 export interface ConfigurationResponse {
   id: string;
