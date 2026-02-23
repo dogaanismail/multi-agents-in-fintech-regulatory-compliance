@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { CustomerResponse, Page } from '@/types';
+import { CustomerResponse, Page, CreateCustomerRequest } from '@/types';
 
 export const customerService = {
   // Get all customers
@@ -13,6 +13,12 @@ export const customerService = {
     const response = await apiClient.get<CustomerResponse>(
       `/customers/${customerId}`
     );
+    return response.data;
+  },
+
+  // Create a new customer
+  createCustomer: async (request: CreateCustomerRequest): Promise<CustomerResponse> => {
+    const response = await apiClient.post<CustomerResponse>('/customers', request);
     return response.data;
   },
 };

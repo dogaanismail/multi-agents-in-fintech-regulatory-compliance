@@ -245,3 +245,62 @@ export interface BufferStatsResponse {
   unused_experiences: number;
   used_experiences: number;
 }
+
+// ─── Customer Creation ────────────────────────────────────────────────────────
+
+export interface AddressRequest {
+  city: string;
+  countryCode: string;
+}
+
+export interface CreateCustomerRequest {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  email: string;
+  phoneNumber: string;
+  dateOfBirth: string; // ISO date: YYYY-MM-DD
+  nationality: string; // 2-char country code
+  customerType: 'INDIVIDUAL' | 'BUSINESS';
+  address: AddressRequest;
+}
+
+// ─── Account Creation ─────────────────────────────────────────────────────────
+
+export type AccountType = 'CHECKING' | 'SAVINGS' | 'BUSINESS';
+export type BankLocation = 'AE' | 'AL' | 'AT' | 'CH' | 'DE' | 'ES' | 'FR' | 'GB' | 'IN' | 'IT' | 'JP' | 'MA' | 'MX' | 'NG' | 'NL' | 'PK' | 'TR' | 'US';
+export type Currency = 'AED' | 'ALL' | 'CHF' | 'EUR' | 'GBP' | 'INR' | 'JPY' | 'MAD' | 'MXN' | 'NGN' | 'PKR' | 'TRY' | 'USD';
+
+export interface OpenAccountRequest {
+  customerId: string;
+  accountType: AccountType;
+  bankLocation: BankLocation;
+  currencies: Currency[];
+}
+
+// ─── Payment Creation ─────────────────────────────────────────────────────────
+
+export type PaymentType = 'TRANSFER_IN' | 'TRANSFER_OUT' | 'DEPOSIT' | 'WITHDRAWAL';
+
+export interface CreatePaymentRequest {
+  customerId: string;
+  sourceAccountId?: string;
+  destinationAccountId?: string;
+  amount: number;
+  currency: Currency;
+  paymentType: PaymentType;
+  description?: string;
+}
+
+export interface CreatePaymentResponse {
+  id: string;                         
+  customerId: string;
+  sourceAccountId: string | null;
+  destinationAccountId: string | null;
+  amount: number;
+  currency: string;
+  paymentType: string;
+  description: string | null;
+  createdAt: string;
+  message: string;
+}

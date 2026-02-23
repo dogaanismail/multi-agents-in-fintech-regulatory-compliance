@@ -10,6 +10,9 @@ import { AccountDetailPage } from './pages/AccountDetailPage';
 import { ConfigurationListPage } from './pages/ConfigurationListPage';
 import { ConfigurationDetailPage } from './pages/ConfigurationDetailPage';
 import { MarlTrainingPage } from './pages/MarlTrainingPage';
+import { CreateCustomerPage } from './pages/CreateCustomerPage';
+import { CreateAccountPage } from './pages/CreateAccountPage';
+import { CreatePaymentPage } from './pages/CreatePaymentPage';
 
 function App() {
   return (
@@ -18,10 +21,13 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="payments" element={<PaymentListPage />} />
+          <Route path="payments/create" element={<CreatePaymentPage />} />
           <Route path="payments/:paymentId" element={<PaymentDetailPage />} />
           <Route path="customers" element={<CustomerListPage />} />
+          <Route path="customers/create" element={<CreateCustomerPage />} />
           <Route path="customers/:customerId" element={<CustomerDetailPage />} />
           <Route path="accounts" element={<AccountListPage />} />
+          <Route path="accounts/open" element={<CreateAccountPage />} />
           <Route path="accounts/:accountId" element={<AccountDetailPage />} />
           <Route path="configurations" element={<ConfigurationListPage />} />
           <Route path="configurations/:configId" element={<ConfigurationDetailPage />} />

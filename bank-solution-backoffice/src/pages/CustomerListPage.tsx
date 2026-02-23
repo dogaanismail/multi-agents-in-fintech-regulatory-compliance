@@ -17,6 +17,12 @@ export const CustomerListPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
+        <Link
+          to="/customers/create"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors shadow-sm"
+        >
+          <span>＋</span> Create Customer
+        </Link>
       </div>
 
       <Card>

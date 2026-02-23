@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { AccountResponse, BalanceResponse } from '@/types';
+import { AccountResponse, BalanceResponse, OpenAccountRequest } from '@/types';
 
 export const accountService = {
   // Get account by ID
@@ -38,6 +38,12 @@ export const accountService = {
     const response = await apiClient.get<BalanceResponse>(
       `/accounts/${accountId}/balances/${currency}`
     );
+    return response.data;
+  },
+
+  // Open a new account
+  openAccount: async (request: OpenAccountRequest): Promise<AccountResponse> => {
+    const response = await apiClient.post<AccountResponse>('/accounts/open-account', request);
     return response.data;
   },
 };

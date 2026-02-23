@@ -5,6 +5,8 @@ import {
   ApproveManualReviewRequest,
   RejectManualReviewRequest,
   ManualReviewResponse,
+  CreatePaymentRequest,
+  CreatePaymentResponse,
 } from '@/types';
 
 export const paymentService = {
@@ -111,6 +113,12 @@ export const paymentService = {
       `/payments/${paymentId}/manual-review/reject`,
       request
     );
+    return response.data;
+  },
+
+  // Create / request a new payment
+  createPayment: async (request: CreatePaymentRequest): Promise<CreatePaymentResponse> => {
+    const response = await apiClient.post<CreatePaymentResponse>('/payments/request', request);
     return response.data;
   },
 };

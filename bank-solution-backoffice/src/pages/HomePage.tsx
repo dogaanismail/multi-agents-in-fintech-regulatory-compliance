@@ -12,6 +12,56 @@ export const HomePage: React.FC = () => {
         </p>
       </div>
 
+      {/* Quick Actions */}
+      <Card title="🚀 Quick Actions">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            to="/customers/create"
+            className="flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-green-300 bg-green-50 hover:bg-green-100 hover:border-green-400 transition-all group"
+          >
+            <div className="flex items-center justify-center h-11 w-11 rounded-full bg-green-500 text-white text-xl flex-shrink-0">
+              👤
+            </div>
+            <div>
+              <p className="font-semibold text-green-900 group-hover:text-green-800">
+                Create Customer
+              </p>
+              <p className="text-xs text-green-700 mt-0.5">Register a new customer profile</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/accounts/open"
+            className="flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all group"
+          >
+            <div className="flex items-center justify-center h-11 w-11 rounded-full bg-purple-500 text-white text-xl flex-shrink-0">
+              🏦
+            </div>
+            <div>
+              <p className="font-semibold text-purple-900 group-hover:text-purple-800">
+                Open Account
+              </p>
+              <p className="text-xs text-purple-700 mt-0.5">Open a bank account for a customer</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/payments/create"
+            className="flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all group"
+          >
+            <div className="flex items-center justify-center h-11 w-11 rounded-full bg-blue-500 text-white text-xl flex-shrink-0">
+              💳
+            </div>
+            <div>
+              <p className="font-semibold text-blue-900 group-hover:text-blue-800">
+                New Payment
+              </p>
+              <p className="text-xs text-blue-700 mt-0.5">Submit a payment for MARL assessment</p>
+            </div>
+          </Link>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Payments Card */}
         <Link to="/payments">

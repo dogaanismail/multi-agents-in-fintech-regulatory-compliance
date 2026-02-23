@@ -80,6 +80,12 @@ export const AccountListPage = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Accounts</h1>
+        <Link
+          to="/accounts/open"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm"
+        >
+          <span>＋</span> Open Account
+        </Link>
       </div>
 
       {/* Filters */}
