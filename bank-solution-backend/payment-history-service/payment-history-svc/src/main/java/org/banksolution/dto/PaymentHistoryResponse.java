@@ -62,6 +62,11 @@ public class PaymentHistoryResponse {
     private String blockReason;
     private String failureReason;
 
+    // Decision Override Metadata
+    private String decisionOverriddenBy;
+    private String decisionOverrideReason;
+    private Instant decisionOverriddenAt;
+
     // Processing Metadata
     private Long riskProcessingTimeMs;
     private Long marlProcessingTimeMs;

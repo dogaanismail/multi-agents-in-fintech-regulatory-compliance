@@ -122,6 +122,16 @@ public class PaymentHistoryEntity {
     @Column(name = "failure_reason", length = 1000)
     private String failureReason;
 
+    // Decision Override Metadata
+    @Column(name = "decision_overridden_by", length = 255)
+    private String decisionOverriddenBy;
+
+    @Column(name = "decision_override_reason", length = 2000)
+    private String decisionOverrideReason;
+
+    @Column(name = "decision_overridden_at")
+    private Instant decisionOverriddenAt;
+
     // Processing Metadata
     @Column(name = "risk_processing_time_ms")
     private Long riskProcessingTimeMs;

@@ -18,6 +18,11 @@ export const PaymentDetailPage: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [showOverrideModal, setShowOverrideModal] = useState(false);
+  const [overrideApprove, setOverrideApprove] = useState(true);
+  const [overriddenBy, setOverriddenBy] = useState('');
+  const [overrideReason, setOverrideReason] = useState('');
+
   useEffect(() => {
     if (paymentId) {
       execute(() => paymentService.getPaymentById(paymentId));
@@ -72,6 +77,29 @@ export const PaymentDetailPage: React.FC = () => {
     }
   };
 
+  const handleOverride = async () => {
+    if (!paymentId || !overriddenBy || !overrideReason) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await paymentService.overrideDecision(paymentId, {
+        overriddenBy,
+        overrideReason,
+        approvePayment: overrideApprove,
+      });
+      alert(`Decision override applied: payment ${overrideApprove ? 'approved' : 'rejected'} successfully`);
+      setShowOverrideModal(false);
+      execute(() => paymentService.getPaymentById(paymentId));
+    } catch (err) {
+      alert('Failed to override decision: ' + (err as Error).message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -93,6 +121,7 @@ export const PaymentDetailPage: React.FC = () => {
   }
 
   const canApproveOrReject = payment.status === 'MANUAL_REVIEW_REQUIRED';
+  const canOverride = payment.status === 'BLOCKED';
 
   return (
     <div className="space-y-6">
@@ -121,6 +150,26 @@ export const PaymentDetailPage: React.FC = () => {
                 ✗ Reject Payment
               </Button>
             </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Decision Override Actions */}
+      {canOverride && (
+        <Card>
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-purple-800 mb-3">
+              🔄 Decision Override
+            </h3>
+            <p className="text-purple-700 mb-1">
+              Current status: <strong>{payment.status}</strong>. A compliance officer may override this terminal decision.
+            </p>
+            <p className="text-purple-600 text-sm mb-4">
+              Override actions are recorded as strong training signals for the MARL system.
+            </p>
+            <Button variant="secondary" onClick={() => setShowOverrideModal(true)}>
+              Override Decision
+            </Button>
           </div>
         </Card>
       )}
@@ -312,7 +361,7 @@ export const PaymentDetailPage: React.FC = () => {
       </Card>
 
       {/* Decision Metadata */}
-      {(payment.manualReviewedBy || payment.blockReason || payment.failureReason) && (
+      {(payment.manualReviewedBy || payment.blockReason || payment.failureReason || payment.decisionOverriddenBy) && (
         <Card title="Decision Metadata">
           <div className="space-y-2">
             {payment.manualReviewedBy && (
@@ -324,6 +373,15 @@ export const PaymentDetailPage: React.FC = () => {
             {payment.blockReason && <InfoRow label="Block Reason" value={payment.blockReason} />}
             {payment.failureReason && (
               <InfoRow label="Failure Reason" value={payment.failureReason} />
+            )}
+            {payment.decisionOverriddenBy && (
+              <InfoRow label="Override By" value={payment.decisionOverriddenBy} />
+            )}
+            {payment.decisionOverrideReason && (
+              <InfoRow label="Override Reason" value={payment.decisionOverrideReason} />
+            )}
+            {payment.decisionOverriddenAt && (
+              <InfoRow label="Overridden At" value={formatDate(payment.decisionOverriddenAt)} />
             )}
           </div>
         </Card>
@@ -378,6 +436,50 @@ export const PaymentDetailPage: React.FC = () => {
             placeholder="Enter rejection reason"
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
+            required
+          />
+        </Modal>
+      )}
+
+      {/* Override Modal */}
+      {showOverrideModal && (
+        <Modal
+          title="Override Terminal Decision"
+          onClose={() => setShowOverrideModal(false)}
+          onConfirm={handleOverride}
+          loading={actionLoading}
+          confirmText={overrideApprove ? 'Override — Approve' : 'Override — Reject'}
+          confirmVariant={overrideApprove ? 'success' : 'danger'}
+        >
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Override Action</label>
+            <div className="flex gap-3">
+              <Button
+                variant={overrideApprove ? 'success' : 'secondary'}
+                onClick={() => setOverrideApprove(true)}
+              >
+                ✓ Approve Payment
+              </Button>
+              <Button
+                variant={!overrideApprove ? 'danger' : 'secondary'}
+                onClick={() => setOverrideApprove(false)}
+              >
+                ✗ Reject Payment
+              </Button>
+            </div>
+          </div>
+          <Input
+            label="Override By (Your Name)"
+            placeholder="Enter your name"
+            value={overriddenBy}
+            onChange={(e) => setOverriddenBy(e.target.value)}
+            required
+          />
+          <Input
+            label="Override Reason"
+            placeholder="Enter the reason for overriding this decision"
+            value={overrideReason}
+            onChange={(e) => setOverrideReason(e.target.value)}
             required
           />
         </Modal>

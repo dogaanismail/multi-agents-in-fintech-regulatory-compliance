@@ -54,6 +54,11 @@ public class PaymentSnapshotMapper {
         history.setBlockReason(snapshot.getBlockReason());
         history.setFailureReason(snapshot.getFailureReason());
 
+        // Decision override metadata
+        history.setDecisionOverriddenBy(snapshot.getDecisionOverriddenBy());
+        history.setDecisionOverrideReason(snapshot.getDecisionOverrideReason());
+        history.setDecisionOverriddenAt(convertToInstant(snapshot.getDecisionOverriddenAt()));
+
         history.setAggregateVersion(snapshot.getVersion());
     }
 

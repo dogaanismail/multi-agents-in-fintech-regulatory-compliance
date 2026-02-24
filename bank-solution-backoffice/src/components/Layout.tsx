@@ -58,6 +58,9 @@ export const Layout: React.FC = () => {
               <NavLink to="/marl-training" active={isActive('/marl-training')}>
                 MARL Training
               </NavLink>
+              <NavLink to="/replay-buffer" active={isActive('/replay-buffer')}>
+                Replay Buffer
+              </NavLink>
 
               {/* Create Dropdown */}
               <div ref={dropdownRef} className="relative">

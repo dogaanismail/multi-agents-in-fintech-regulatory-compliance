@@ -66,6 +66,7 @@ echo "🤖 FRAUD DETECTION TOPICS (MARL)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 create_topic "fraud.analysis.requested" "FraudAnalysisRequestedEvent from risk-engine-svc to marl-orchestrator"
 create_topic "fraud.analysis.completed" "FraudAnalysisCompletedEvent from marl-orchestrator to risk-engine-svc"
+create_topic "agent.manual.feedback" "ComplianceAgentManualFeedbackEvent from payment-engine-svc to marl-orchestrator (compliance officer decisions)"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🏦 ACCOUNT SERVICE TOPICS"

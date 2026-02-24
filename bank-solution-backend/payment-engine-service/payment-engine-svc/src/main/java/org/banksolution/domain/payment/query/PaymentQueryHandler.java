@@ -53,7 +53,10 @@ public class PaymentQueryHandler {
                     paymentAggregate.getManualReviewedBy(),
                     paymentAggregate.getManualReviewNotes(),
                     paymentAggregate.getBlockReason(),
-                    paymentAggregate.getFailureReason());
+                    paymentAggregate.getFailureReason(),
+                    paymentAggregate.getDecisionOverriddenBy(),
+                    paymentAggregate.getDecisionOverrideReason(),
+                    paymentAggregate.getDecisionOverriddenAt());
         } catch (Exception e) {
             log.error("Failed to load payment aggregate: {}", query.paymentId(), e);
             throw new PaymentNotFoundException("Failed to load for paymentId: %s", e, query.paymentId());

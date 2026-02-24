@@ -95,6 +95,23 @@ class RewardConfig:
         )
     )
 
+    # ── Override rewards (terminal decision reversed by compliance officer) ───
+    override_block_to_approve: float = field(
+        default_factory=lambda: dynamic_config.get_float(
+            "REWARD_OVERRIDE_BLOCK_TO_APPROVE", settings.reward_override_block_to_approve
+        )
+    )
+    override_allow_to_reject: float = field(
+        default_factory=lambda: dynamic_config.get_float(
+            "REWARD_OVERRIDE_ALLOW_TO_REJECT", settings.reward_override_allow_to_reject
+        )
+    )
+    override_multiplier: float = field(
+        default_factory=lambda: dynamic_config.get_float(
+            "REWARD_OVERRIDE_MULTIPLIER", settings.reward_override_multiplier
+        )
+    )
+
     # ── Escalation rewards ────────────────────────────────────────────────────
     escalation_mode: str = field(
         default_factory=lambda: dynamic_config.get_str(

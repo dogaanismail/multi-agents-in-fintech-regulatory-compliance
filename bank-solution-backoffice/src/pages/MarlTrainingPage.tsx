@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { marlTrainingService } from '@/api/marlTrainingService';
 import {
   TrainingStatusResponse,
@@ -157,6 +158,33 @@ export const MarlTrainingPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* View Replay Buffer link card */}
+      <Link
+        to="/replay-buffer"
+        className="group block bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-transparent hover:border-indigo-200"
+      >
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="text-4xl">🧠</div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                Replay Buffer Experience Log
+              </h3>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Browse every payment decision stored as a training tuple — reward signals,
+                agent actions, confidence scores, and training status.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-indigo-600 font-medium text-sm group-hover:gap-3 transition-all">
+            <span>View Replay Buffer</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+      </Link>
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">

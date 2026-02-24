@@ -73,6 +73,15 @@ public class PaymentEventHandler {
 
     @EventHandler
     @AllowReplay
+    public void on(DecisionOverriddenEvent event, EventMessage<?> eventMessage) {
+        PaymentEventTrigger trigger = event.approvePayment()
+                ? DECISION_OVERRIDE_APPROVED
+                : DECISION_OVERRIDE_REJECTED;
+        publishSnapshotAfterCommit(event.paymentId(), trigger);
+    }
+
+    @EventHandler
+    @AllowReplay
     public void on(AccountChargeInitiatedEvent event, EventMessage<?> eventMessage) {
         publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGE_INITIATED);
     }

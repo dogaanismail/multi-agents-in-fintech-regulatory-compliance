@@ -18,10 +18,13 @@ from fastapi import APIRouter, HTTPException, Query
 from app.core.logging import logger
 from app.models.schemas.training_schemas import (
     BufferStatsResponse,
+    ExperienceEntryResponse,
+    ReplayBufferAggStats,
     TrainingRunResponse,
     TrainingStatusResponse,
     TriggerTrainingResponse,
 )
+from app.repositories.replay_buffer_repository import replay_buffer_repository
 from app.repositories.training_run_repository import training_run_repository
 from app.services.experience_buffer_service import experience_buffer_service
 from app.services.offline_trainer_service import offline_trainer_service
@@ -125,3 +128,62 @@ async def get_buffer_stats() -> BufferStatsResponse:
         unused_experiences=unused,
         used_experiences=total - unused,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /training/experiences
+# ─────────────────────────────────────────────────────────────────────────────
+@router.get(
+    "/experiences",
+    response_model=List[ExperienceEntryResponse],
+    summary="Replay Buffer Experience Log",
+    description=(
+        "Returns the most recent experience tuples stored in the agent replay "
+        "buffer, newest first. Each row represents one payment decision with "
+        "its associated reward signal and training status."
+    ),
+)
+async def list_experiences(
+    limit: int = Query(default=50, ge=1, le=200, description="Max entries to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+) -> List[ExperienceEntryResponse]:
+    """Return paginated experience entries from the replay buffer."""
+    entries = await replay_buffer_repository.list_recent(limit=limit, offset=offset)
+    return [
+        ExperienceEntryResponse(
+            id=str(e.id),
+            payment_id=e.payment_id,
+            marl_action=e.marl_action,
+            marl_confidence=e.marl_confidence,
+            marl_q_value=e.marl_q_value,
+            mean_risk_score=e.mean_risk_score,
+            automated_reward=e.automated_reward,
+            manual_reward=e.manual_reward,
+            effective_reward=e.effective_reward,
+            reward_source=e.reward_source,
+            is_used_in_training=e.is_used_in_training,
+            training_run_id=str(e.training_run_id) if e.training_run_id else None,
+            created_at=e.created_at.isoformat(),
+            updated_at=e.updated_at.isoformat(),
+        )
+        for e in entries
+    ]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /training/experiences/stats
+# ─────────────────────────────────────────────────────────────────────────────
+@router.get(
+    "/experiences/stats",
+    response_model=ReplayBufferAggStats,
+    summary="Replay Buffer Aggregate Statistics",
+    description=(
+        "Returns aggregate analytics over the full replay buffer: action "
+        "distribution, reward averages, manual vs automated split, and "
+        "training coverage percentage."
+    ),
+)
+async def get_experience_stats() -> ReplayBufferAggStats:
+    """Return aggregate analytics over the replay buffer."""
+    stats = await replay_buffer_repository.get_aggregate_stats()
+    return ReplayBufferAggStats(**stats)

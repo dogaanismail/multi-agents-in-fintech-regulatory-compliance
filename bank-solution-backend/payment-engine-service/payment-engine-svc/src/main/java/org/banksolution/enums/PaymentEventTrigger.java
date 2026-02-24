@@ -20,7 +20,10 @@ public enum PaymentEventTrigger {
 
     ACCOUNT_CHARGE_INITIATED("Account charge was initiated"),
     ACCOUNT_CHARGED("Account was successfully charged"),
-    ACCOUNT_CHARGE_FAILED("Account charge failed");
+    ACCOUNT_CHARGE_FAILED("Account charge failed"),
+
+    DECISION_OVERRIDE_APPROVED("Compliance officer overrode the decision and approved the payment"),
+    DECISION_OVERRIDE_REJECTED("Compliance officer overrode the decision and rejected the payment");
 
     private final String description;
 

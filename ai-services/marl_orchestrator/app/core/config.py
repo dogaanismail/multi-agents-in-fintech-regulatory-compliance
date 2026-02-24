@@ -107,6 +107,10 @@ class Settings(BaseSettings):
     reward_manual_wrong_block: float = float(os.getenv("REWARD_MANUAL_WRONG_BLOCK", "-0.5"))
     reward_manual_wrong_allow: float = float(os.getenv("REWARD_MANUAL_WRONG_ALLOW", "-1.0"))
     reward_manual_weight_multiplier: float = float(os.getenv("REWARD_MANUAL_WEIGHT_MULTIPLIER", "2.0"))
+    # Override rewards (compliance officer reverses a terminal decision)
+    reward_override_block_to_approve: float = float(os.getenv("REWARD_OVERRIDE_BLOCK_TO_APPROVE", "-0.9"))
+    reward_override_allow_to_reject: float = float(os.getenv("REWARD_OVERRIDE_ALLOW_TO_REJECT", "-1.2"))
+    reward_override_multiplier: float = float(os.getenv("REWARD_OVERRIDE_MULTIPLIER", "3.0"))
     # Escalation rewards
     reward_escalation_mode: str = os.getenv("REWARD_ESCALATION_MODE", "final_decision")  # none | positive | final_decision
     reward_escalation_positive: float = float(os.getenv("REWARD_ESCALATION_POSITIVE", "0.3"))

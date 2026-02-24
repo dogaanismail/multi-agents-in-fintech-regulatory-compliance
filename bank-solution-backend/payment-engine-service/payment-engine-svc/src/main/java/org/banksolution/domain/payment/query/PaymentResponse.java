@@ -25,7 +25,6 @@ public record PaymentResponse(
         RiskAssessment riskAssessment,
         Long version,
 
-        
         // Lifecycle timestamps
         Instant initiatedAt,
         Instant riskAssessmentRequestedAt,
@@ -44,6 +43,11 @@ public record PaymentResponse(
         String manualReviewedBy,
         String manualReviewNotes,
         String blockReason,
-        String failureReason
+        String failureReason,
+
+        // Decision override metadata
+        String decisionOverriddenBy,
+        String decisionOverrideReason,
+        Instant decisionOverriddenAt
 ) {
 }

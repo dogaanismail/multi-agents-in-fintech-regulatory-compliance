@@ -5,6 +5,8 @@ import {
   ApproveManualReviewRequest,
   RejectManualReviewRequest,
   ManualReviewResponse,
+  OverrideDecisionRequest,
+  OverrideDecisionResponse,
   CreatePaymentRequest,
   CreatePaymentResponse,
 } from '@/types';
@@ -98,7 +100,7 @@ export const paymentService = {
     request: ApproveManualReviewRequest
   ): Promise<ManualReviewResponse> => {
     const response = await apiClient.post<ManualReviewResponse>(
-      `/payments/${paymentId}/manual-review/approve`,
+      `/payment-engine/payments/${paymentId}/manual-review/approve`,
       request
     );
     return response.data;
@@ -110,7 +112,7 @@ export const paymentService = {
     request: RejectManualReviewRequest
   ): Promise<ManualReviewResponse> => {
     const response = await apiClient.post<ManualReviewResponse>(
-      `/payments/${paymentId}/manual-review/reject`,
+      `/payment-engine/payments/${paymentId}/manual-review/reject`,
       request
     );
     return response.data;
@@ -119,6 +121,18 @@ export const paymentService = {
   // Create / request a new payment
   createPayment: async (request: CreatePaymentRequest): Promise<CreatePaymentResponse> => {
     const response = await apiClient.post<CreatePaymentResponse>('/payments/request', request);
+    return response.data;
+  },
+
+  // Override a terminal payment decision (COMPLETED or BLOCKED)
+  overrideDecision: async (
+    paymentId: string,
+    request: OverrideDecisionRequest
+  ): Promise<OverrideDecisionResponse> => {
+    const response = await apiClient.post<OverrideDecisionResponse>(
+      `/payment-engine/payments/${paymentId}/decision/override`,
+      request
+    );
     return response.data;
   },
 };

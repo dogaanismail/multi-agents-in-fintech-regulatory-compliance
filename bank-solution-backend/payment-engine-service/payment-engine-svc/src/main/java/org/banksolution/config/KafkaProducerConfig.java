@@ -1,6 +1,7 @@
 package org.banksolution.config;
 
 import com.aml.account.AccountChargeRequestedEvent;
+import com.aml.feedback.ComplianceAgentManualFeedbackEvent;
 import com.aml.payment.PaymentCompletedEvent;
 import com.aml.payment.PaymentSnapshotEvent;
 import com.aml.risk.RiskAssessmentRequestedEvent;
@@ -63,6 +64,16 @@ public class KafkaProducerConfig {
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventKafkaTemplate() {
         return new KafkaTemplate<>(paymentCompletedProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<@NonNull String, @NonNull ComplianceAgentManualFeedbackEvent> agentManualFeedbackProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
+    }
+
+    @Bean
+    public KafkaTemplate<@NonNull String, @NonNull ComplianceAgentManualFeedbackEvent> agentManualFeedbackEventKafkaTemplate() {
+        return new KafkaTemplate<>(agentManualFeedbackProducerFactory());
     }
 
     private Map<String, Object> getCommonProducerProps() {

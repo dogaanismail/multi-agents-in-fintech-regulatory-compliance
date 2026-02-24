@@ -10,6 +10,7 @@ import { AccountDetailPage } from './pages/AccountDetailPage';
 import { ConfigurationListPage } from './pages/ConfigurationListPage';
 import { ConfigurationDetailPage } from './pages/ConfigurationDetailPage';
 import { MarlTrainingPage } from './pages/MarlTrainingPage';
+import { ReplayBufferPage } from './pages/ReplayBufferPage';
 import { CreateCustomerPage } from './pages/CreateCustomerPage';
 import { CreateAccountPage } from './pages/CreateAccountPage';
 import { CreatePaymentPage } from './pages/CreatePaymentPage';
@@ -32,6 +33,7 @@ function App() {
           <Route path="configurations" element={<ConfigurationListPage />} />
           <Route path="configurations/:configId" element={<ConfigurationDetailPage />} />
           <Route path="marl-training" element={<MarlTrainingPage />} />
+          <Route path="replay-buffer" element={<ReplayBufferPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

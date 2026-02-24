@@ -15,4 +15,9 @@
         <sqlFile path="changelog/add_missing_payment_history_columns.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-02-24-02-01" author="Ismail Dogan">
+        <comment>Add decision override metadata columns to payment_history table</comment>
+        <sqlFile path="changelog/add_decision_override_columns.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

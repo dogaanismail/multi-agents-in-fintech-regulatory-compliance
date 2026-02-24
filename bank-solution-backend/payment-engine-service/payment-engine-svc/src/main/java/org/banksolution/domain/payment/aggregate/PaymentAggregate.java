@@ -68,6 +68,10 @@ public class PaymentAggregate {
     private String blockReason;
     private String failureReason;
 
+    private Instant decisionOverriddenAt;
+    private String decisionOverriddenBy;
+    private String decisionOverrideReason;
+
     @AggregateVersion
     private Long version;
 
@@ -186,6 +190,23 @@ public class PaymentAggregate {
     }
 
     @CommandHandler
+    public void handle(OverrideDecisionCommand command) {
+        log.info("Handling OverrideDecisionCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.BLOCKED) {
+            throw new InvalidPaymentStateException("Decision override is only allowed for BLOCKED payments, current status: " + this.status);
+        }
+
+        apply(new DecisionOverriddenEvent(
+                command.paymentId(),
+                command.overriddenBy(),
+                command.overrideReason(),
+                command.approvePayment(),
+                this.status.name()
+        ));
+    }
+
+    @CommandHandler
     public void handle(ChargeAccountCommand command) {
         log.info("Handling ChargeAccountCommand for payment: {}", command.paymentId());
 
@@ -298,6 +319,19 @@ public class PaymentAggregate {
     }
 
     @EventSourcingHandler
+    public void on(DecisionOverriddenEvent event) {
+        this.status = event.approvePayment() ? PaymentStatus.OVERRIDE_APPROVED : PaymentStatus.OVERRIDE_REJECTED;
+        this.decisionOverriddenAt = Instant.now();
+        this.decisionOverriddenBy = event.overriddenBy();
+        this.decisionOverrideReason = event.overrideReason();
+
+        log.info("Decision overridden for payment: {} by: {}, approve={}",
+                event.paymentId(),
+                event.overriddenBy(),
+                event.approvePayment());
+    }
+
+    @EventSourcingHandler
     public void on(AccountChargeInitiatedEvent event) {
         this.status = PaymentStatus.ACCOUNT_CHARGE_PENDING;
         this.accountChargeInitiatedAt = Instant.now();
@@ -326,6 +360,8 @@ public class PaymentAggregate {
     public void on(ManualReviewRequestedEvent event) {
         this.status = PaymentStatus.MANUAL_REVIEW_REQUIRED;
         this.fraudStatus = FraudAnalysisStatus.REVIEW_REQUIRED;
+        this.riskAssessment = event.riskAssessment();
+        this.riskAssessmentCompletedAt = Instant.now();
         this.manualReviewRequestedAt = Instant.now();
         log.info("Manual review requested for payment: {}", event.paymentId());
     }

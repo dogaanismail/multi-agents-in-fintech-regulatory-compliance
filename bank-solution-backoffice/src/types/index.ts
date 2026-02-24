@@ -39,6 +39,10 @@ export interface PaymentHistoryResponse {
   manualReviewNotes: string | null;
   blockReason: string | null;
   failureReason: string | null;
+  // Decision Override Metadata
+  decisionOverriddenBy: string | null;
+  decisionOverrideReason: string | null;
+  decisionOverriddenAt: string | null;
   // Processing Metadata
   riskProcessingTimeMs: number | null;
   marlProcessingTimeMs: number | null;
@@ -161,6 +165,19 @@ export interface ManualReviewResponse {
   reviewedBy: string;
 }
 
+export interface OverrideDecisionRequest {
+  overriddenBy: string;
+  overrideReason: string;
+  approvePayment: boolean;
+}
+
+export interface OverrideDecisionResponse {
+  paymentId: string;
+  message: string;
+  overriddenBy: string;
+  newStatus: string;
+}
+
 export type ConfigCategory = 'OFFLINE_RETRAINING' | 'AUTO_REWARD' | 'MANUAL_REWARD' | 'ESCALATION' | 'AGENT_BEHAVIOR';
 export type ConfigType = 'STRING' | 'FLOAT' | 'INTEGER' | 'BOOLEAN';
 
@@ -244,6 +261,36 @@ export interface BufferStatsResponse {
   total_experiences: number;
   unused_experiences: number;
   used_experiences: number;
+}
+
+// ─── MARL Replay Buffer ──────────────────────────────────────────────────────
+
+export interface ExperienceEntry {
+  id: string;
+  payment_id: string;
+  marl_action: 'ALLOW' | 'BLOCK' | 'REVIEW' | string;
+  marl_confidence: number;
+  marl_q_value: number;
+  mean_risk_score: number;
+  automated_reward: number;
+  manual_reward: number | null;
+  effective_reward: number;
+  reward_source: 'automated' | 'manual_review' | string;
+  is_used_in_training: boolean;
+  training_run_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReplayBufferAggStats {
+  total_experiences: number;
+  manual_review_count: number;
+  automated_count: number;
+  used_in_training_count: number;
+  avg_effective_reward: number | null;
+  avg_confidence: number | null;
+  avg_risk_score: number | null;
+  action_counts: Record<string, number>;
 }
 
 // ─── Customer Creation ────────────────────────────────────────────────────────

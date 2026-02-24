@@ -30,4 +30,9 @@
         <sqlFile path="changelog/seed_new_configurations.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-02-24-01-01" author="Ismail Dogan">
+        <comment>Seed override reward configurations for compliance officer decision override training signals</comment>
+        <sqlFile path="changelog/seed_override_reward_configurations.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

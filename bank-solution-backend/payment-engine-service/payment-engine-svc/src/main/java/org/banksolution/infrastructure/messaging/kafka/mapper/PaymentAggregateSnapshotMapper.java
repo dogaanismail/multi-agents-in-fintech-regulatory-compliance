@@ -52,6 +52,11 @@ public class PaymentAggregateSnapshotMapper {
                 .setBlockReason(payment.blockReason())
                 .setFailureReason(payment.failureReason())
 
+                // Decision override metadata
+                .setDecisionOverriddenBy(payment.decisionOverriddenBy())
+                .setDecisionOverrideReason(payment.decisionOverrideReason())
+                .setDecisionOverriddenAt(toEpochMillis(payment.decisionOverriddenAt()))
+
                 .build();
     }
 
@@ -70,6 +75,8 @@ public class PaymentAggregateSnapshotMapper {
             case COMPLETED -> com.aml.payment.PaymentStatus.COMPLETED;
             case BLOCKED -> com.aml.payment.PaymentStatus.BLOCKED;
             case FAILED -> com.aml.payment.PaymentStatus.FAILED;
+            case OVERRIDE_APPROVED -> com.aml.payment.PaymentStatus.OVERRIDE_APPROVED;
+            case OVERRIDE_REJECTED -> com.aml.payment.PaymentStatus.OVERRIDE_REJECTED;
         };
     }
 

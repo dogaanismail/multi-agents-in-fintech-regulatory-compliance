@@ -42,6 +42,7 @@ public class KafkaConfigurationProperties {
             private String paymentSnapshotEvents;
             private String accountChargeRequested;
             private String paymentCompleted;
+            private String agentManualFeedback;
         }
     }
 }
