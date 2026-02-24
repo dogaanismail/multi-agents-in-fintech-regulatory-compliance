@@ -1,0 +1,60 @@
+{
+  "namespace": "com.aml.feedback",
+  "type": "record",
+  "name": "ComplianceAgentManualFeedbackEvent",
+  "doc": "Feedback signal published by payment-engine after a compliance officer acts on a payment. Consumed by MARL orchestrator to apply a corrected reward and re-queue the experience for the next training cycle. Covers both manual review outcomes (ESCALATED payments) and decision overrides (terminal ALLOW/BLOCK payments).",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID) for idempotent processing"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Internal payment aggregate identifier"
+    },
+    {
+      "name": "feedbackType",
+      "type": {
+        "type": "enum",
+        "name": "FeedbackType",
+        "doc": "MANUAL_REVIEW: officer acted on a payment escalated by MARL (REVIEW decision). DECISION_OVERRIDE: officer reversed a terminal ALLOW or BLOCK decision after the fact.",
+        "symbols": ["MANUAL_REVIEW", "DECISION_OVERRIDE"]
+      },
+      "doc": "Type of compliance officer action that triggered this feedback"
+    },
+    {
+      "name": "originalMarlAction",
+      "type": "string",
+      "doc": "The MARL orchestrator decision that the officer is responding to: ALLOW, BLOCK, or REVIEW"
+    },
+    {
+      "name": "officerDecision",
+      "type": {
+        "type": "enum",
+        "name": "OfficerDecision",
+        "doc": "APPROVE: officer considers the payment legitimate. REJECT: officer considers the payment fraudulent.",
+        "symbols": ["APPROVE", "REJECT"]
+      },
+      "doc": "The compliance officer's final verdict on the payment"
+    },
+    {
+      "name": "reviewedBy",
+      "type": "string",
+      "doc": "Compliance officer identifier (name or employee ID)"
+    },
+    {
+      "name": "notes",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional officer notes, approval notes, or rejection reason"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Event timestamp in milliseconds since epoch",
+      "logicalType": "timestamp-millis"
+    }
+  ]
+}

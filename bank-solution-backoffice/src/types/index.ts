@@ -39,6 +39,10 @@ export interface PaymentHistoryResponse {
   manualReviewNotes: string | null;
   blockReason: string | null;
   failureReason: string | null;
+  // Decision Override Metadata
+  decisionOverriddenBy: string | null;
+  decisionOverrideReason: string | null;
+  decisionOverriddenAt: string | null;
   // Processing Metadata
   riskProcessingTimeMs: number | null;
   marlProcessingTimeMs: number | null;
@@ -159,6 +163,19 @@ export interface ManualReviewResponse {
   paymentId: string;
   message: string;
   reviewedBy: string;
+}
+
+export interface OverrideDecisionRequest {
+  overriddenBy: string;
+  overrideReason: string;
+  approvePayment: boolean;
+}
+
+export interface OverrideDecisionResponse {
+  paymentId: string;
+  message: string;
+  overriddenBy: string;
+  newStatus: string;
 }
 
 export type ConfigCategory = 'OFFLINE_RETRAINING' | 'AUTO_REWARD' | 'MANUAL_REWARD' | 'ESCALATION' | 'AGENT_BEHAVIOR';

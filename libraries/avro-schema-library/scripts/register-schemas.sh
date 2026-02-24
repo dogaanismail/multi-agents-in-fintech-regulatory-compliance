@@ -35,12 +35,13 @@ deregister_schema() {
     
     echo "Deregistering: $subject"
     
-    # Check if subject exists
-    if curl -s -o /dev/null -w "%{http_code}" "$SCHEMA_REGISTRY_URL/subjects/$subject" | grep -q "200"; then
-        # Delete all versions
+    # Check if subject exists — use /versions endpoint (correct Confluent Schema Registry API)
+    http_code=$(curl -s -o /dev/null -w "%{http_code}" "$SCHEMA_REGISTRY_URL/subjects/$subject/versions")
+    if [ "$http_code" = "200" ]; then
+        # Soft delete all versions
         response=$(curl -s -X DELETE "$SCHEMA_REGISTRY_URL/subjects/$subject")
         if echo "$response" | jq -e . > /dev/null 2>&1; then
-            echo "  ✅ Deleted versions: $(echo "$response" | jq -r '.[]' | tr '\n' ',' | sed 's/,$//')"
+            echo "  ✅ Soft-deleted versions: $(echo "$response" | jq -r '.[]' | tr '\n' ',' | sed 's/,$//')"
         fi
         
         # Permanently delete (required for re-registration with breaking changes)
@@ -149,6 +150,11 @@ register_schema "$SCHEMAS_DIR/payment/PaymentSnapshotEvent.avsc" "payment-snapsh
 register_schema "$SCHEMAS_DIR/payment/PaymentCompletedEvent.avsc" "payment-completed-event-value"
 register_schema "$SCHEMAS_DIR/payment/PaymentBlockedEvent.avsc" "payment-blocked-event-value"
 register_schema "$SCHEMAS_DIR/payment/PaymentReviewRequiredEvent.avsc" "payment-review-required-event-value"
+echo ""
+
+# Register compliance feedback schemas
+echo "Compliance Feedback Schemas:"
+register_schema "$SCHEMAS_DIR/feedback/ComplianceAgentManualFeedbackEvent.avsc" "agent.manual.feedback-value"
 echo ""
 
 echo "=================================================="

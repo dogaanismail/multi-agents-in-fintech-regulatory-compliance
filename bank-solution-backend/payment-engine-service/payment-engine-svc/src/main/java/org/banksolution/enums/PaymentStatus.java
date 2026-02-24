@@ -10,5 +10,7 @@ public enum PaymentStatus {
     ACCOUNT_CHARGED,
     COMPLETED,
     BLOCKED,
-    FAILED
+    FAILED,
+    OVERRIDE_APPROVED,
+    OVERRIDE_REJECTED
 }

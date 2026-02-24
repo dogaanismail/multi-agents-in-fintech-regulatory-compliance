@@ -207,6 +207,61 @@ class RewardCalculatorService:
         """
         return confidence < self.config.escalation_confidence_threshold
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # Override reward (called when compliance officer reverses a terminal decision)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def calculate_override_reward(
+        self,
+        original_marl_action: str,
+        officer_decision: str,
+        agent_confidence_scores: Optional[Dict[str, float]] = None,
+    ) -> float:
+        """
+        Penalty applied when a compliance officer overrides a terminal decision.
+
+        Override scenarios:
+          - BLOCK → APPROVE  : agent over-blocked a legitimate payment  (override_block_to_approve)
+          - ALLOW → REJECT   : agent missed fraud on a completed payment (override_allow_to_reject)
+
+        The base penalty is multiplied by ``override_multiplier`` (default 3x) to
+        emphasise that reversing a terminal decision is a stronger signal than
+        a routine manual review correction.
+
+        If confidence weighting is enabled, the penalty is further scaled by the
+        average agent confidence so that high-confidence wrong decisions receive
+        the strongest penalty.
+
+        Args:
+            original_marl_action:    MARL decision that led to the terminal state ("BLOCK" | "ALLOW").
+            officer_decision:        Compliance officer final call ("APPROVE" | "REJECT").
+            agent_confidence_scores: Optional dict {"transaction": 0.9, ...}
+
+        Returns:
+            Weighted scalar penalty (already multiplied by override_multiplier).
+        """
+        if original_marl_action == "BLOCK" and officer_decision == "APPROVE":
+            base = self.config.override_block_to_approve
+        elif original_marl_action == "ALLOW" and officer_decision == "REJECT":
+            base = self.config.override_allow_to_reject
+        else:
+            base = 0.0
+
+        if self.config.use_confidence_weighting and agent_confidence_scores:
+            scores = list(agent_confidence_scores.values())
+            if scores:
+                avg_confidence = sum(scores) / len(scores)
+                base = base * avg_confidence
+
+        weighted_penalty = base * self.config.override_multiplier
+
+        logger.info(
+            f"Override reward: marl_action={original_marl_action}, officer={officer_decision}, "
+            f"base={base:.3f}, multiplier={self.config.override_multiplier} "
+            f"→ weighted_penalty={weighted_penalty:.4f}"
+        )
+        return float(weighted_penalty)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Singleton

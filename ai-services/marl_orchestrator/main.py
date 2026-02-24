@@ -20,6 +20,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
+from app.consumers.compliance_agent_manual_feedback_listener import compliance_agent_manual_feedback_listener
 from app.consumers.fraud_analysis_requested_listener import fraud_analysis_requested_listener
 from app.core.config import settings
 from app.core.dynamic_config import dynamic_config
@@ -122,8 +123,9 @@ async def lifespan(app: FastAPI):
     await _warm_dynamic_config()
     _start_training_scheduler()
 
-    logger.info("🎧 Starting Kafka listener...")
-    listener_task = asyncio.create_task(fraud_analysis_requested_listener.start())
+    logger.info("🎧 Starting Kafka listeners...")
+    fraud_listener_task = asyncio.create_task(fraud_analysis_requested_listener.start())
+    feedback_listener_task = asyncio.create_task(compliance_agent_manual_feedback_listener.start())
 
     logger.info("✅ MARL Orchestrator ready")
     yield
@@ -131,7 +133,9 @@ async def lifespan(app: FastAPI):
     logger.info("👋 Shutting down MARL Orchestrator...")
     offline_trainer_service.stop()
     fraud_analysis_requested_listener.stop()
-    await listener_task
+    compliance_agent_manual_feedback_listener.stop()
+    await fraud_listener_task
+    await feedback_listener_task
 
 
 # ─────────────────────────────────────────────────────────────────────────────
