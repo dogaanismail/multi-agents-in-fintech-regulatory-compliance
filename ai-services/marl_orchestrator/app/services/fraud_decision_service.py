@@ -86,7 +86,29 @@ class FraudDecisionService:
             
             # Step 3: MADDPG makes coordinated decision
             decision = self._make_maddpg_decision(state)
-            
+
+            # Step 3b: Post-decision escalation override
+            # MADDPG only outputs ALLOW or BLOCK; this rule catches the case where
+            # MADDPG says ALLOW but the model is uncertain (low confidence) or one
+            # or more specialist agents flagged the payment as suspicious.
+            # Those payments are routed to human review instead of being auto-approved.
+            if self._should_escalate(decision, observations):
+                escalation_threshold = dynamic_config.get_float(
+                    "ESCALATION_CONFIDENCE_THRESHOLD",
+                    settings.escalation_confidence_threshold
+                )
+                suspicious_agents = [
+                    name for name, obs in observations.items() if obs.is_suspicious
+                ]
+                logger.warning(
+                    f"Escalation override for payment {payment_id}: "
+                    f"ALLOW → REVIEW "
+                    f"(confidence={decision['confidence']:.3f}, "
+                    f"threshold={escalation_threshold:.3f}, "
+                    f"suspicious_agents={suspicious_agents})"
+                )
+                decision['action'] = 'REVIEW'
+
             # Step 4: Calculate processing time
             processing_time = (time.time() - start_time) * 1000  # ms
             
@@ -214,6 +236,51 @@ class FraudDecisionService:
         
         return decision
     
+    def _should_escalate(
+        self,
+        decision: Dict[str, Any],
+        observations: Dict[str, AgentObservation]
+    ) -> bool:
+        """
+        Determine whether a post-MADDPG escalation override is warranted.
+
+        MADDPG only ever emits ALLOW or BLOCK.  This method catches the gap:
+        payments where the network says ALLOW but either the model is uncertain
+        (confidence below threshold) or at least one specialist agent flagged
+        the payment as suspicious — a conflicted signal that warrants human eyes.
+
+        Both conditions are OR-ed so that either one alone is enough to trigger
+        escalation, and both are independently observable in the logs so
+        compliance officers can understand the reason.
+
+        The threshold is read from the dynamic config service first so
+        compliance officers can raise/lower it at runtime without a deploy;
+        the pydantic settings value acts as an in-process fallback.
+
+        Args:
+            decision:     MADDPG decision dict (action, confidence, …).
+            observations: Agent observations dict keyed by agent name.
+
+        Returns:
+            True if the ALLOW decision should be upgraded to REVIEW.
+        """
+        if decision['action'] != 'ALLOW':
+            return False  # Only ALLOW decisions can be escalated
+
+        threshold = dynamic_config.get_float(
+            "ESCALATION_CONFIDENCE_THRESHOLD",
+            settings.escalation_confidence_threshold
+        )
+
+        # Condition 1: MADDPG is uncertain — confidence is below the threshold
+        low_confidence = decision['confidence'] < threshold
+
+        # Condition 2: Conflicted signal — at least one specialist agent flagged
+        # this payment as suspicious while MADDPG chose ALLOW
+        any_agent_suspicious = any(obs.is_suspicious for obs in observations.values())
+
+        return low_confidence or any_agent_suspicious
+
     def _build_decision_response(
         self,
         payment_id: str,
@@ -276,6 +343,8 @@ class FraudDecisionService:
             # ── Joint actions from per-agent decisions ────────────────────────
             # agent_actions = {name: int} where 0=BLOCK, 1=ALLOW
             # Falls back to the joint action if somehow missing
+            # MADDPG only knows BLOCK(0) / ALLOW(1); REVIEW is a post-decision
+            # business override of ALLOW, so map it to 1 for the replay buffer.
             joint_action_int = 0 if decision["action"] == "BLOCK" else 1
             agent_actions = decision.get("agent_actions", {})
             actions_dict = {

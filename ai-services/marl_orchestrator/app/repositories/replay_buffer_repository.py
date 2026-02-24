@@ -165,6 +165,79 @@ class ReplayBufferRepository:
         )
         return True
 
+    async def list_recent(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[AgentReplayBufferEntry]:
+        """
+        Return the most recent experience entries, newest first.
+
+        Args:
+            limit:  Maximum rows to return (capped at 200).
+            offset: Pagination offset.
+        """
+        async with AsyncSessionLocal() as session:
+            query = (
+                select(AgentReplayBufferEntry)
+                .order_by(AgentReplayBufferEntry.created_at.desc())
+                .offset(offset)
+                .limit(limit)
+            )
+            result = await session.execute(query)
+            return list(result.scalars().all())
+
+    async def get_aggregate_stats(self) -> dict:
+        """
+        Return aggregate analytics over the full replay buffer for the UI
+        dashboard (reward averages, action distribution, source split, etc.).
+        """
+        async with AsyncSessionLocal() as session:
+            total = (await session.execute(
+                select(func.count(AgentReplayBufferEntry.id))
+            )).scalar_one()
+
+            manual_count = (await session.execute(
+                select(func.count(AgentReplayBufferEntry.id)).where(
+                    AgentReplayBufferEntry.reward_source == "manual_review"
+                )
+            )).scalar_one()
+
+            used_count = (await session.execute(
+                select(func.count(AgentReplayBufferEntry.id)).where(
+                    AgentReplayBufferEntry.is_used_in_training == True  # noqa: E712
+                )
+            )).scalar_one()
+
+            avg_reward = (await session.execute(
+                select(func.avg(AgentReplayBufferEntry.effective_reward))
+            )).scalar_one()
+
+            avg_conf = (await session.execute(
+                select(func.avg(AgentReplayBufferEntry.marl_confidence))
+            )).scalar_one()
+
+            avg_risk = (await session.execute(
+                select(func.avg(AgentReplayBufferEntry.mean_risk_score))
+            )).scalar_one()
+
+            action_rows = (await session.execute(
+                select(AgentReplayBufferEntry.marl_action, func.count(AgentReplayBufferEntry.id))
+                .group_by(AgentReplayBufferEntry.marl_action)
+            )).all()
+            action_counts = {row[0]: row[1] for row in action_rows}
+
+        return {
+            "total_experiences": total,
+            "manual_review_count": manual_count,
+            "automated_count": total - manual_count,
+            "used_in_training_count": used_count,
+            "avg_effective_reward": float(avg_reward) if avg_reward is not None else None,
+            "avg_confidence": float(avg_conf) if avg_conf is not None else None,
+            "avg_risk_score": float(avg_risk) if avg_risk is not None else None,
+            "action_counts": action_counts,
+        }
+
 
 # Singleton
 replay_buffer_repository = ReplayBufferRepository()

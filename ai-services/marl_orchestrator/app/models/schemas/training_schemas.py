@@ -8,7 +8,7 @@ Author: Ismail Dogan
 Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 """
 
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -57,3 +57,33 @@ class BufferStatsResponse(BaseModel):
     total_experiences: int
     unused_experiences: int
     used_experiences: int
+
+
+class ExperienceEntryResponse(BaseModel):
+    """Single experience tuple from the agent replay buffer."""
+    id: str
+    payment_id: str
+    marl_action: str
+    marl_confidence: float
+    marl_q_value: float
+    mean_risk_score: float
+    automated_reward: float
+    manual_reward: Optional[float] = None
+    effective_reward: float
+    reward_source: str
+    is_used_in_training: bool
+    training_run_id: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+
+class ReplayBufferAggStats(BaseModel):
+    """Aggregate analytics over the full replay buffer."""
+    total_experiences: int
+    manual_review_count: int
+    automated_count: int
+    used_in_training_count: int
+    avg_effective_reward: Optional[float] = None
+    avg_confidence: Optional[float] = None
+    avg_risk_score: Optional[float] = None
+    action_counts: Dict[str, int] = {}

@@ -263,6 +263,36 @@ export interface BufferStatsResponse {
   used_experiences: number;
 }
 
+// ─── MARL Replay Buffer ──────────────────────────────────────────────────────
+
+export interface ExperienceEntry {
+  id: string;
+  payment_id: string;
+  marl_action: 'ALLOW' | 'BLOCK' | 'REVIEW' | string;
+  marl_confidence: number;
+  marl_q_value: number;
+  mean_risk_score: number;
+  automated_reward: number;
+  manual_reward: number | null;
+  effective_reward: number;
+  reward_source: 'automated' | 'manual_review' | string;
+  is_used_in_training: boolean;
+  training_run_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReplayBufferAggStats {
+  total_experiences: number;
+  manual_review_count: number;
+  automated_count: number;
+  used_in_training_count: number;
+  avg_effective_reward: number | null;
+  avg_confidence: number | null;
+  avg_risk_score: number | null;
+  action_counts: Record<string, number>;
+}
+
 // ─── Customer Creation ────────────────────────────────────────────────────────
 
 export interface AddressRequest {

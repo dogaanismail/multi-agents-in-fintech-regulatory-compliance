@@ -1,6 +1,8 @@
 import { apiClient } from './client';
 import {
   BufferStatsResponse,
+  ExperienceEntry,
+  ReplayBufferAggStats,
   TrainingRunResponse,
   TrainingStatusResponse,
   TriggerTrainingResponse,
@@ -26,6 +28,18 @@ export const marlTrainingService = {
 
   getBufferStats: async (): Promise<BufferStatsResponse> => {
     const response = await apiClient.get<BufferStatsResponse>('/marl/training/buffer');
+    return response.data;
+  },
+
+  getExperiences: async (limit = 50, offset = 0): Promise<ExperienceEntry[]> => {
+    const response = await apiClient.get<ExperienceEntry[]>(
+      `/marl/training/experiences?limit=${limit}&offset=${offset}`,
+    );
+    return response.data;
+  },
+
+  getExperienceStats: async (): Promise<ReplayBufferAggStats> => {
+    const response = await apiClient.get<ReplayBufferAggStats>('/marl/training/experiences/stats');
     return response.data;
   },
 };

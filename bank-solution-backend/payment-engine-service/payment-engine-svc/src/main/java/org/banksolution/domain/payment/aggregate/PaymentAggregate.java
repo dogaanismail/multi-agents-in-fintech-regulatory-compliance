@@ -360,6 +360,8 @@ public class PaymentAggregate {
     public void on(ManualReviewRequestedEvent event) {
         this.status = PaymentStatus.MANUAL_REVIEW_REQUIRED;
         this.fraudStatus = FraudAnalysisStatus.REVIEW_REQUIRED;
+        this.riskAssessment = event.riskAssessment();
+        this.riskAssessmentCompletedAt = Instant.now();
         this.manualReviewRequestedAt = Instant.now();
         log.info("Manual review requested for payment: {}", event.paymentId());
     }
