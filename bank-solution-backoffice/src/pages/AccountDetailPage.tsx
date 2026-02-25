@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { accountService } from '@/api';
 import { AccountResponse } from '@/types';
 import { useApi } from '@/hooks/useApi';
 import { Card, LoadingSpinner, Badge, Button } from '@/components/common';
 import { formatDate, formatCurrency } from '@/utils/formatters';
+
+const LEDGER_ID = '00000000-0000-0000-0000-000000000000';
 
 export const AccountDetailPage: React.FC = () => {
   const { accountId } = useParams<{ accountId: string }>();
@@ -37,14 +39,45 @@ export const AccountDetailPage: React.FC = () => {
     return <div className="text-gray-500">Account not found</div>;
   }
 
+  const isLedger = account.accountType === 'LEDGER' || account.id === LEDGER_ID;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Account Details</h1>
-        <Button variant="secondary" onClick={() => navigate(-1)}>
-          Back
-        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Account Details</h1>
+          {isLedger && (
+            <span className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
+              🏛️ SYSTEM LEDGER ACCOUNT
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/payments?accountId=${account.id}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+          >
+            💳 View Payments
+          </Link>
+          <Button variant="secondary" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+        </div>
       </div>
+
+      {isLedger && (
+        <div className="flex items-start gap-3 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+          <span className="text-xl mt-0.5">🏛️</span>
+          <div className="text-sm text-indigo-800">
+            <p className="font-semibold">System Clearing / Ledger Account</p>
+            <p className="mt-0.5 text-indigo-700">
+              This account is used as the counterparty for all <strong>DEPOSIT</strong> (source) and
+              <strong> WITHDRAWAL</strong> (destination) transactions.
+              Balances here represent the net clearing position.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Account Information */}
       <Card title="Account Information">

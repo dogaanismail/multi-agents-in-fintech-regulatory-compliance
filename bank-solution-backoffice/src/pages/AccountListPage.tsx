@@ -76,6 +76,8 @@ export const AccountListPage = () => {
     );
   }
 
+  const LEDGER_ID = '00000000-0000-0000-0000-000000000000';
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -87,6 +89,25 @@ export const AccountListPage = () => {
           <span>＋</span> Open Account
         </Link>
       </div>
+
+      {/* Ledger Account Shortcut */}
+      <Link
+        to={`/accounts/${LEDGER_ID}`}
+        className="group flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl hover:shadow-md transition-all hover:border-indigo-300"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🏛️</span>
+          <div>
+            <p className="font-semibold text-gray-900">Ledger Account</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              System clearing account — used as source/destination for deposits &amp; withdrawals
+            </p>
+          </div>
+        </div>
+        <span className="text-indigo-600 font-semibold text-sm flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+          View balances &amp; payments →
+        </span>
+      </Link>
 
       {/* Filters */}
       <Card>

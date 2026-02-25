@@ -317,6 +317,129 @@ export const MarlTrainingPage: React.FC = () => {
         </>
       )}
 
+      {/* ── Loss Trend Chart ── */}
+      {!historyLoading && history.length >= 2 && (() => {
+        // Use SUCCESS runs with non-null losses, reversed to show oldest→newest left-to-right
+        const CHART_W = 600;
+        const CHART_H = 160;
+        const PAD = { top: 12, right: 16, bottom: 28, left: 46 };
+        const plotW = CHART_W - PAD.left - PAD.right;
+        const plotH = CHART_H - PAD.top - PAD.bottom;
+
+        const runs = [...history]
+          .reverse()
+          .filter(
+            (r) =>
+              r.status === 'SUCCESS' &&
+              r.critic_loss !== null &&
+              (r.actor_transaction_loss !== null ||
+                r.actor_customer_loss !== null ||
+                r.actor_network_loss !== null),
+          );
+
+        if (runs.length < 2) return null;
+
+        const criticVals = runs.map((r) => r.critic_loss ?? 0);
+        const actorVals  = runs.map((r) => {
+          const vals = [r.actor_transaction_loss, r.actor_customer_loss, r.actor_network_loss].filter(
+            (v): v is number => v !== null,
+          );
+          return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+        });
+
+        const allVals = [...criticVals, ...actorVals];
+        const yMax = Math.max(...allVals) * 1.1 || 1;
+        const yMin = 0;
+
+        const toX = (i: number) => PAD.left + (i / (runs.length - 1)) * plotW;
+        const toY = (v: number) => PAD.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+        const polyline = (vals: number[], stroke: string, dash?: string) => {
+          const pts = vals.map((v, i) => `${toX(i)},${toY(v)}`).join(' ');
+          return (
+            <polyline
+              points={pts}
+              fill="none"
+              stroke={stroke}
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              strokeDasharray={dash}
+            />
+          );
+        };
+
+        const dots = (vals: number[], fill: string) =>
+          vals.map((v, i) => (
+            <circle key={i} cx={toX(i)} cy={toY(v)} r="3" fill={fill} />
+          ));
+
+        // Y-axis tick labels (4 ticks)
+        const yTicks = [0, 0.33, 0.67, 1].map((t) => {
+          const val = yMin + t * (yMax - yMin);
+          return { y: toY(val), label: val.toFixed(3) };
+        });
+
+        // X-axis tick labels (show up to 6 evenly spaced)
+        const xStep = Math.max(1, Math.floor(runs.length / 5));
+        const xTicks = runs
+          .map((r, i) => ({ i, label: new Date(r.started_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }))
+          .filter((_, i) => i % xStep === 0 || i === runs.length - 1);
+
+        return (
+          <Card title="📈 Training Loss Trend">
+            <div className="flex items-center gap-5 mb-3">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                <span className="inline-block w-5 h-0.5 bg-blue-500 rounded" /> Critic Loss
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                <span className="inline-block w-5 h-0.5 bg-orange-400 rounded" style={{ borderTop: '2px dashed' }} /> Avg Actor Loss
+              </span>
+              <span className="ml-auto text-xs text-gray-400">{runs.length} successful runs (oldest → newest)</span>
+            </div>
+            <div className="overflow-x-auto">
+              <svg
+                viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+                className="w-full"
+                style={{ minWidth: '320px', maxHeight: '200px' }}
+              >
+                {/* Grid lines */}
+                {yTicks.map(({ y, label }) => (
+                  <g key={label}>
+                    <line x1={PAD.left} y1={y} x2={CHART_W - PAD.right} y2={y} stroke="#e5e7eb" strokeWidth="1" />
+                    <text x={PAD.left - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
+                  </g>
+                ))}
+                {/* X-axis labels */}
+                {xTicks.map(({ i, label }) => (
+                  <text key={i} x={toX(i)} y={CHART_H - 4} textAnchor="middle" fontSize="9" fill="#9ca3af">
+                    {label}
+                  </text>
+                ))}
+                {/* Lines */}
+                {polyline(actorVals, '#fb923c', '4 2')}
+                {polyline(criticVals, '#3b82f6')}
+                {/* Dots */}
+                {dots(actorVals, '#fb923c')}
+                {dots(criticVals, '#3b82f6')}
+              </svg>
+            </div>
+            {(() => {
+              const lastCritic = criticVals[criticVals.length - 1];
+              const prevCritic = criticVals[criticVals.length - 2];
+              const improving = lastCritic < prevCritic;
+              return (
+                <p className={`mt-2 text-xs font-medium ${improving ? 'text-green-700' : 'text-orange-700'}`}>
+                  {improving
+                    ? `✅ Critic loss decreased ${((1 - lastCritic / prevCritic) * 100).toFixed(1)}% from last run — model is improving`
+                    : `⚠️ Critic loss increased ${((lastCritic / prevCritic - 1) * 100).toFixed(1)}% from last run — watch for instability`}
+                </p>
+              );
+            })()}
+          </Card>
+        );
+      })()}
+
       {/* Training History Table */}
       <Card title="Training Run History">
         <div className="flex justify-between items-center mb-4">

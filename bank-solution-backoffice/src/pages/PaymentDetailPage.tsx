@@ -336,6 +336,21 @@ export const PaymentDetailPage: React.FC = () => {
       {/* Timeline */}
       <Card title="🗓️ Payment Timeline">
         {(() => {
+          // ── Duration formatter ────────────────────────────────────────────────
+          const fmtDur = (ms: number): string => {
+            if (ms < 0) return '?';
+            if (ms < 1_000) return `${ms} ms`;
+            if (ms < 60_000) return `${(ms / 1_000).toFixed(1)} s`;
+            if (ms < 3_600_000) {
+              const m = Math.floor(ms / 60_000);
+              const s = Math.floor((ms % 60_000) / 1_000);
+              return s > 0 ? `${m}m ${s}s` : `${m} min`;
+            }
+            const h = Math.floor(ms / 3_600_000);
+            const m = Math.floor((ms % 3_600_000) / 60_000);
+            return m > 0 ? `${h}h ${m}m` : `${h} h`;
+          };
+
           const ALL_STEPS: {
             label: string;
             timestamp: string | null;
@@ -372,29 +387,43 @@ export const PaymentDetailPage: React.FC = () => {
           };
           return (
             <div className="relative">
-              {steps.map((step, i) => (
-                <div key={step.label} className="relative flex gap-4 pb-7 last:pb-0">
-                  {/* Vertical connector line */}
-                  {i < steps.length - 1 && (
+              {steps.map((step, i) => {
+                const nextStep = steps[i + 1];
+                const durMs = nextStep
+                  ? new Date(nextStep.timestamp!).getTime() - new Date(step.timestamp!).getTime()
+                  : null;
+                return (
+                  <div key={step.label} className="relative flex gap-4 pb-7 last:pb-0">
+                    {/* Vertical connector line */}
+                    {i < steps.length - 1 && (
+                      <div
+                        className={`absolute left-[13px] top-8 bottom-0 w-0.5 ${lineCls[step.variant]}`}
+                      />
+                    )}
+                    {/* Dot */}
                     <div
-                      className={`absolute left-[13px] top-8 bottom-0 w-0.5 ${lineCls[step.variant]}`}
-                    />
-                  )}
-                  {/* Dot */}
-                  <div
-                    className={`relative z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ring-2 ${dotCls[step.variant]}`}
-                  >
-                    <span className="text-xs leading-none">{step.icon}</span>
+                      className={`relative z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ring-2 ${dotCls[step.variant]}`}
+                    >
+                      <span className="text-xs leading-none">{step.icon}</span>
+                    </div>
+                    {/* Content */}
+                    <div className="flex flex-1 flex-col min-w-0 pt-0.5">
+                      <div className="flex items-start justify-between">
+                        <span className="text-sm font-semibold text-gray-800">{step.label}</span>
+                        <span className="text-xs text-gray-400 ml-6 whitespace-nowrap tabular-nums">
+                          {formatDate(step.timestamp)}
+                        </span>
+                      </div>
+                      {/* Duration to next step */}
+                      {durMs !== null && (
+                        <span className="mt-1.5 self-start text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200 tabular-nums">
+                          ⏱ {fmtDur(durMs)} to next step
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {/* Content */}
-                  <div className="flex flex-1 items-start justify-between min-w-0 pt-0.5">
-                    <span className="text-sm font-semibold text-gray-800">{step.label}</span>
-                    <span className="text-xs text-gray-400 ml-6 whitespace-nowrap tabular-nums">
-                      {formatDate(step.timestamp)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           );
         })()}

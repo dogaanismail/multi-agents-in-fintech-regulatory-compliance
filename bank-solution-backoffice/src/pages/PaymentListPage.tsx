@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { paymentService } from '@/api';
 import { PaymentHistoryResponse, Page } from '@/types';
 import { useApi } from '@/hooks/useApi';
@@ -13,11 +13,15 @@ const PAYMENT_TYPE_META: Record<string, { icon: string; label: string; color: st
   WITHDRAWAL:   { icon: '🏧', label: 'Withdrawal',    color: 'bg-orange-100 text-orange-800' },
 };
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export const PaymentListPage: React.FC = () => {
   const { data: paymentsData, loading, error, execute } = useApi<Page<PaymentHistoryResponse>>();
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState({
     paymentId: '',
     customerId: '',
+    accountId: searchParams.get('accountId') || '',
     status: '',
     fraudStatus: '',
     riskLevel: '',
@@ -77,6 +81,24 @@ export const PaymentListPage: React.FC = () => {
           empty: true,
         } as Page<PaymentHistoryResponse>));
       }
+    } else if (filters.accountId) {
+      // Fetch a broad set and filter client-side by source or destination account
+      try {
+        const all = await paymentService.getAllPayments(0, 200);
+        const id = filters.accountId.trim();
+        const filtered = all.content.filter(
+          (p) => p.sourceAccountId === id || p.destinationAccountId === id
+        );
+        await execute(() => Promise.resolve({
+          content: filtered,
+          pageable: { pageNumber: 0, pageSize: filtered.length, sort: { empty: true, sorted: false, unsorted: true }, offset: 0, paged: true, unpaged: false },
+          totalPages: 1, totalElements: filtered.length, last: true, size: filtered.length,
+          number: 0, sort: { empty: true, sorted: false, unsorted: true },
+          numberOfElements: filtered.length, first: true, empty: filtered.length === 0,
+        } as Page<PaymentHistoryResponse>));
+      } catch {
+        await execute(() => paymentService.getAllPayments(currentPage, pageSize));
+      }
     } else if (filters.customerId) {
       await execute(() =>
         paymentService.getPaymentsByCustomerId(filters.customerId, currentPage, pageSize)
@@ -112,6 +134,7 @@ export const PaymentListPage: React.FC = () => {
     setFilters({
       paymentId: '',
       customerId: '',
+      accountId: '',
       status: '',
       fraudStatus: '',
       riskLevel: '',
@@ -148,6 +171,12 @@ export const PaymentListPage: React.FC = () => {
             placeholder="UUID"
             value={filters.customerId}
             onChange={(e) => handleFilterChange('customerId', e.target.value)}
+          />
+          <Input
+            label="Account ID"
+            placeholder="Source or destination account UUID"
+            value={filters.accountId}
+            onChange={(e) => handleFilterChange('accountId', e.target.value)}
           />
           <Select
             label="Status"
