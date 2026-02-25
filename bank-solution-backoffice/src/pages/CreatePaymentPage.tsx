@@ -72,6 +72,10 @@ const ALL_CURRENCIES: { value: Currency; label: string }[] = [
   { value: 'USD', label: 'USD — US Dollar' },
 ];
 
+// Sentinel UUID of the main ledger account (AccountType.LEDGER).
+// Used as the implicit counterparty for DEPOSIT (source) and WITHDRAWAL (destination).
+const LEDGER_ACCOUNT_ID = '00000000-0000-0000-0000-000000000000';
+
 const inputCls =
   'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm';
 const selectCls =
@@ -237,10 +241,13 @@ export const CreatePaymentPage: React.FC = () => {
       sourceAccountId = counterpartyAccountId || undefined;
       destinationAccountId = ownAccountId || undefined;
     } else if (paymentType === 'DEPOSIT') {
+      // Money flows FROM ledger → customer account
+      sourceAccountId      = LEDGER_ACCOUNT_ID;
       destinationAccountId = ownAccountId || undefined;
     } else {
-      // WITHDRAWAL
-      sourceAccountId = ownAccountId || undefined;
+      // WITHDRAWAL: money flows FROM customer account → ledger
+      sourceAccountId      = ownAccountId || undefined;
+      destinationAccountId = LEDGER_ACCOUNT_ID;
     }
 
     const request: CreatePaymentRequest = {

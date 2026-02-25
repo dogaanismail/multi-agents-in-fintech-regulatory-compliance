@@ -2,6 +2,7 @@ package org.banksolution.repository;
 
 import lombok.NonNull;
 import org.banksolution.entity.AccountEntity;
+import org.banksolution.enums.AccountType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,6 +29,10 @@ public interface AccountRepository extends JpaRepository<@NonNull AccountEntity,
     @EntityGraph(attributePaths = {"balances"})
     @NonNull
     Optional<@NonNull AccountEntity> findById(@NonNull UUID id);
+
+    @EntityGraph(attributePaths = {"balances"})
+    @Query("SELECT a FROM account a WHERE a.accountType = :accountType AND a.deletedAt IS NULL")
+    Optional<AccountEntity> findByAccountType(@Param("accountType") AccountType accountType);
 
 }
 

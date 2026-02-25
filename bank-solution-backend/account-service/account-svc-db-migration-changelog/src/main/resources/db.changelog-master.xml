@@ -15,5 +15,15 @@
         <sqlFile path="changelog/add_account_balance_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-02-25-02-01" author="Ismail Dogan">
+        <comment>Add LEDGER account type and expand currency constraint</comment>
+        <sqlFile path="changelog/add_ledger_account_type.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-02-25-02-02" author="Ismail Dogan">
+        <comment>Add main ledger account with all currency balances</comment>
+        <sqlFile path="changelog/add_ledger_account_data.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>
 

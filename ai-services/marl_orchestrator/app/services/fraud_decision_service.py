@@ -276,7 +276,6 @@ class FraudDecisionService:
         low_confidence = decision['confidence'] < threshold
 
         # Condition 2: Conflicted signal — at least one specialist agent flagged
-        # this payment as suspicious while MADDPG chose ALLOW
         any_agent_suspicious = any(obs.is_suspicious for obs in observations.values())
 
         return low_confidence or any_agent_suspicious

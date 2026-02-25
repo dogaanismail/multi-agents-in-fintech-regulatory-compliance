@@ -27,10 +27,16 @@ public class KafkaConfigurationProperties {
     @Data
     public static class Topics {
         private Incoming incoming = new Incoming();
+        private Outgoing outgoing = new Outgoing();
 
         @Data
         public static class Incoming {
-            private String paymentCompleted;
+            private String accountChargeRequested;
+        }
+
+        @Data
+        public static class Outgoing {
+            private String accountChargeCompleted;
         }
     }
 }

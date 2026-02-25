@@ -1,9 +1,9 @@
-package org.banksolution.listener;
+package org.banksolution.infrastructure.messaging.kafka.consumer;
 
-import com.aml.payment.PaymentCompletedEvent;
+import com.aml.account.AccountChargeRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.banksolution.handler.AccountBalanceHandler;
+import org.banksolution.infrastructure.messaging.kafka.handler.AccountChargeHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -14,36 +14,32 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentCompletedEventListener {
+public class AccountChargeRequestedEventConsumer {
 
-    private final AccountBalanceHandler accountBalanceHandler;
+    private final AccountChargeHandler accountChargeHandler;
 
     @KafkaListener(
-            topics = "${spring.kafka.topics.incoming.payment-completed}",
+            topics = "${spring.kafka.topics.incoming.account-charge-requested}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void handlePaymentCompletedEvent(
-            @Payload PaymentCompletedEvent event,
+    public void consume(
+            @Payload AccountChargeRequestedEvent event,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
-        log.info("Received PaymentCompletedEvent: eventId:{}, paymentId:{}, partition:{}, offset:{}",
-                event.getEventId(),
+        log.info("Received AccountChargeRequestedEvent: paymentId:{}, paymentType:{}, partition:{}, offset:{}",
                 event.getPaymentId(),
+                event.getPaymentType(),
                 partition,
                 offset);
 
         try {
-            if (event.getRiskCheckPassed()) {
-                accountBalanceHandler.processPaymentCompletedEvent(event);
-            }
-
+            accountChargeHandler.handle(event);
             acknowledgment.acknowledge();
-            log.info("Successfully processed payment event: {}", event.getEventId());
         } catch (Exception e) {
-            log.error("Failed to process payment event: {}", event.getEventId(), e);
+            log.error("Failed to process AccountChargeRequestedEvent: paymentId:{}", event.getPaymentId(), e);
             throw e;
         }
     }
