@@ -334,30 +334,70 @@ export const PaymentDetailPage: React.FC = () => {
       )}
 
       {/* Timeline */}
-      <Card title="Payment Timeline">
-        <div className="space-y-2">
-          <TimelineItem label="Initiated" timestamp={payment.initiatedAt} />
-          <TimelineItem label="Risk Check Requested" timestamp={payment.riskCheckRequestedAt} />
-          <TimelineItem label="Risk Check Completed" timestamp={payment.riskCheckCompletedAt} />
-          <TimelineItem label="Fraud Check Approved" timestamp={payment.fraudCheckApprovedAt} />
-          <TimelineItem
-            label="Manual Review Requested"
-            timestamp={payment.manualReviewRequestedAt}
-          />
-          <TimelineItem
-            label="Manual Review Approved"
-            timestamp={payment.manualReviewApprovedAt}
-          />
-          <TimelineItem
-            label="Manual Review Rejected"
-            timestamp={payment.manualReviewRejectedAt}
-          />
-          <TimelineItem label="Account Charge Initiated" timestamp={payment.accountChargeInitiatedAt} />
-          <TimelineItem label="Account Charged" timestamp={payment.accountChargedAt} />
-          <TimelineItem label="Account Charge Failed" timestamp={payment.accountChargeFailedAt} />
-          <TimelineItem label="Completed" timestamp={payment.completedAt} />
-          <TimelineItem label="Blocked" timestamp={payment.blockedAt} />
-        </div>
+      <Card title="🗓️ Payment Timeline">
+        {(() => {
+          const ALL_STEPS: {
+            label: string;
+            timestamp: string | null;
+            icon: string;
+            variant: 'default' | 'success' | 'warning' | 'error';
+          }[] = [
+            { label: 'Initiated',               timestamp: payment.initiatedAt,              icon: '🚀', variant: 'default'  },
+            { label: 'Risk Check Requested',     timestamp: payment.riskCheckRequestedAt,     icon: '🔍', variant: 'default'  },
+            { label: 'Risk Check Completed',     timestamp: payment.riskCheckCompletedAt,     icon: '📊', variant: 'default'  },
+            { label: 'Fraud Check Approved',     timestamp: payment.fraudCheckApprovedAt,     icon: '🤖', variant: 'success'  },
+            { label: 'Manual Review Requested',  timestamp: payment.manualReviewRequestedAt,  icon: '👁️', variant: 'warning'  },
+            { label: 'Manual Review Approved',   timestamp: payment.manualReviewApprovedAt,   icon: '✅', variant: 'success'  },
+            { label: 'Manual Review Rejected',   timestamp: payment.manualReviewRejectedAt,   icon: '❌', variant: 'error'    },
+            { label: 'Account Charge Initiated', timestamp: payment.accountChargeInitiatedAt, icon: '💳', variant: 'default'  },
+            { label: 'Account Charged',          timestamp: payment.accountChargedAt,         icon: '💰', variant: 'success'  },
+            { label: 'Account Charge Failed',    timestamp: payment.accountChargeFailedAt,    icon: '⚠️', variant: 'error'    },
+            { label: 'Completed',                timestamp: payment.completedAt,              icon: '🎉', variant: 'success'  },
+            { label: 'Blocked',                  timestamp: payment.blockedAt,                icon: '🚫', variant: 'error'    },
+          ];
+          const steps = ALL_STEPS.filter((s) => s.timestamp !== null);
+          if (steps.length === 0)
+            return <p className="text-sm text-gray-400 italic">No timeline events yet.</p>;
+          const dotCls: Record<string, string> = {
+            default: 'bg-blue-100 text-blue-700 ring-blue-200',
+            success: 'bg-green-100 text-green-700 ring-green-200',
+            warning: 'bg-yellow-100 text-yellow-700 ring-yellow-200',
+            error:   'bg-red-100   text-red-700   ring-red-200',
+          };
+          const lineCls: Record<string, string> = {
+            default: 'bg-blue-200',
+            success: 'bg-green-200',
+            warning: 'bg-yellow-200',
+            error:   'bg-red-200',
+          };
+          return (
+            <div className="relative">
+              {steps.map((step, i) => (
+                <div key={step.label} className="relative flex gap-4 pb-7 last:pb-0">
+                  {/* Vertical connector line */}
+                  {i < steps.length - 1 && (
+                    <div
+                      className={`absolute left-[13px] top-8 bottom-0 w-0.5 ${lineCls[step.variant]}`}
+                    />
+                  )}
+                  {/* Dot */}
+                  <div
+                    className={`relative z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ring-2 ${dotCls[step.variant]}`}
+                  >
+                    <span className="text-xs leading-none">{step.icon}</span>
+                  </div>
+                  {/* Content */}
+                  <div className="flex flex-1 items-start justify-between min-w-0 pt-0.5">
+                    <span className="text-sm font-semibold text-gray-800">{step.label}</span>
+                    <span className="text-xs text-gray-400 ml-6 whitespace-nowrap tabular-nums">
+                      {formatDate(step.timestamp)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </Card>
 
       {/* Decision Metadata */}
@@ -496,18 +536,7 @@ const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, v
   </div>
 );
 
-const TimelineItem: React.FC<{ label: string; timestamp: string | null }> = ({
-  label,
-  timestamp,
-}) => {
-  if (!timestamp) return null;
-  return (
-    <div className="flex justify-between py-2 border-b border-gray-200">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
-      <span className="text-sm text-gray-500">{formatDate(timestamp)}</span>
-    </div>
-  );
-};
+// TimelineItem replaced by inline steps renderer above
 
 const AgentCard: React.FC<{ agent: any }> = ({ agent }) => (
   <div className="border border-gray-200 rounded-lg p-4">

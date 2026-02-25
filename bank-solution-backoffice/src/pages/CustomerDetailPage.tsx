@@ -6,6 +6,13 @@ import { useApi } from '@/hooks/useApi';
 import { Card, LoadingSpinner, Badge, Button } from '@/components/common';
 import { formatDate, formatCurrency, getStatusColor } from '@/utils/formatters';
 
+const PAYMENT_TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
+  TRANSFER_OUT: { icon: '⬆️', label: 'Transfer Out', color: 'bg-blue-100 text-blue-800' },
+  TRANSFER_IN:  { icon: '⬇️', label: 'Transfer In',  color: 'bg-green-100 text-green-800' },
+  DEPOSIT:      { icon: '💰', label: 'Deposit',       color: 'bg-emerald-100 text-emerald-800' },
+  WITHDRAWAL:   { icon: '🏧', label: 'Withdrawal',    color: 'bg-orange-100 text-orange-800' },
+};
+
 export const CustomerDetailPage: React.FC = () => {
   const { customerId } = useParams<{ customerId: string }>();
   const navigate = useNavigate();
@@ -185,6 +192,9 @@ export const CustomerDetailPage: React.FC = () => {
                       Payment ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Amount
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -201,8 +211,36 @@ export const CustomerDetailPage: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {payments.map((payment) => (
                     <tr key={payment.paymentId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                        {payment.paymentId.substring(0, 8)}...
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            to={`/payments/${payment.paymentId}`}
+                            className="text-sm font-mono text-blue-600 hover:text-blue-800 hover:underline"
+                            title={payment.paymentId}
+                          >
+                            {payment.paymentId.substring(0, 8)}…
+                          </Link>
+                          <button
+                            type="button"
+                            title="Copy full Payment ID"
+                            onClick={() => navigator.clipboard.writeText(payment.paymentId)}
+                            className="text-gray-400 hover:text-gray-700 transition-colors text-xs leading-none"
+                          >
+                            📋
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {(() => {
+                          const meta = PAYMENT_TYPE_META[payment.paymentType];
+                          return meta ? (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${meta.color}`}>
+                              {meta.icon} {meta.label}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-500">{payment.paymentType}</span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(payment.amount, payment.currency)}
