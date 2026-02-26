@@ -21,19 +21,12 @@ public class NetworkGraphRepository {
         try (Session session = neo4jDriver.session()) {
             String query = """
                     MATCH (a:Account {accountId: $accountId})
-                    
-                    // Count in-degree (incoming transactions)
                     OPTIONAL MATCH ()-[inRel:TRANSFERRED_TO]->(a)
                     WITH a, COUNT(DISTINCT inRel) AS inDegree
-                    
-                    // Count out-degree (outgoing transactions)
                     OPTIONAL MATCH (a)-[outRel:TRANSFERRED_TO]->()
                     WITH a, inDegree, COUNT(DISTINCT outRel) AS outDegree
-                    
-                    // Get total nodes for centrality calculation
                     OPTIONAL MATCH (total:Account)
                     WITH a, inDegree, outDegree, COUNT(DISTINCT total) AS totalNodes
-                    
                     RETURN
                         a.accountId AS accountId,
                         inDegree,
@@ -91,16 +84,24 @@ public class NetworkGraphRepository {
             boolean riskCheckPassed) {
         try (Session session = neo4jDriver.session()) {
             String query = """
-                    MATCH (source:Account {accountId: $sourceAccountId})
-                    MATCH (dest:Account {accountId: $destAccountId})
-                    CREATE (source)-[r:TRANSFERRED_TO {
-                        paymentId: $paymentId,
-                        amount: $amount,
-                        currency: $currency,
-                        paymentType: $paymentType,
-                        timestamp: $timestamp,
-                        riskCheckPassed: $riskCheckPassed
-                    }]->(dest)
+                    MERGE (source:Account {accountId: $sourceAccountId})
+                    ON CREATE SET source.createdAt      = datetime(),
+                                  source.lastActivityAt = datetime(),
+                                  source.transactionCount = 1
+                    ON MATCH  SET source.lastActivityAt  = datetime(),
+                                  source.transactionCount = source.transactionCount + 1
+                    MERGE (dest:Account {accountId: $destAccountId})
+                    ON CREATE SET dest.createdAt      = datetime(),
+                                  dest.lastActivityAt = datetime(),
+                                  dest.transactionCount = 1
+                    ON MATCH  SET dest.lastActivityAt  = datetime(),
+                                  dest.transactionCount = dest.transactionCount + 1
+                    MERGE (source)-[r:TRANSFERRED_TO {paymentId: $paymentId}]->(dest)
+                    ON CREATE SET r.amount        = $amount,
+                                  r.currency      = $currency,
+                                  r.paymentType   = $paymentType,
+                                  r.timestamp     = $timestamp,
+                                  r.riskCheckPassed = $riskCheckPassed
                     """;
 
             session.run(query, Values.parameters(
@@ -112,9 +113,9 @@ public class NetworkGraphRepository {
                     "paymentType", paymentType,
                     "timestamp", timestamp,
                     "riskCheckPassed", riskCheckPassed
-            ));
+            )).consume();
 
-            log.debug("Transaction relationship created: {} -> {} for payment: {} riskCheckPassed: {}",
+            log.debug("Transaction relationship merged: {} -> {} for payment: {} riskCheckPassed: {}",
                     sourceAccountId,
                     destAccountId,
                     paymentId,

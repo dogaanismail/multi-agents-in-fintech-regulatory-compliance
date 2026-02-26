@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.repository.NetworkGraphRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -14,10 +13,8 @@ import java.math.BigDecimal;
 @Slf4j
 public class TransactionGraphService {
 
-    private final NetworkFeatureService networkFeatureService;
     private final NetworkGraphRepository networkGraphRepository;
 
-    @Transactional
     public void createTransactionRelationship(PaymentCompletedEvent event) {
         String sourceAccountId = event.getSourceAccountId();
         String destinationAccountId = event.getDestinationAccountId();
@@ -27,10 +24,6 @@ public class TransactionGraphService {
                 sourceAccountId,
                 destinationAccountId,
                 paymentId);
-
-        String sourceCustomerId = event.getCustomerId();
-        networkFeatureService.getOrCreateAccount(sourceAccountId, sourceCustomerId);
-        networkFeatureService.getOrCreateAccount(destinationAccountId, null);
 
         networkGraphRepository.createTransactionRelationship(
                 sourceAccountId,
@@ -43,6 +36,6 @@ public class TransactionGraphService {
                 event.getRiskCheckPassed()
         );
 
-        log.info("Transaction relationship created for payment: {}", paymentId);
+        log.info("Transaction relationship merged for payment: {}", paymentId);
     }
 }

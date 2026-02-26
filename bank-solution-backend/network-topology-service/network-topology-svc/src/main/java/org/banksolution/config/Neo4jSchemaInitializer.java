@@ -21,12 +21,7 @@ public class Neo4jSchemaInitializer {
             session.run("""
                     CREATE CONSTRAINT account_id_unique IF NOT EXISTS
                     FOR (a:Account) REQUIRE a.accountId IS UNIQUE
-                    """);
-
-            session.run("""
-                    CREATE INDEX account_customer_id IF NOT EXISTS
-                    FOR (a:Account) ON (a.customerId)
-                    """);
+                    """).consume();
 
             log.info("Neo4j schema initialized successfully");
         } catch (Exception e) {

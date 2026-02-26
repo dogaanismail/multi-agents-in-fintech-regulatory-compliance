@@ -28,6 +28,14 @@ dependencies {
     // Neo4j Spring Data
     implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
 
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    implementation 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:14.0.0'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    implementation 'org.liquibase:liquibase-core'
+
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
 
