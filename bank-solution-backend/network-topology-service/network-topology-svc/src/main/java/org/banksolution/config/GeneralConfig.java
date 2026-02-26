@@ -11,6 +11,6 @@ public class GeneralConfig {
 
     @Bean
     public Clock clock() {
-        return Clock.system(ZoneId.of("Europe/Tallinn"));
+        return Clock.system(ZoneId.of("UTC"));
     }
 }

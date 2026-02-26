@@ -255,6 +255,9 @@ services:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-password}
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
       - NEO4J_PLUGINS=["graph-data-science"]
+      - NEO4J_server_memory_heap_initial__size=512m
+      - NEO4J_server_memory_heap_max__size=2G
+      - NEO4J_server_memory_pagecache_size=512m
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -269,9 +272,11 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
+    restart: unless-stopped
 
   # Network Topology Service
   network-topology-svc:
+    image: network-topology-svc:latest
     build:
       context: ./network-topology-service/network-topology-svc
       dockerfile: Dockerfile
@@ -284,12 +289,25 @@ services:
       - NEO4J_PASSWORD=${NEO4J_PASSWORD:-password}
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      - DB_SERVICE_URL=jdbc:postgresql://bank-solution-postgres:5432/network_topology_db
+      - DB_SERVICE_USERNAME=default
+      - DB_SERVICE_PASSWORD=default
+      - APP_GRAPH_ALGORITHM_INTERVAL_MS=60000
     depends_on:
       neo4j:
+        condition: service_healthy
+      bank-solution-postgres:
         condition: service_healthy
     networks:
       - bank-network
       - aml-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5007/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
   # Customer Profile Database Migration
   customer-profile-db-migration:
