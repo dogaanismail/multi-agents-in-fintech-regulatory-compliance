@@ -32,6 +32,7 @@ import java.util.Optional;
 @Slf4j
 public class SchedulerConfig {
 
+    private static final String TASK_NAME = "graph-algorithm-computation";
     private static final String SCHEDULER_NAME = "network-topology-scheduler";
 
     @Value("${app.graph.algorithm.interval-ms:300000}")
@@ -41,7 +42,7 @@ public class SchedulerConfig {
 
     @Bean
     public RecurringTaskWithPersistentSchedule<ScheduleAndNoData> graphAlgorithmTask(GraphAlgorithmScheduledService service) {
-        return Tasks.recurringWithPersistentSchedule(SCHEDULER_NAME, ScheduleAndNoData.class)
+        return Tasks.recurringWithPersistentSchedule(TASK_NAME, ScheduleAndNoData.class)
                 .execute((instance, ctx) -> service.computeAllMetrics());
     }
 
@@ -55,7 +56,7 @@ public class SchedulerConfig {
                 .build();
         this.scheduler.start();
 
-        TaskInstanceId instanceId = TaskInstanceId.of(SCHEDULER_NAME, "main");
+        TaskInstanceId instanceId = TaskInstanceId.of(TASK_NAME, "main");
         if (this.scheduler.getScheduledExecution(instanceId).isEmpty()) {
             this.scheduler.schedule(
                     SchedulableInstance.of(

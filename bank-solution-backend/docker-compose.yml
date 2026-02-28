@@ -292,7 +292,7 @@ services:
       - DB_SERVICE_URL=jdbc:postgresql://bank-solution-postgres:5432/network_topology_db
       - DB_SERVICE_USERNAME=default
       - DB_SERVICE_PASSWORD=default
-      - APP_GRAPH_ALGORITHM_INTERVAL_MS=60000
+      - APP_GRAPH_ALGORITHM_INTERVAL_MS=600000
     depends_on:
       neo4j:
         condition: service_healthy
