@@ -44,10 +44,6 @@ public class TransactionFeaturesMapper {
         boolean isCrossBorder = !senderBankLocation.equals(receiverBankLocation);
         MarlPaymentType marlPaymentType = toMarlPaymentType(entity.getPaymentType(), isCrossBorder);
 
-        // TODO: Implement multi-currency support, we will keep it simple for conversion
-
-        //TODO: We will need to refactor payment currency and receiver currency
-
         return TransactionFeatures.newBuilder()
                 .setPaymentId(entity.getPaymentId())
                 .setTime(time.format(TIME_FORMATTER))
@@ -55,8 +51,8 @@ public class TransactionFeaturesMapper {
                 .setSenderAccount(senderAccountNumber)
                 .setReceiverAccount(receiverAccountNumber)
                 .setAmount(entity.getAmount().doubleValue())
-                .setPaymentCurrency(entity.getCurrency())
-                .setReceivedCurrency(entity.getCurrency())
+                .setPaymentCurrency(entity.getFromCurrency())
+                .setReceivedCurrency(entity.getToCurrency())
                 .setSenderBankLocation(senderBankLocation)
                 .setReceiverBankLocation(receiverBankLocation)
                 .setPaymentType(marlPaymentType.getValue())

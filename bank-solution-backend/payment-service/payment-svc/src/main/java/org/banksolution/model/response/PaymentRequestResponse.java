@@ -19,9 +19,12 @@ public class PaymentRequestResponse {
     private UUID sourceAccountId;
     private UUID destinationAccountId;
     private BigDecimal amount;
-    private Currency currency;
+    private Currency fromCurrency;
     private PaymentType paymentType;
     private String description;
+    private BigDecimal convertedAmount;
+    private Currency toCurrency;
+    private BigDecimal appliedExchangeRate;
     private Instant createdAt;
     private String message;
 }

@@ -15,7 +15,7 @@ CREATE TABLE risk_check_request
     created_at             TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at             TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version                SMALLINT        NOT NULL DEFAULT 0,
-    CONSTRAINT chk_risk_check_request_currency CHECK (currency IN ('TRY', 'USD', 'EUR', 'GBP', 'JPY', 'CHF')),
+    CONSTRAINT chk_risk_check_request_currency CHECK (currency IN ('AED', 'ALL', 'CHF', 'EUR', 'GBP', 'INR', 'JPY', 'MAD', 'MXN', 'NGN', 'PKR', 'TRY', 'USD')),
     CONSTRAINT chk_risk_check_request_payment_type CHECK (payment_type IN ('TRANSFER_IN', 'TRANSFER_OUT', 'DEPOSIT', 'WITHDRAWAL')),
     CONSTRAINT chk_risk_check_request_status CHECK (status IN ('AWAITING_MARL', 'COMPLETED', 'FAILED'))
 );

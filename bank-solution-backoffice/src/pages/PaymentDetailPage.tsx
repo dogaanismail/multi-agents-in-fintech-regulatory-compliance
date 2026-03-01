@@ -181,8 +181,14 @@ export const PaymentDetailPage: React.FC = () => {
           <InfoRow label="Reference Number" value={payment.referenceNumber} />
           <InfoRow
             label="Amount"
-            value={formatCurrency(payment.amount, payment.currency)}
+            value={formatCurrency(payment.amount, payment.fromCurrency)}
           />
+          {payment.toCurrency && payment.toCurrency !== payment.fromCurrency && (
+            <InfoRow
+              label="Currency Conversion"
+              value={`${payment.fromCurrency} → ${payment.toCurrency}${payment.convertedAmount != null ? ` (${formatCurrency(payment.convertedAmount, payment.toCurrency)})` : ''}${payment.appliedExchangeRate != null ? ` @ ${payment.appliedExchangeRate}` : ''}`}
+            />
+          )}
           <InfoRow label="Payment Type" value={payment.paymentType} />
           <InfoRow label="Description" value={payment.description || 'N/A'} />
           <InfoRow

@@ -13,7 +13,10 @@ public record InitiatePaymentCommand(
         UUID sourceAccountId,
         UUID destinationAccountId,
         BigDecimal amount,
-        String currency,
+        String fromCurrency,
+        String toCurrency,
+        BigDecimal convertedAmount,
+        BigDecimal appliedExchangeRate,
         String paymentType,
         boolean isCrossBorderPayment,
         String description) {

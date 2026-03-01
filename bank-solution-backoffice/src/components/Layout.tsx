@@ -67,6 +67,9 @@ export const Layout: React.FC = () => {
               <NavLink to="/audit-log" active={isActive('/audit-log')}>
                 Audit Log
               </NavLink>
+              <NavLink to="/exchange-rates" active={isActive('/exchange-rates')}>
+                Exchange Rates
+              </NavLink>
 
               {/* Create Dropdown */}
               <div ref={dropdownRef} className="relative">

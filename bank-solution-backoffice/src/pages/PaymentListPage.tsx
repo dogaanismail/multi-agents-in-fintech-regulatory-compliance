@@ -254,7 +254,7 @@ export const PaymentListPage: React.FC = () => {
                       Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
+                      Amount / Currency
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
@@ -308,7 +308,15 @@ export const PaymentListPage: React.FC = () => {
                         })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(payment.amount, payment.currency)}
+                        <div className="flex flex-col gap-0.5">
+                          <span>{formatCurrency(payment.amount, payment.fromCurrency)}</span>
+                          {payment.toCurrency && payment.toCurrency !== payment.fromCurrency && (
+                            <span className="text-xs text-amber-600">
+                              → {payment.toCurrency}
+                              {payment.convertedAmount != null ? ` · ${formatCurrency(payment.convertedAmount, payment.toCurrency)}` : ''}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge className={getStatusColor(payment.status)}>

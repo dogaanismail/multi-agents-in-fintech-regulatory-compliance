@@ -22,19 +22,21 @@ public class DepositChargeProcessor extends AbstractAccountChargeProcessor {
     @Override
     public void process(AccountChargeRequestedEvent event) {
         UUID destinationAccountId = UUID.fromString(event.getDestinationAccountId());
-        Currency currency = Currency.valueOf(event.getCurrency());
+        Currency fromCurrency = Currency.valueOf(event.getFromCurrency());
+        Currency toCurrency = Currency.valueOf(event.getToCurrency());
         BigDecimal amount = new BigDecimal(event.getAmount());
+        BigDecimal creditAmount = new BigDecimal(event.getConvertedAmount());
 
-        log.info("Processing deposit: destinationAccountId:{}, amount:{}, currency:{}",
-                destinationAccountId, amount, currency);
+        log.info("Processing deposit: destinationAccountId:{}, amount:{}, fromCurrency:{}, toCurrency:{}",
+                destinationAccountId, amount, fromCurrency, toCurrency);
 
         requireAccount(destinationAccountId);
 
-        AccountBalanceEntity ledger = findLedgerBalance(currency);
-        AccountBalanceEntity destination = findBalance(destinationAccountId, currency);
+        AccountBalanceEntity ledger = findLedgerBalance(fromCurrency);
+        AccountBalanceEntity destination = findBalance(destinationAccountId, toCurrency);
 
         debit(ledger, amount);
-        credit(destination, amount);
+        credit(destination, creditAmount);
         saveAll(ledger, destination);
 
         log.info("Deposit completed: destinationAccountId:{} new balance:{}, ledger new balance:{}",

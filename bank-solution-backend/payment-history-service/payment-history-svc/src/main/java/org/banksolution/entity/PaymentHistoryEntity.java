@@ -40,8 +40,17 @@ public class PaymentHistoryEntity {
     @Column(name = "amount", precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "currency", length = 3, nullable = false)
-    private String currency;
+    @Column(name = "from_currency", length = 3, nullable = false)
+    private String fromCurrency;
+
+    @Column(name = "to_currency", length = 3)
+    private String toCurrency;
+
+    @Column(name = "converted_amount", precision = 19, scale = 4)
+    private BigDecimal convertedAmount;
+
+    @Column(name = "applied_exchange_rate", precision = 19, scale = 8)
+    private BigDecimal appliedExchangeRate;
 
     @Column(name = "payment_type", length = 50)
     private String paymentType;

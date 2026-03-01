@@ -39,8 +39,11 @@ public class RiskCheckRequestEntity {
     @Column(name = "amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Column(name = "currency", nullable = false, length = 3)
-    private String currency;
+    @Column(name = "from_currency", nullable = false, length = 3)
+    private String fromCurrency;
+
+    @Column(name = "to_currency", length = 3)
+    private String toCurrency;
 
     @Column(name = "payment_type", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)

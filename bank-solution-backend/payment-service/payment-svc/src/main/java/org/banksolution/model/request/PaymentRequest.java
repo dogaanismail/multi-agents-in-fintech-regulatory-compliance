@@ -28,10 +28,11 @@ public class PaymentRequest {
     @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
     private BigDecimal amount;
 
-    @NotNull(message = "Currency is required")
-    private Currency currency;
+    @NotNull(message = "From currency is required")
+    private Currency fromCurrency;
 
-    // TODO: Implement multi-currency support, we will keep it simple for conversion
+    @NotNull(message = "To currency is required")
+    private Currency toCurrency;
 
     @NotNull(message = "Payment type is required")
     private PaymentType paymentType;

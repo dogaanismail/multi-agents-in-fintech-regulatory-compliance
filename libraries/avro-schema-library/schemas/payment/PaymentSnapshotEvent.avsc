@@ -30,26 +30,39 @@
       "doc": "Destination account identifier"
     },
     {
+      "name": "paymentType",
+      "type": "string",
+      "doc": "Type of payment (e.g., TRANSFER_OUT, TRANSFER_IN, DEPOSIT, WITHDRAWAL)"
+    },
+    {
       "name": "amount",
       "type": "string",
       "doc": "Payment amount as string to preserve precision"
     },
     {
-      "name": "currency",
+      "name": "fromCurrency",
       "type": "string",
-      "doc": "Currency code (e.g., USD, EUR)"
+      "doc": "Source currency — currency of the debit account (ISO 4217)"
     },
     {
-      "name": "paymentType",
+      "name": "toCurrency",
       "type": "string",
-      "doc": "Type of payment (e.g., TRANSFER, PAYMENT)"
+      "doc": "Destination currency — equals fromCurrency for same-currency payments (ISO 4217)"
+    },
+    {
+      "name": "convertedAmount",
+      "type": "string",
+      "doc": "Amount credited in toCurrency; equals amount when no conversion is applied"
+    },
+    {
+      "name": "appliedExchangeRate",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Exchange rate applied: fromCurrency → toCurrency (null when no conversion)"
     },
     {
       "name": "description",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
       "doc": "Payment description"
     },

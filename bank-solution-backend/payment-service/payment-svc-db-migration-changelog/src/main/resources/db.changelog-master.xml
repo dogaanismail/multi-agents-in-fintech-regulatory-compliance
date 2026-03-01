@@ -10,4 +10,24 @@
         <sqlFile path="changelog/add_payment_request_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-03-01-01-00" author="Ismail Dogan">
+        <comment>Add exchange_rate table for currency conversion</comment>
+        <sqlFile path="changelog/add_exchange_rate_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-03-01-01-01" author="Ismail Dogan">
+        <comment>Add db_scheduler table for db-scheduler library</comment>
+        <sqlFile path="changelog/add_db_scheduler_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-03-01-01-02" author="Ismail Dogan">
+        <comment>Expand currency constraint and add conversion columns to payment_request</comment>
+        <sqlFile path="changelog/update_payment_request_currency_constraint.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-04-01-01-00" author="Ismail Dogan">
+        <comment>Rename currency to from_currency and target_currency to to_currency in payment_request</comment>
+        <sqlFile path="changelog/rename_currency_to_from_currency.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

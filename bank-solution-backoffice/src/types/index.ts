@@ -8,7 +8,10 @@ export interface PaymentHistoryResponse {
   sourceAccountId: string;
   destinationAccountId: string;
   amount: number;
-  currency: string;
+  fromCurrency: string;
+  toCurrency: string;
+  convertedAmount: number | null;
+  appliedExchangeRate: number | null;
   paymentType: string;
   description: string;
   // Status Tracking
@@ -334,7 +337,8 @@ export interface CreatePaymentRequest {
   sourceAccountId?: string;
   destinationAccountId?: string;
   amount: number;
-  currency: Currency;
+  fromCurrency: Currency;
+  toCurrency: Currency;
   paymentType: PaymentType;
   description?: string;
 }
@@ -345,9 +349,20 @@ export interface CreatePaymentResponse {
   sourceAccountId: string | null;
   destinationAccountId: string | null;
   amount: number;
-  currency: string;
+  fromCurrency: string;
   paymentType: string;
   description: string | null;
+  convertedAmount: number | null;
+  toCurrency: string;
+  appliedExchangeRate: number | null;
   createdAt: string;
   message: string;
+}
+
+// ─── Exchange Rates ───────────────────────────────────────────────────────────
+
+export interface ExchangeRateResponse {
+  currencyPair: string;
+  rate: number;
+  fetchedAt: string;
 }

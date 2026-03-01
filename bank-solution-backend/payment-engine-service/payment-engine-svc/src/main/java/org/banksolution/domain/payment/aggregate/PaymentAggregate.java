@@ -40,7 +40,10 @@ public class PaymentAggregate {
     private UUID sourceAccountId;
     private UUID destinationAccountId;
     private BigDecimal amount;
-    private String currency;
+    private String fromCurrency;
+    private String toCurrency;
+    private BigDecimal convertedAmount;
+    private BigDecimal appliedExchangeRate;
     private String paymentType;
     private String description;
     private boolean isCrossBorderPayment;
@@ -85,7 +88,10 @@ public class PaymentAggregate {
                 command.sourceAccountId(),
                 command.destinationAccountId(),
                 command.amount(),
-                command.currency(),
+                command.fromCurrency(),
+                command.toCurrency(),
+                command.convertedAmount(),
+                command.appliedExchangeRate(),
                 command.paymentType(),
                 command.isCrossBorderPayment(),
                 command.description()
@@ -97,7 +103,8 @@ public class PaymentAggregate {
                 command.sourceAccountId(),
                 command.destinationAccountId(),
                 command.amount(),
-                command.currency(),
+                command.fromCurrency(),
+                command.toCurrency(),
                 command.paymentType(),
                 command.description()
         ));
@@ -220,7 +227,10 @@ public class PaymentAggregate {
                 command.sourceAccountId(),
                 command.destinationAccountId(),
                 command.amount(),
-                command.currency(),
+                command.fromCurrency(),
+                command.toCurrency(),
+                command.convertedAmount(),
+                command.appliedExchangeRate(),
                 command.paymentType(),
                 command.description()
         ));
@@ -239,7 +249,8 @@ public class PaymentAggregate {
                 command.sourceAccountId(),
                 command.destinationAccountId(),
                 command.amount(),
-                command.currency(),
+                command.fromCurrency(),
+                command.toCurrency(),
                 command.paymentType()
         ));
 
@@ -273,7 +284,10 @@ public class PaymentAggregate {
         this.sourceAccountId = event.sourceAccountId();
         this.destinationAccountId = event.destinationAccountId();
         this.amount = event.amount();
-        this.currency = event.currency();
+        this.fromCurrency = event.fromCurrency();
+        this.toCurrency = event.toCurrency();
+        this.convertedAmount = event.convertedAmount();
+        this.appliedExchangeRate = event.appliedExchangeRate();
         this.paymentType = event.paymentType();
         this.isCrossBorderPayment = event.isCrossBorderPayment();
         this.description = event.description();
@@ -312,7 +326,10 @@ public class PaymentAggregate {
                 this.sourceAccountId,
                 this.destinationAccountId,
                 this.amount,
-                this.currency,
+                this.fromCurrency,
+                this.toCurrency,
+                this.convertedAmount,
+                this.appliedExchangeRate,
                 this.paymentType,
                 this.description
         ));
@@ -382,7 +399,10 @@ public class PaymentAggregate {
                 this.sourceAccountId,
                 this.destinationAccountId,
                 this.amount,
-                this.currency,
+                this.fromCurrency,
+                this.toCurrency,
+                this.convertedAmount,
+                this.appliedExchangeRate,
                 this.paymentType,
                 this.description
         ));

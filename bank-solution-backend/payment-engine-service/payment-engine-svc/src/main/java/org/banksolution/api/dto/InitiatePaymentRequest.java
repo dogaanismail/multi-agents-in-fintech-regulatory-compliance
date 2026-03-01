@@ -17,7 +17,8 @@ public class InitiatePaymentRequest {
     private UUID sourceAccountId;
     private UUID destinationAccountId;
     private BigDecimal amount;
-    private String currency;
+    private String fromCurrency;
+    private String toCurrency;
     private String paymentType;
     private boolean isCrossBorderPayment;
     private String description;

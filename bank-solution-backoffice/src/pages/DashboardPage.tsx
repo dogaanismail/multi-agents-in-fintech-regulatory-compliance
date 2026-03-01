@@ -293,7 +293,16 @@ export const DashboardPage: React.FC = () => {
                           </Link>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600">{p.paymentType}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(p.amount, p.currency)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex flex-col gap-0.5">
+                            <span>{formatCurrency(p.amount, p.fromCurrency)}</span>
+                            {p.toCurrency && p.toCurrency !== p.fromCurrency && (
+                              <span className="text-xs text-amber-600">
+                                → {p.toCurrency}{p.convertedAmount != null ? ` · ${formatCurrency(p.convertedAmount, p.toCurrency)}` : ''}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm tabular-nums">
                           {p.riskScore !== null ? (p.riskScore * 100).toFixed(1) + '%' : '—'}
                         </td>
@@ -342,7 +351,16 @@ export const DashboardPage: React.FC = () => {
                           </Link>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600">{p.paymentType}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(p.amount, p.currency)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex flex-col gap-0.5">
+                            <span>{formatCurrency(p.amount, p.fromCurrency)}</span>
+                            {p.toCurrency && p.toCurrency !== p.fromCurrency && (
+                              <span className="text-xs text-amber-600">
+                                → {p.toCurrency}{p.convertedAmount != null ? ` · ${formatCurrency(p.convertedAmount, p.toCurrency)}` : ''}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm tabular-nums">
                           {p.riskScore !== null ? (p.riskScore * 100).toFixed(1) + '%' : '—'}
                         </td>

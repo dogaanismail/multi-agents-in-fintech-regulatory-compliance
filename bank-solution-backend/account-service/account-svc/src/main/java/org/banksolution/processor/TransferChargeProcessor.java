@@ -23,20 +23,22 @@ public class TransferChargeProcessor extends AbstractAccountChargeProcessor {
     public void process(AccountChargeRequestedEvent event) {
         UUID sourceAccountId = UUID.fromString(event.getSourceAccountId());
         UUID destinationAccountId = UUID.fromString(event.getDestinationAccountId());
-        Currency currency = Currency.valueOf(event.getCurrency());
+        Currency fromCurrency = Currency.valueOf(event.getFromCurrency());
+        Currency toCurrency = Currency.valueOf(event.getToCurrency());
         BigDecimal amount = new BigDecimal(event.getAmount());
+        BigDecimal creditAmount = new BigDecimal(event.getConvertedAmount());
 
-        log.info("Processing transfer: sourceAccountId:{}, destinationAccountId:{}, amount:{}, currency:{}",
-                sourceAccountId, destinationAccountId, amount, currency);
+        log.info("Processing transfer: sourceAccountId:{}, destinationAccountId:{}, amount:{}, fromCurrency:{}, toCurrency:{}",
+                sourceAccountId, destinationAccountId, amount, fromCurrency, toCurrency);
 
         requireAccount(sourceAccountId);
         requireAccount(destinationAccountId);
 
-        AccountBalanceEntity source = findBalance(sourceAccountId, currency);
-        AccountBalanceEntity destination = findBalance(destinationAccountId, currency);
+        AccountBalanceEntity source = findBalance(sourceAccountId, fromCurrency);
+        AccountBalanceEntity destination = findBalance(destinationAccountId, toCurrency);
 
         debit(source, amount);
-        credit(destination, amount);
+        credit(destination, creditAmount);
         saveAll(source, destination);
 
         log.info("Transfer completed: sourceAccountId:{} new balance:{}, destinationAccountId:{} new balance:{}",
