@@ -24,11 +24,11 @@ public class AccountChargeHandler {
 
     @Transactional
     public void handle(AccountChargeRequestedEvent event) {
-        log.info("Handling account charge: paymentId:{}, paymentType:{}, amount:{}, currency:{}",
+        log.info("Handling account charge: paymentId:{}, paymentType:{}, amount:{}, fromCurrency:{}",
                 event.getPaymentId(),
                 event.getPaymentType(),
                 event.getAmount(),
-                event.getCurrency());
+                event.getFromCurrency());
 
         AccountChargeResponse result = charge(event);
         AccountChargeCompletedEvent completedEvent = AccountChargeCompletedEventMapper.toAvroEvent(event, result);

@@ -36,7 +36,8 @@ public class AccountChargeCompletedEventHandler {
                     sourceAccountId,
                     destinationAccountId,
                     amount,
-                    event.getCurrency(),
+                    event.getFromCurrency(),
+                    event.getToCurrency(),
                     event.getPaymentType().toString()
             );
 

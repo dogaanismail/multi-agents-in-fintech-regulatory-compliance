@@ -44,9 +44,14 @@
       "doc": "Amount charged as string to preserve precision (use BigDecimal)"
     },
     {
-      "name": "currency",
+      "name": "fromCurrency",
       "type": "string",
-      "doc": "Currency (ISO 4217 code)"
+      "doc": "Source currency (ISO 4217 code)"
+    },
+    {
+      "name": "toCurrency",
+      "type": "string",
+      "doc": "Destination currency (ISO 4217 code); equals fromCurrency for same-currency payments"
     },
     {
       "name": "paymentType",

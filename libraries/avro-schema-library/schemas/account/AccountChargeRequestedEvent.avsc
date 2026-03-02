@@ -21,6 +21,11 @@
       "doc": "Event timestamp"
     },
     {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Customer ID who initiated the payment"
+    },
+    {
       "name": "paymentType",
       "type": {
         "type": "enum",
@@ -36,43 +41,45 @@
     },
     {
       "name": "sourceAccountId",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
-      "doc": "Source account ID (for transfers/withdrawals)"
+      "doc": "Source account ID — balance debited in fromCurrency (for TRANSFER_OUT, WITHDRAWAL)"
     },
     {
       "name": "destinationAccountId",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
-      "doc": "Destination account ID (for transfers/deposits)"
-    },
-    {
-      "name": "customerId",
-      "type": "string",
-      "doc": "Customer ID who initiated the payment"
+      "doc": "Destination account ID — balance credited in toCurrency (for TRANSFER_IN, DEPOSIT)"
     },
     {
       "name": "amount",
       "type": "string",
-      "doc": "Payment amount as string to preserve precision (use BigDecimal)"
+      "doc": "Amount to debit from sourceAccountId in fromCurrency (use BigDecimal)"
     },
     {
-      "name": "currency",
+      "name": "fromCurrency",
       "type": "string",
-      "doc": "Payment currency (ISO 4217 code)"
+      "doc": "Currency of the debit account — the balance pocket to debit (ISO 4217)"
+    },
+    {
+      "name": "toCurrency",
+      "type": "string",
+      "doc": "Currency of the credit account — equals fromCurrency for same-currency payments (ISO 4217)"
+    },
+    {
+      "name": "convertedAmount",
+      "type": "string",
+      "doc": "Amount to credit in toCurrency; equals amount when no conversion is applied"
+    },
+    {
+      "name": "appliedExchangeRate",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Exchange rate applied: fromCurrency → toCurrency (null means no conversion)"
     },
     {
       "name": "description",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
       "doc": "Payment description"
     }

@@ -15,16 +15,19 @@ public class PaymentCreatedEventMapper {
             boolean isCrossOrderPayment) {
 
         return PaymentCreatedEvent.newBuilder()
-                .setPaymentId(paymentRequestEntity.getId().toString())
                 .setEventId(UUID.randomUUID().toString())
                 .setTimestamp(Instant.now().toEpochMilli())
+                .setPaymentId(paymentRequestEntity.getId().toString())
                 .setCustomerId(paymentRequestEntity.getCustomerId().toString())
                 .setSourceAccountId(paymentRequestEntity.getSourceAccountId() != null ?
                         paymentRequestEntity.getSourceAccountId().toString() : null)
                 .setDestinationAccountId(paymentRequestEntity.getDestinationAccountId() != null ?
                         paymentRequestEntity.getDestinationAccountId().toString() : null)
                 .setAmount(paymentRequestEntity.getAmount().toString())
-                .setCurrency(paymentRequestEntity.getCurrency().name())
+                .setFromCurrency(paymentRequestEntity.getFromCurrency().name())
+                .setToCurrency(paymentRequestEntity.getToCurrency().name())
+                .setConvertedAmount(paymentRequestEntity.getConvertedAmount().toString())
+                .setAppliedExchangeRate(paymentRequestEntity.getAppliedExchangeRate() != null ? paymentRequestEntity.getAppliedExchangeRate().toString() : null)
                 .setPaymentType(com.aml.payment.PaymentType.valueOf(paymentRequestEntity.getPaymentType().name()))
                 .setIsCrossBorderPayment(isCrossOrderPayment)
                 .setDescription(paymentRequestEntity.getDescription())

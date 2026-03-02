@@ -11,7 +11,8 @@ public record RiskAssessmentInitiatedEvent(
         UUID sourceAccountId,
         UUID destinationAccountId,
         BigDecimal amount,
-        String currency,
+        String fromCurrency,
+        String toCurrency,
         String paymentType,
         String description
 ) {

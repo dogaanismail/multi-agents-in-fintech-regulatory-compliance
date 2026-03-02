@@ -25,7 +25,10 @@ public class PaymentHistoryResponse {
     private UUID sourceAccountId;
     private UUID destinationAccountId;
     private BigDecimal amount;
-    private String currency;
+    private String fromCurrency;
+    private String toCurrency;
+    private BigDecimal convertedAmount;
+    private BigDecimal appliedExchangeRate;
     private String paymentType;
     private String description;
 

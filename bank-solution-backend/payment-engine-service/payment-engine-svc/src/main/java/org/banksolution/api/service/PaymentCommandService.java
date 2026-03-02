@@ -37,7 +37,10 @@ public class PaymentCommandService {
                 request.getSourceAccountId(),
                 request.getDestinationAccountId(),
                 request.getAmount(),
-                request.getCurrency(),
+                request.getFromCurrency(),
+                request.getToCurrency() != null ? request.getToCurrency() : request.getFromCurrency(),
+                null,
+                null,
                 request.getPaymentType(),
                 request.isCrossBorderPayment(),
                 request.getDescription()

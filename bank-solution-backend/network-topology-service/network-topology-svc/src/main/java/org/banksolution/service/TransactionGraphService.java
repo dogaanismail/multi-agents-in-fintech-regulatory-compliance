@@ -30,7 +30,8 @@ public class TransactionGraphService {
                 destinationAccountId,
                 paymentId,
                 new BigDecimal(event.getAmount()).doubleValue(),
-                event.getCurrency(),
+                event.getFromCurrency(),
+                event.getToCurrency(),
                 event.getPaymentType().name(),
                 event.getTimestamp(),
                 event.getRiskCheckPassed()

@@ -4,3 +4,4 @@ export * from './customerService';
 export * from './accountService';
 export * from './configurationService';
 export * from './marlTrainingService';
+export * from './currencyConversionService';

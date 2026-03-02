@@ -16,6 +16,7 @@ import { AuditLogPage } from './pages/AuditLogPage';
 import { CreateCustomerPage } from './pages/CreateCustomerPage';
 import { CreateAccountPage } from './pages/CreateAccountPage';
 import { CreatePaymentPage } from './pages/CreatePaymentPage';
+import { ExchangeRatePage } from './pages/ExchangeRatePage';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="replay-buffer" element={<ReplayBufferPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="audit-log" element={<AuditLogPage />} />
+          <Route path="exchange-rates" element={<ExchangeRatePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

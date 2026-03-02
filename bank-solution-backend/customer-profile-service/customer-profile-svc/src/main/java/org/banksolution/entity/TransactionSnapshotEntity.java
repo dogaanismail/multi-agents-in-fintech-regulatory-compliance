@@ -37,8 +37,11 @@ public class TransactionSnapshotEntity {
     @Column(name = "amount", precision = 19, scale = 4, nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "currency", length = 10, nullable = false)
-    private String currency;
+    @Column(name = "from_currency", length = 10, nullable = false)
+    private String fromCurrency;
+
+    @Column(name = "to_currency", length = 10, nullable = false)
+    private String toCurrency;
 
     @Column(name = "payment_type", length = 50, nullable = false)
     private String paymentType;

@@ -12,14 +12,15 @@ public class RiskAssessmentRequestedEventMapper {
 
     public static RiskAssessmentRequestedEvent toAvroRequest(RiskAssessmentInitiatedEvent event) {
         return RiskAssessmentRequestedEvent.newBuilder()
+                .setTimestamp(Instant.now().toEpochMilli())
                 .setPaymentId(event.paymentId().toString())
                 .setCustomerId(event.customerId().toString())
                 .setSourceAccountId(event.sourceAccountId() != null ? event.sourceAccountId().toString() : null)
                 .setDestinationAccountId(event.destinationAccountId() != null ? event.destinationAccountId().toString() : null)
                 .setAmount(event.amount().toString())
-                .setCurrency(event.currency())
+                .setFromCurrency(event.fromCurrency())
+                .setToCurrency(event.toCurrency())
                 .setPaymentType(PaymentType.valueOf(event.paymentType()))
-                .setTimestamp(Instant.now().toEpochMilli())
                 .setDescription(event.description())
                 .build();
     }

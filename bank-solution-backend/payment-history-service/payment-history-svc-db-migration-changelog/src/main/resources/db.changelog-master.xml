@@ -20,4 +20,9 @@
         <sqlFile path="changelog/add_decision_override_columns.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-04-01-03-00" author="Ismail Dogan">
+        <comment>Rename currency to from_currency and add to_currency, converted_amount, applied_exchange_rate to payment_history</comment>
+        <sqlFile path="changelog/rename_currency_add_conversion_columns.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

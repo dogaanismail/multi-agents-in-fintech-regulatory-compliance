@@ -26,14 +26,14 @@ const CONFIG_CHANGE_META: Record<string, { icon: string; color: string }> = {
 // ─── Derived types ─────────────────────────────────────────────────────────────
 
 interface PaymentAuditEvent {
-  id:        string;
-  eventType: PaymentAuditEventType;
-  timestamp: string;
-  paymentId: string;
-  amount:    number;
-  currency:  string;
-  actor:     string | null;
-  notes:     string | null;
+  id:          string;
+  eventType:   PaymentAuditEventType;
+  timestamp:   string;
+  paymentId:   string;
+  amount:      number;
+  fromCurrency: string;
+  actor:       string | null;
+  notes:       string | null;
 }
 
 // ─── Helper: extract audit events from payments ────────────────────────────────
@@ -45,49 +45,49 @@ function extractPaymentEvents(payments: PaymentHistoryResponse[]): PaymentAuditE
     if (p.manualReviewApprovedAt) {
       events.push({
         id:        `${p.paymentId}-approved`,
-        eventType: 'MANUAL_APPROVED',
-        timestamp: p.manualReviewApprovedAt,
-        paymentId: p.paymentId,
-        amount:    p.amount,
-        currency:  p.currency,
-        actor:     p.manualReviewedBy ?? null,
-        notes:     null,
+        eventType:    'MANUAL_APPROVED',
+        timestamp:    p.manualReviewApprovedAt,
+        paymentId:    p.paymentId,
+        amount:       p.amount,
+        fromCurrency: p.fromCurrency,
+        actor:        p.manualReviewedBy ?? null,
+        notes:        null,
       });
     }
     if (p.manualReviewRejectedAt) {
       events.push({
         id:        `${p.paymentId}-rejected`,
-        eventType: 'MANUAL_REJECTED',
-        timestamp: p.manualReviewRejectedAt,
-        paymentId: p.paymentId,
-        amount:    p.amount,
-        currency:  p.currency,
-        actor:     p.manualReviewedBy ?? null,
-        notes:     null,
+        eventType:    'MANUAL_REJECTED',
+        timestamp:    p.manualReviewRejectedAt,
+        paymentId:    p.paymentId,
+        amount:       p.amount,
+        fromCurrency: p.fromCurrency,
+        actor:        p.manualReviewedBy ?? null,
+        notes:        null,
       });
     }
     if (p.decisionOverriddenAt) {
       events.push({
         id:        `${p.paymentId}-overridden`,
-        eventType: 'DECISION_OVERRIDDEN',
-        timestamp: p.decisionOverriddenAt,
-        paymentId: p.paymentId,
-        amount:    p.amount,
-        currency:  p.currency,
-        actor:     p.decisionOverriddenBy ?? null,
-        notes:     p.decisionOverrideReason ?? null,
+        eventType:    'DECISION_OVERRIDDEN',
+        timestamp:    p.decisionOverriddenAt,
+        paymentId:    p.paymentId,
+        amount:       p.amount,
+        fromCurrency: p.fromCurrency,
+        actor:        p.decisionOverriddenBy ?? null,
+        notes:        p.decisionOverrideReason ?? null,
       });
     }
     if (p.blockedAt) {
       events.push({
         id:        `${p.paymentId}-blocked`,
-        eventType: 'BLOCKED',
-        timestamp: p.blockedAt,
-        paymentId: p.paymentId,
-        amount:    p.amount,
-        currency:  p.currency,
-        actor:     null,
-        notes:     p.blockReason ?? null,
+        eventType:    'BLOCKED',
+        timestamp:    p.blockedAt,
+        paymentId:    p.paymentId,
+        amount:       p.amount,
+        fromCurrency: p.fromCurrency,
+        actor:        null,
+        notes:        p.blockReason ?? null,
       });
     }
   });
@@ -157,7 +157,7 @@ const PaymentDecisionsTab: React.FC = () => {
                     </Link>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatCurrency(ev.amount, ev.currency)}
+                    {formatCurrency(ev.amount, ev.fromCurrency)}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                     {ev.actor ?? <span className="text-gray-400">—</span>}

@@ -32,7 +32,10 @@ public class AccountChargeSaga {
     private UUID sourceAccountId;
     private UUID destinationAccountId;
     private BigDecimal amount;
-    private String currency;
+    private String fromCurrency;
+    private String toCurrency;
+    private BigDecimal convertedAmount;
+    private BigDecimal appliedExchangeRate;
     private String paymentType;
     private String description;
     private String deadlineId;
@@ -50,7 +53,10 @@ public class AccountChargeSaga {
         this.sourceAccountId = event.sourceAccountId();
         this.destinationAccountId = event.destinationAccountId();
         this.amount = event.amount();
-        this.currency = event.currency();
+        this.fromCurrency = event.fromCurrency();
+        this.toCurrency = event.toCurrency();
+        this.convertedAmount = event.convertedAmount();
+        this.appliedExchangeRate = event.appliedExchangeRate();
         this.paymentType = event.paymentType();
         this.description = event.description();
         this.accountChargeCompleted = false;
@@ -88,7 +94,8 @@ public class AccountChargeSaga {
                     event.sourceAccountId(),
                     event.destinationAccountId(),
                     event.amount(),
-                    event.currency(),
+                    event.fromCurrency(),
+                    event.toCurrency(),
                     event.paymentType()
             ));
             log.info("Payment completion command sent for payment: {}", paymentId);

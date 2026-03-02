@@ -32,7 +32,10 @@ public class PaymentCreatedEventHandler {
                 sourceAccountId,
                 destinationAccountId,
                 new BigDecimal(event.getAmount()),
-                event.getCurrency(),
+                event.getFromCurrency(),
+                event.getToCurrency(),
+                new BigDecimal(event.getConvertedAmount()),
+                event.getAppliedExchangeRate() != null ? new BigDecimal(event.getAppliedExchangeRate()) : null,
                 event.getPaymentType().toString(),
                 event.getIsCrossBorderPayment(),
                 event.getDescription()

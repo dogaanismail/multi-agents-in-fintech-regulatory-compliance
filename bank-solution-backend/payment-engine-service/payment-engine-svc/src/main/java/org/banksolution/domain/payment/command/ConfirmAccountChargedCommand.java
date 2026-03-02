@@ -12,7 +12,8 @@ public record ConfirmAccountChargedCommand(
         UUID sourceAccountId,
         UUID destinationAccountId,
         BigDecimal amount,
-        String currency,
+        String fromCurrency,
+        String toCurrency,
         String paymentType
 ) {
 }

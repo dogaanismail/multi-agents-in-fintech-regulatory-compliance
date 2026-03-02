@@ -39,6 +39,9 @@ dependencies {
 
     implementation project(':common')
 
+    // db-scheduler
+    implementation 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:14.0.0'
+
     // vulnerabilities
     implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
 

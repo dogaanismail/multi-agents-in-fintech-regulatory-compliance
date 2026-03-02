@@ -25,4 +25,9 @@
         <sqlFile path="changelog/add_agent_observation_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-04-01-02-00" author="Ismail Dogan">
+        <comment>Rename currency to from_currency and add to_currency in risk_check_request</comment>
+        <sqlFile path="changelog/rename_currency_to_from_currency.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

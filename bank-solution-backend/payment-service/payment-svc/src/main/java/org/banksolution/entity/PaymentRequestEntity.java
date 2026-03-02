@@ -36,9 +36,16 @@ public class PaymentRequestEntity extends BaseEntity {
     @Column(name = "amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Column(name = "currency", nullable = false, length = 3)
+    @Column(name = "from_currency", nullable = false, length = 3)
     @Enumerated(EnumType.STRING)
-    private Currency currency;
+    private Currency fromCurrency;
+
+    @Column(name = "to_currency", length = 3)
+    @Enumerated(EnumType.STRING)
+    private Currency toCurrency;
+
+    @Column(name = "converted_amount", precision = 19, scale = 4)
+    private BigDecimal convertedAmount;
 
     @Column(name = "payment_type", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
@@ -46,5 +53,8 @@ public class PaymentRequestEntity extends BaseEntity {
 
     @Column(name = "description", length = 500)
     private String description;
+
+    @Column(name = "applied_exchange_rate", precision = 19, scale = 8)
+    private BigDecimal appliedExchangeRate;
 }
 

@@ -30,7 +30,7 @@ public class PaymentController {
                 request.getCustomerId(),
                 request.getPaymentType(),
                 request.getAmount(),
-                request.getCurrency());
+                request.getFromCurrency());
 
         PaymentRequestResponse response = paymentService.requestPayment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

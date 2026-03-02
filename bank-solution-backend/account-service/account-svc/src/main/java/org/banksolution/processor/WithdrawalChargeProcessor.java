@@ -22,19 +22,21 @@ public class WithdrawalChargeProcessor extends AbstractAccountChargeProcessor {
     @Override
     public void process(AccountChargeRequestedEvent event) {
         UUID sourceAccountId = UUID.fromString(event.getSourceAccountId());
-        Currency currency = Currency.valueOf(event.getCurrency());
+        Currency fromCurrency = Currency.valueOf(event.getFromCurrency());
+        Currency toCurrency = Currency.valueOf(event.getToCurrency());
         BigDecimal amount = new BigDecimal(event.getAmount());
+        BigDecimal creditAmount = new BigDecimal(event.getConvertedAmount());
 
-        log.info("Processing withdrawal: sourceAccountId:{}, amount:{}, currency:{}",
-                sourceAccountId, amount, currency);
+        log.info("Processing withdrawal: sourceAccountId:{}, amount:{}, fromCurrency:{}, toCurrency:{}",
+                sourceAccountId, amount, fromCurrency, toCurrency);
 
         requireAccount(sourceAccountId);
 
-        AccountBalanceEntity source = findBalance(sourceAccountId, currency);
-        AccountBalanceEntity ledger = findLedgerBalance(currency);
+        AccountBalanceEntity source = findBalance(sourceAccountId, fromCurrency);
+        AccountBalanceEntity ledger = findLedgerBalance(toCurrency);
 
         debit(source, amount);
-        credit(ledger, amount);
+        credit(ledger, creditAmount);
         saveAll(source, ledger);
 
         log.info("Withdrawal completed: sourceAccountId:{} new balance:{}, ledger new balance:{}",

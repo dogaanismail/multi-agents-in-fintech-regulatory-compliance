@@ -23,7 +23,10 @@ public class PaymentSnapshotMapper {
 
         // Amount and currency
         history.setAmount(new BigDecimal(snapshot.getAmount()));
-        history.setCurrency(snapshot.getCurrency());
+        history.setFromCurrency(snapshot.getFromCurrency());
+        history.setToCurrency(snapshot.getToCurrency());
+        history.setConvertedAmount(new BigDecimal(snapshot.getConvertedAmount()));
+        history.setAppliedExchangeRate(snapshot.getAppliedExchangeRate() != null ? new BigDecimal(snapshot.getAppliedExchangeRate()) : null);
         history.setPaymentType(snapshot.getPaymentType());
         history.setDescription(snapshot.getDescription() != null ? snapshot.getDescription() : null);
 

@@ -39,7 +39,7 @@ public class PaymentCompletedEventProducer {
                     completedEvent.getPaymentId(),
                     completedEvent.getCustomerId(),
                     completedEvent.getAmount(),
-                    completedEvent.getCurrency());
+                    completedEvent.getFromCurrency());
         } catch (Exception e) {
             log.error("Failed to publish payment completed event for paymentId: {}", paymentId, e);
         }

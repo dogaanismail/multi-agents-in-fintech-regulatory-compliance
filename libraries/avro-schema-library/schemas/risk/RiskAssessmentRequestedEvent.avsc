@@ -2,6 +2,7 @@
   "namespace": "com.aml.risk",
   "type": "record",
   "name": "RiskAssessmentRequestedEvent",
+  "doc": "Event published by payment-engine to trigger risk assessment for a new payment",
   "fields": [
     {
       "name": "paymentId",
@@ -12,34 +13,6 @@
       "name": "customerId",
       "type": "string",
       "doc": "Customer identifier"
-    },
-    {
-      "name": "sourceAccountId",
-      "type": [
-        "null",
-        "string"
-      ],
-      "default": null,
-      "doc": "Source account identifier (optional for cash deposits)"
-    },
-    {
-      "name": "destinationAccountId",
-      "type": [
-        "null",
-        "string"
-      ],
-      "default": null,
-      "doc": "Destination account identifier (optional for cash withdrawals)"
-    },
-    {
-      "name": "amount",
-      "type": "string",
-      "doc": "Transaction amount as string to preserve precision"
-    },
-    {
-      "name": "currency",
-      "type": "string",
-      "doc": "Currency code (ISO 4217)"
     },
     {
       "name": "paymentType",
@@ -61,11 +34,35 @@
       "doc": "Timestamp when the payment was created (epoch millis)"
     },
     {
+      "name": "sourceAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Source account identifier (optional for cash deposits)"
+    },
+    {
+      "name": "destinationAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Destination account identifier (optional for cash withdrawals)"
+    },
+    {
+      "name": "amount",
+      "type": "string",
+      "doc": "Transaction amount as string to preserve precision"
+    },
+    {
+      "name": "fromCurrency",
+      "type": "string",
+      "doc": "Source currency — currency of the debit account (ISO 4217)"
+    },
+    {
+      "name": "toCurrency",
+      "type": "string",
+      "doc": "Destination currency — equals fromCurrency for same-currency payments (ISO 4217)"
+    },
+    {
       "name": "description",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
       "doc": "Optional payment description"
     }

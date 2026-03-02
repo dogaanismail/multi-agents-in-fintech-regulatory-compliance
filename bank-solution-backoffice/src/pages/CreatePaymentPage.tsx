@@ -3,12 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { paymentService } from '@/api/paymentService';
 import { customerService } from '@/api/customerService';
 import { accountService } from '@/api/accountService';
+import { currencyConversionService } from '@/api/currencyConversionService';
 import {
   CreatePaymentRequest,
   PaymentType,
   Currency,
   CustomerResponse,
   AccountResponse,
+  ExchangeRateResponse,
 } from '@/types';
 import { Card, Button, LoadingSpinner } from '@/components/common';
 
@@ -84,10 +86,13 @@ const selectCls =
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const accountLabel = (a: AccountResponse) => {
-  const bal = a.balances?.[0];
-  const balStr = bal
-    ? ` — ${bal.availableBalance.toLocaleString()} ${bal.currency} available`
-    : '';
+  const balStr =
+    a.balances && a.balances.length > 0
+      ? ' — ' +
+        a.balances
+          .map((b) => `${b.availableBalance.toLocaleString()} ${b.currency}`)
+          .join(' | ')
+      : '';
   return `${a.accountNumber} (${a.accountType}, ${a.bankLocation})${balStr}`;
 };
 
@@ -161,18 +166,25 @@ export const CreatePaymentPage: React.FC = () => {
   const [primaryCustomerId, setPrimaryCustomerId] = useState('');
   const [primaryAccounts, setPrimaryAccounts] = useState<AccountResponse[]>([]);
   const [primaryAccountsLoading, setPrimaryAccountsLoading] = useState(false);
+  const [primaryAccountsError, setPrimaryAccountsError] = useState<string | null>(null);
   const [ownAccountId, setOwnAccountId] = useState('');
 
   // ── Counterparty customer (TRANSFER_IN / TRANSFER_OUT only) ──
   const [counterpartyCustomerId, setCounterpartyCustomerId] = useState('');
   const [counterpartyAccounts, setCounterpartyAccounts] = useState<AccountResponse[]>([]);
   const [counterpartyAccountsLoading, setCounterpartyAccountsLoading] = useState(false);
+  const [counterpartyAccountsError, setCounterpartyAccountsError] = useState<string | null>(null);
   const [counterpartyAccountId, setCounterpartyAccountId] = useState('');
+
+  // ── Currency conversion ──
+  const [conversionRate, setConversionRate] = useState<ExchangeRateResponse | null>(null);
+  const [conversionRateLoading, setConversionRateLoading] = useState(false);
 
   // ── Payment fields ──
   const [paymentType, setPaymentType] = useState<PaymentType>('TRANSFER_OUT');
   const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const [fromCurrency, setFromCurrency] = useState<Currency>('USD');
+  const [toCurrency, setToCurrency] = useState<Currency>('USD');
   const [description, setDescription] = useState('');
 
   // ── Submit state ──
@@ -192,25 +204,37 @@ export const CreatePaymentPage: React.FC = () => {
 
   // Load primary customer's accounts
   useEffect(() => {
-    if (!primaryCustomerId) { setPrimaryAccounts([]); setOwnAccountId(''); return; }
+    if (!primaryCustomerId) {
+      setPrimaryAccounts([]);
+      setPrimaryAccountsError(null);
+      setOwnAccountId('');
+      return;
+    }
     setPrimaryAccountsLoading(true);
+    setPrimaryAccountsError(null);
     setOwnAccountId('');
     accountService
       .getAccountsByCustomerId(primaryCustomerId)
       .then(setPrimaryAccounts)
-      .catch(() => {})
+      .catch(() => setPrimaryAccountsError('Failed to load accounts for selected customer'))
       .finally(() => setPrimaryAccountsLoading(false));
   }, [primaryCustomerId]);
 
   // Load counterparty's accounts
   useEffect(() => {
-    if (!counterpartyCustomerId) { setCounterpartyAccounts([]); setCounterpartyAccountId(''); return; }
+    if (!counterpartyCustomerId) {
+      setCounterpartyAccounts([]);
+      setCounterpartyAccountsError(null);
+      setCounterpartyAccountId('');
+      return;
+    }
     setCounterpartyAccountsLoading(true);
+    setCounterpartyAccountsError(null);
     setCounterpartyAccountId('');
     accountService
       .getAccountsByCustomerId(counterpartyCustomerId)
       .then(setCounterpartyAccounts)
-      .catch(() => {})
+      .catch(() => setCounterpartyAccountsError('Failed to load accounts for counterparty customer'))
       .finally(() => setCounterpartyAccountsLoading(false));
   }, [counterpartyCustomerId]);
 
@@ -219,7 +243,22 @@ export const CreatePaymentPage: React.FC = () => {
     setOwnAccountId('');
     setCounterpartyCustomerId('');
     setCounterpartyAccountId('');
+    setConversionRate(null);
   }, [paymentType]);
+
+  // Fetch exchange rate when fromCurrency and toCurrency differ
+  useEffect(() => {
+    if (!fromCurrency || !toCurrency || fromCurrency === toCurrency) {
+      setConversionRate(null);
+      return;
+    }
+    setConversionRateLoading(true);
+    currencyConversionService
+      .getRate(fromCurrency, toCurrency)
+      .then(setConversionRate)
+      .catch(() => setConversionRate(null))
+      .finally(() => setConversionRateLoading(false));
+  }, [fromCurrency, toCurrency]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,7 +293,8 @@ export const CreatePaymentPage: React.FC = () => {
       customerId: primaryCustomerId,
       paymentType,
       amount: amountNum,
-      currency,
+      fromCurrency,
+      toCurrency,
       description: description.trim() || undefined,
       sourceAccountId,
       destinationAccountId,
@@ -360,7 +400,7 @@ export const CreatePaymentPage: React.FC = () => {
                 required
                 accounts={primaryAccounts}
                 loading={primaryAccountsLoading}
-                error={null}
+                error={primaryAccountsError}
                 value={ownAccountId}
                 onChange={setOwnAccountId}
               />
@@ -402,10 +442,39 @@ export const CreatePaymentPage: React.FC = () => {
                   required
                   accounts={counterpartyAccounts}
                   loading={counterpartyAccountsLoading}
-                  error={null}
+                  error={counterpartyAccountsError}
                   value={counterpartyAccountId}
                   onChange={setCounterpartyAccountId}
                 />
+
+                {conversionRateLoading && (
+                  <div className="flex items-center gap-2 py-1">
+                    <LoadingSpinner size="sm" />
+                    <span className="text-xs text-gray-500">Fetching exchange rate…</span>
+                  </div>
+                )}
+
+                {conversionRate && (() => {
+                  const amtNum = parseFloat(amount);
+                  const preview = !isNaN(amtNum) && amtNum > 0
+                    ? (amtNum * conversionRate.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+                    : null;
+                  return (
+                    <div className="bg-amber-50 border border-amber-200 rounded-md p-3 flex flex-col gap-1">
+                      <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">💱 Currency Conversion</p>
+                      <p className="text-sm text-amber-700">
+                        1 <strong>{fromCurrency}</strong> = <strong>{conversionRate.rate.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}</strong> {toCurrency}
+                      </p>
+                      {preview && (
+                        <p className="text-sm text-amber-600">
+                          {amtNum.toLocaleString()} {fromCurrency} ≈ <strong>{preview}</strong> {toCurrency}
+                        </p>
+                      )}
+                      <p className="text-xs text-amber-500 mt-0.5">Rate refreshed every hour via scheduled job</p>
+                    </div>
+                  );
+                })()}
+
               </div>
             )}
 
@@ -428,11 +497,26 @@ export const CreatePaymentPage: React.FC = () => {
               />
             </Field>
 
-            <Field label="Currency" required>
+            <Field label="From Currency" required>
               <select
                 className={selectCls}
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value as Currency)}
+                value={fromCurrency}
+                onChange={(e) => setFromCurrency(e.target.value as Currency)}
+                required
+              >
+                {ALL_CURRENCIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="To Currency" required hint="Select destination currency; same as From Currency for no conversion">
+              <select
+                className={selectCls}
+                value={toCurrency}
+                onChange={(e) => setToCurrency(e.target.value as Currency)}
                 required
               >
                 {ALL_CURRENCIES.map((c) => (

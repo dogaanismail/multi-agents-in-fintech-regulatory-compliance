@@ -13,7 +13,7 @@ CREATE TABLE account_balance
     version            INTEGER        NOT NULL DEFAULT 0,
     CONSTRAINT fk_account_balance_account FOREIGN KEY (account_id) REFERENCES account (id),
     CONSTRAINT uq_account_currency UNIQUE (account_id, currency),
-    CONSTRAINT chk_currency CHECK (currency IN ('TRY', 'USD', 'EUR', 'GBP', 'JPY', 'CHF')),
+    CONSTRAINT chk_currency CHECK (currency IN ('AED', 'ALL', 'CHF', 'EUR', 'GBP', 'INR', 'JPY', 'MAD', 'MXN', 'NGN', 'PKR', 'TRY', 'USD')),
     CONSTRAINT chk_available_balance_non_negative CHECK (available_balance >= 0),
     CONSTRAINT chk_pending_balance_non_negative CHECK (pending_balance >= 0)
 );

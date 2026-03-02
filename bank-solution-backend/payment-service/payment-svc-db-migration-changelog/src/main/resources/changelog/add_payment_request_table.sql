@@ -13,7 +13,7 @@ CREATE TABLE payment_request
     updated_at             TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version                INTEGER        NOT NULL DEFAULT 0,
     CONSTRAINT chk_amount_positive CHECK (amount > 0),
-    CONSTRAINT chk_currency CHECK (currency IN ('TRY', 'USD', 'EUR', 'GBP', 'JPY', 'CHF')),
+    CONSTRAINT chk_currency CHECK (currency IN ('AED', 'ALL', 'CHF', 'EUR', 'GBP', 'INR', 'JPY', 'MAD', 'MXN', 'NGN', 'PKR', 'TRY', 'USD')),
     CONSTRAINT chk_payment_type CHECK (payment_type IN ('TRANSFER_IN', 'TRANSFER_OUT', 'DEPOSIT', 'WITHDRAWAL'))
 );
 

@@ -14,14 +14,17 @@ public class AccountChargeRequestedEventMapper {
     public static AccountChargeRequestedEvent toAvroRequest(AccountChargeInitiatedEvent event) {
         return AccountChargeRequestedEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())
+                .setTimestamp(Instant.now().toEpochMilli())
                 .setPaymentId(event.paymentId().toString())
                 .setCustomerId(event.customerId().toString())
                 .setSourceAccountId(event.sourceAccountId() != null ? event.sourceAccountId().toString() : null)
                 .setDestinationAccountId(event.destinationAccountId() != null ? event.destinationAccountId().toString() : null)
                 .setAmount(event.amount().toString())
-                .setCurrency(event.currency())
+                .setFromCurrency(event.fromCurrency())
+                .setToCurrency(event.toCurrency())
+                .setConvertedAmount(event.convertedAmount().toString())
+                .setAppliedExchangeRate(event.appliedExchangeRate() != null ? event.appliedExchangeRate().toString() : null)
                 .setPaymentType(PaymentType.valueOf(event.paymentType()))
-                .setTimestamp(Instant.now().toEpochMilli())
                 .setDescription(event.description())
                 .build();
     }

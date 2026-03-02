@@ -26,34 +26,6 @@
       "doc": "Customer who initiated the payment"
     },
     {
-      "name": "sourceAccountId",
-      "type": [
-        "null",
-        "string"
-      ],
-      "default": null,
-      "doc": "Source account ID (for TRANSFER_OUT, WITHDRAWAL)"
-    },
-    {
-      "name": "destinationAccountId",
-      "type": [
-        "null",
-        "string"
-      ],
-      "default": null,
-      "doc": "Destination account ID (for TRANSFER_IN, DEPOSIT)"
-    },
-    {
-      "name": "amount",
-      "type": "string",
-      "doc": "Payment amount as string to preserve precision (use BigDecimal)"
-    },
-    {
-      "name": "currency",
-      "type": "string",
-      "doc": "Payment currency (ISO 4217 code: TRY, USD, EUR, GBP, JPY, CHF)"
-    },
-    {
       "name": "paymentType",
       "type": {
         "type": "enum",
@@ -74,11 +46,46 @@
       "doc": "Whether this is a cross-border payment (sender and receiver in different countries)"
     },
     {
+      "name": "sourceAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Source account ID (for TRANSFER_OUT, WITHDRAWAL)"
+    },
+    {
+      "name": "destinationAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Destination account ID (for TRANSFER_IN, DEPOSIT)"
+    },
+    {
+      "name": "amount",
+      "type": "string",
+      "doc": "Payment amount as string to preserve precision (use BigDecimal)"
+    },
+    {
+      "name": "fromCurrency",
+      "type": "string",
+      "doc": "Source currency — the currency of the debit account (ISO 4217)"
+    },
+    {
+      "name": "toCurrency",
+      "type": "string",
+      "doc": "Destination currency — equals fromCurrency for same-currency payments (ISO 4217)"
+    },
+    {
+      "name": "convertedAmount",
+      "type": "string",
+      "doc": "Amount credited in toCurrency; equals amount when no conversion is applied"
+    },
+    {
+      "name": "appliedExchangeRate",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Exchange rate applied: fromCurrency → toCurrency (null when no conversion)"
+    },
+    {
       "name": "description",
-      "type": [
-        "null",
-        "string"
-      ],
+      "type": ["null", "string"],
       "default": null,
       "doc": "Optional payment description"
     }

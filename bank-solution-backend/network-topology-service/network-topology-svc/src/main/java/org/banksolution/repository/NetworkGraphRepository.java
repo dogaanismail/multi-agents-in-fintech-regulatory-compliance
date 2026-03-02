@@ -78,7 +78,8 @@ public class NetworkGraphRepository {
             String destAccountId,
             String paymentId,
             double amount,
-            String currency,
+            String fromCurrency,
+            String toCurrency,
             String paymentType,
             long timestamp,
             boolean riskCheckPassed) {
@@ -98,7 +99,8 @@ public class NetworkGraphRepository {
                                   dest.transactionCount = dest.transactionCount + 1
                     MERGE (source)-[r:TRANSFERRED_TO {paymentId: $paymentId}]->(dest)
                     ON CREATE SET r.amount        = $amount,
-                                  r.currency      = $currency,
+                                  r.fromCurrency  = $fromCurrency,
+                                  r.toCurrency    = $toCurrency,
                                   r.paymentType   = $paymentType,
                                   r.timestamp     = $timestamp,
                                   r.riskCheckPassed = $riskCheckPassed
@@ -109,7 +111,8 @@ public class NetworkGraphRepository {
                     "destAccountId", destAccountId,
                     "paymentId", paymentId,
                     "amount", amount,
-                    "currency", currency,
+                    "fromCurrency", fromCurrency,
+                    "toCurrency", toCurrency,
                     "paymentType", paymentType,
                     "timestamp", timestamp,
                     "riskCheckPassed", riskCheckPassed

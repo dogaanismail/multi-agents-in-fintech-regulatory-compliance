@@ -257,6 +257,12 @@ export const PaymentListPage: React.FC = () => {
                       Amount
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      From
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      To
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -307,8 +313,31 @@ export const PaymentListPage: React.FC = () => {
                           );
                         })()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(payment.amount, payment.currency)}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {formatCurrency(payment.amount, payment.fromCurrency)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700 font-mono">
+                          {payment.fromCurrency}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {payment.toCurrency && payment.toCurrency !== payment.fromCurrency ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 font-mono w-fit">
+                              {payment.toCurrency}
+                            </span>
+                            {payment.convertedAmount != null && (
+                              <span className="text-xs text-amber-600 whitespace-nowrap">
+                                {formatCurrency(payment.convertedAmount, payment.toCurrency)}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700 font-mono">
+                            {payment.toCurrency || payment.fromCurrency}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge className={getStatusColor(payment.status)}>

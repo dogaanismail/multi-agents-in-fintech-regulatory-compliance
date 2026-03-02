@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.banksolution.util.StatisticsUtil.*;
 
@@ -132,7 +134,13 @@ public class FeatureCalculationService {
             List<TransactionSnapshotEntity> transactions) {
         profile.setUniqueReceivers(countUniqueValues(transactions, TransactionSnapshotEntity::getReceiverAccountId));
         profile.setUniqueReceiverCountries(countUniqueValues(transactions, TransactionSnapshotEntity::getReceiverCountry));
-        profile.setUniqueCurrencies(countUniqueValues(transactions, TransactionSnapshotEntity::getCurrency));
+
+        int uniqueCurrencies = (int) transactions.stream()
+                .flatMap(t -> Stream.of(t.getFromCurrency(), t.getToCurrency()))
+                .filter(Objects::nonNull)
+                .distinct()
+                .count();
+        profile.setUniqueCurrencies(uniqueCurrencies);
         profile.setReceiverDiversity(calculateEntropyDiversity(transactions, TransactionSnapshotEntity::getReceiverAccountId));
     }
 
