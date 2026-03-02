@@ -40,19 +40,19 @@ public class PaymentRequestEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Currency fromCurrency;
 
+    @Column(name = "to_currency", length = 3)
+    @Enumerated(EnumType.STRING)
+    private Currency toCurrency;
+
+    @Column(name = "converted_amount", precision = 19, scale = 4)
+    private BigDecimal convertedAmount;
+
     @Column(name = "payment_type", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
     @Column(name = "description", length = 500)
     private String description;
-
-    @Column(name = "converted_amount", precision = 19, scale = 4)
-    private BigDecimal convertedAmount;
-
-    @Column(name = "to_currency", length = 3)
-    @Enumerated(EnumType.STRING)
-    private Currency toCurrency;
 
     @Column(name = "applied_exchange_rate", precision = 19, scale = 8)
     private BigDecimal appliedExchangeRate;

@@ -180,13 +180,36 @@ export const PaymentDetailPage: React.FC = () => {
           <InfoRow label="Payment ID" value={<CopyButton text={payment.paymentId} />} />
           <InfoRow label="Reference Number" value={payment.referenceNumber} />
           <InfoRow
-            label="Amount"
+            label="From Currency"
+            value={<span className="font-mono font-semibold">{payment.fromCurrency}</span>}
+          />
+          <InfoRow
+            label="From Amount"
             value={formatCurrency(payment.amount, payment.fromCurrency)}
           />
-          {payment.toCurrency && payment.toCurrency !== payment.fromCurrency && (
+          {payment.toCurrency && payment.toCurrency !== payment.fromCurrency ? (
+            <>
+              <InfoRow
+                label="To Currency"
+                value={<span className="font-mono font-semibold">{payment.toCurrency}</span>}
+              />
+              {payment.convertedAmount != null && (
+                <InfoRow
+                  label="Converted Amount"
+                  value={formatCurrency(payment.convertedAmount, payment.toCurrency)}
+                />
+              )}
+              {payment.appliedExchangeRate != null && (
+                <InfoRow
+                  label="Exchange Rate"
+                  value={`1 ${payment.fromCurrency} = ${payment.appliedExchangeRate} ${payment.toCurrency}`}
+                />
+              )}
+            </>
+          ) : (
             <InfoRow
-              label="Currency Conversion"
-              value={`${payment.fromCurrency} → ${payment.toCurrency}${payment.convertedAmount != null ? ` (${formatCurrency(payment.convertedAmount, payment.toCurrency)})` : ''}${payment.appliedExchangeRate != null ? ` @ ${payment.appliedExchangeRate}` : ''}`}
+              label="To Currency"
+              value={<span className="font-mono font-semibold">{payment.toCurrency || payment.fromCurrency}</span>}
             />
           )}
           <InfoRow label="Payment Type" value={payment.paymentType} />
