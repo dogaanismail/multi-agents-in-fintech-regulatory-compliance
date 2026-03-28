@@ -17,6 +17,13 @@ public class AccountMapper {
     public static AccountEntity toEntity(
             OpenAccountRequest request,
             String accountNumber) {
+        return toEntity(request, accountNumber, BigDecimal.ZERO);
+    }
+
+    public static AccountEntity toEntity(
+            OpenAccountRequest request,
+            String accountNumber,
+            BigDecimal initialBalance) {
 
         AccountEntity account = AccountEntity.builder()
                 .customerId(request.getCustomerId())
@@ -27,7 +34,7 @@ public class AccountMapper {
                 .build();
 
         List<AccountBalanceEntity> balances = request.getCurrencies().stream()
-                .map(currency -> createBalance(account, currency))
+                .map(currency -> createBalance(account, currency, initialBalance))
                 .toList();
         account.setBalances(balances);
 
@@ -36,12 +43,13 @@ public class AccountMapper {
 
     private static AccountBalanceEntity createBalance(
             AccountEntity account,
-            Currency currency) {
+            Currency currency,
+            BigDecimal initialBalance) {
 
         return AccountBalanceEntity.builder()
                 .account(account)
                 .currency(currency)
-                .availableBalance(BigDecimal.ZERO)
+                .availableBalance(initialBalance)
                 .pendingBalance(BigDecimal.ZERO)
                 .build();
     }

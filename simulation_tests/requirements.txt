@@ -1,0 +1,19 @@
+# Simulation Test Dependencies
+# Install with: pip install -r simulation-tests/requirements.txt
+
+# HTTP client (async-native, required for asyncio concurrency)
+httpx>=0.27.0
+
+# Fake data generation (customers, names, addresses)
+faker>=24.0.0
+
+# Data processing and CSV output
+pandas>=2.0.0
+numpy>=1.26.0
+
+# Chart generation (dissertation figures)
+matplotlib>=3.8.0
+
+# (Already in .venv from notebooks — but listed for completeness)
+# shap>=0.49.1     ← used in ablation/shap_viz.py
+# scikit-learn>=1.4.0

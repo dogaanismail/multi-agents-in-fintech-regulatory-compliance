@@ -22,8 +22,8 @@ public class PaymentCreatedEventHandler {
         log.info("Handling PaymentCreatedEvent: eventId:{}, paymentId:{}", event.getEventId(), event.getPaymentId());
 
         PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
-        UUID sourceAccountId = UUID.fromString(event.getSourceAccountId());
-        UUID destinationAccountId = UUID.fromString(event.getDestinationAccountId());
+        UUID sourceAccountId = event.getSourceAccountId() != null ? UUID.fromString(event.getSourceAccountId()) : null;
+        UUID destinationAccountId = event.getDestinationAccountId() != null ? UUID.fromString(event.getDestinationAccountId()) : null;
         UUID customerId = UUID.fromString(event.getCustomerId());
 
         InitiatePaymentCommand command = new InitiatePaymentCommand(

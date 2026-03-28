@@ -18,9 +18,11 @@ import org.banksolution.model.response.BalanceResponse;
 import org.banksolution.repository.AccountBalanceRepository;
 import org.banksolution.repository.AccountRepository;
 import org.banksolution.utils.AccountNumberUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +36,12 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountBalanceRepository accountBalanceRepository;
     private final CustomerServiceClient customerServiceClient;
+
+    @Value("${simulation.balance.seed-enabled:false}")
+    private boolean simulationBalanceSeedEnabled;
+
+    @Value("${simulation.balance.seed-amount:1000000.00}")
+    private BigDecimal simulationBalanceSeedAmount;
 
     @Transactional
     public AccountResponse openAccount(OpenAccountRequest request) {
@@ -49,7 +57,8 @@ public class AccountService {
             throw new IllegalArgumentException("Customer with ID " + request.getCustomerId() + " does not exist.");
         }
 
-        AccountEntity entity = toEntity(request, accountNumber);
+        AccountEntity entity = toEntity(request, accountNumber,
+                simulationBalanceSeedEnabled ? simulationBalanceSeedAmount : BigDecimal.ZERO);
         AccountEntity savedEntity = accountRepository.save(entity);
 
         log.info("Account opened successfully with account number: {}", accountNumber);

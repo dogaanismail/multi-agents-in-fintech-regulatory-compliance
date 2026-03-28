@@ -1,6 +1,5 @@
 package org.banksolution.integration.customer;
 
-import feign.Headers;
 import org.banksolution.integration.customer.dto.CustomerResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,6 @@ import java.util.UUID;
         name = "customer-svc",
         url = "${integration.customer-service.url}"
 )
-@Headers({"Content-Type: application/json"})
 public interface CustomerServiceClient {
 
     @GetMapping("/{id}")
