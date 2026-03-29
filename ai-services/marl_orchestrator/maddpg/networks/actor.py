@@ -9,8 +9,6 @@ Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional
-
 
 class Actor(nn.Module):
     """

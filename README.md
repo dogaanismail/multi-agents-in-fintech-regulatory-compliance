@@ -1,54 +1,169 @@
-# Multi-Agens in Fintech Regulatory Compliance
+# Multi-Agents in Fintech Regulatory Compliance
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> Master's thesis project implementing an adaptive & explainable Multi-Agent System (MAS) for AML. Features Python agents trained with MARL, a Java/Spring Boot simulated environment, & a React UI. Built on a microservices architecture.
+> **MSc Computer Science — University of Liverpool**
+>
+> A cooperative multi-agent reinforcement learning system for Anti-Money Laundering detection, built as a production-grade, event-driven microservices ecosystem.
 
 ---
 
-## 📖 Project Overview
+## 📖 Overview
 
-This repository contains the source code for the master's thesis project, "Multi-Agents in Fintech Regulatory Compliance." The project addresses the limitations of traditional, static, and opaque Anti-Money Laundering (AML) systems. As financial crime becomes more sophisticated and coordinated, a new approach is needed.
+Traditional AML systems rely on static rules with false-positive rates exceeding 95 %, costing billions in manual review while sophisticated laundering schemes go undetected. This project replaces the rule-based paradigm with three specialised ML agents that learn to cooperate through Multi-Agent Deep Deterministic Policy Gradient (MADDPG), producing a single auditable compliance decision for every payment.
 
-This project designs, develops, and evaluates a novel framework for AML compliance based on a **Multi-Agent System (MAS)**. The system is built to be:
-* **Adaptive:** Agents learn and adapt to new, unseen money laundering typologies using Multi-Agent Reinforcement Learning (MARL).
-* **Collaborative:** Specialized, independent agents work together to achieve a more holistic detection capability than any single model could.
-* **Explainable:** An integrated Explainable AI (XAI) component provides transparent, human-readable justifications for the system's collective decisions, fostering trust and auditability.
+The system is designed to be **adaptive** (agents learn from officer feedback at runtime), **collaborative** (independent agents cover different fraud dimensions), and **explainable** (TreeSHAP + Integrated Gradients provide per-decision attribution).
 
-## ✨ Core Features
-
-* **Specialized Multi-Agent System (MAS):** Three distinct agents collaborate for robust detection:
-    * **Transaction Pattern Agent** (Port 8001): Analyzes individual transaction characteristics using XGBoost to detect suspicious patterns. Trained on 9.5M+ transactions with 89.10% recall rate.
-    * **Customer Risk Agent** (Port 8002): Assesses customer-level risk by aggregating 30-day transaction history into 19 behavioral features. Uses XGBoost with SMOTE, achieving 90.51% ROC-AUC.
-    * **Network Analysis Agent** (Port 8003): Examines account relationships and transaction flows using graph-based analysis to detect money laundering networks.
-* **Adaptive Learning with MARL:** Agents are trained using the **Multi-Agent Deep Deterministic Policy Gradient (MADDPG)** algorithm in a simulated environment to develop cooperative policies.
-* **Microservices Architecture:** The entire system is built on a decoupled, event-driven architecture using Docker, ensuring scalability and resilience.
-* **Explainable AI (XAI):** A dedicated component synthesizes findings from all agents to produce a clear narrative for each flagged transaction, designed for a human analyst.
+---
 
 ## 🏗️ System Architecture
 
-The system operates on an event-driven model where components communicate asynchronously through a central message bus (e.g., Apache Kafka).
+The platform runs as **22 Docker containers** — 10 Java microservices, 3 Python ML agents, 1 MADDPG orchestrator, and supporting infrastructure — communicating exclusively through Apache Kafka with Avro schemas (zero synchronous coupling).
 
-**High-Level Flow:**
-`[Simulated Banking Environment (Java)]` → `[Event Bus]` → `[Specialized AI Agents (Python)]` → `[Event Bus]` → `[Orchestration Service]` → `[Analyst UI (React)]`
+<p align="center">
+  <img src="docs/design/high_level_system_design.png" alt="High-Level System Design" width="800"/>
+</p>
+
+### Payment Processing Lifecycle
+
+Every payment traverses a deterministic compliance workflow orchestrated by Axon Framework's saga pattern, producing over **300,000 immutable domain events** in a single simulation run.
+
+<p align="center">
+  <img src="docs/design/payment_processing_lifecycle.png" alt="Payment Processing Lifecycle" width="800"/>
+</p>
+
+### Agent Decomposition
+
+Three specialised agents each analyse fraud from a different dimension:
+
+| Agent | Model | Key Features | Port |
+|-------|-------|-------------|------|
+| **Transaction Pattern Agent** | XGBoost | 57 features (after one-hot), trained on 9.5M+ transactions | 8001 |
+| **Customer Risk Agent** | XGBoost + SMOTE | 19 behavioural features aggregated over 30-day sliding window | 8002 |
+| **Network Analysis Agent** | CatBoost | 11 graph-topology features (PageRank, centrality, clustering) — deliberately volume-free | 8003 |
+
+<p align="center">
+  <img src="docs/design/agent_decomposition.png" alt="Agent Decomposition" width="800"/>
+</p>
+
+### MADDPG Orchestrator
+
+A centralised-training, decentralised-execution (CTDE) architecture: three Actor networks (one per agent) + one shared Critic (~415 K parameters total). Training uses a **three-tier reward function** — automated heuristics, officer review, and decision overrides — with configurable multipliers hot-reloadable at runtime.
+
+<p align="center">
+  <img src="docs/design/maddpg_training_loop.png" alt="MADDPG Training Loop" width="800"/>
+</p>
+
+<p align="center">
+  <img src="docs/design/reward_calculation_design.png" alt="Reward Calculation Design" width="800"/>
+</p>
+
+---
+
+## 📊 Evaluation Results
+
+Evaluated on **10,000 synthetic payments** across five money-laundering typologies:
+
+| Metric | Value |
+|--------|-------|
+| **System Recall** | 97.3 % |
+| **Smurfing** | 99.3 % |
+| **Fan-out** | 100 % |
+| **Layering** | 99.6 % |
+| **High-value** | 100 % |
+| **Round-trip** | 76 % (hardest typology) |
+| **Precision** | 11 % (by design — missed fraud carries regulatory risk; false alerts route to human review) |
+| **Training Convergence** | 18 episodes, 99.5 % critic-loss reduction |
+| **Median Latency** | 779 ms per decision |
+
+<p align="center">
+  <img src="simulation_tests/reports/charts/figB_detection_by_typology.png" alt="Detection by Typology" width="600"/>
+</p>
+
+<p align="center">
+  <img src="simulation_tests/reports/charts/figP_training_convergence.png" alt="Training Convergence" width="600"/>
+</p>
+
+---
 
 ## 🛠️ Tech Stack
 
-| Category          | Technology                                         |
-| ----------------- | -------------------------------------------------- |
-| **AI Agents** | Python, TensorFlow / PyTorch, FastAPI              |
-| **MARL Training** | Python, MADDPG Algorithm                           |
-| **Environment** | Java, Spring Boot                                  |
-| **Frontend** | React, JavaScript                                  |
-| **Communication** | Apache Kafka (or similar event bus)                |
-| **Data Storage** | Redis (Real-time), PostgreSQL (Persistent)         |
-| **DevOps** | Docker                                             |
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Java 25, Spring Boot 4.0, Axon Framework 4.12 (saga pattern) |
+| **ML Agents** | Python 3.11, FastAPI, XGBoost, CatBoost |
+| **MARL** | PyTorch 2.5.1, MADDPG (custom implementation) |
+| **Explainability** | SHAP 0.51, Integrated Gradients |
+| **Messaging** | Apache Kafka 7.5, Confluent Schema Registry, Avro |
+| **Databases** | PostgreSQL 16.2, Neo4j 5.26 |
+| **Frontend** | React 18, TypeScript, Tailwind CSS, Vite |
+| **Infrastructure** | Docker, Docker Compose |
+
+---
 
 ## 📂 Repository Structure
 
-The repository is structured as a monorepo to contain all project components in one place.
+```
+├── ai-services/
+│   ├── agents/
+│   │   ├── transaction_pattern_agent/   # XGBoost — port 8001
+│   │   ├── customer_risk_agent/         # XGBoost — port 8002
+│   │   └── network_analysis_agent/      # CatBoost — port 8003
+│   └── marl_orchestrator/               # MADDPG orchestrator — port 8000
+├── bank-solution-backend/
+│   ├── account-service/
+│   ├── customer-service/
+│   ├── customer-profile-service/
+│   ├── configuration-service/
+│   ├── payment-service/
+│   ├── payment-engine-service/
+│   ├── payment-history-service/
+│   ├── risk-engine-service/
+│   ├── network-topology-service/
+│   └── backoffice-gateway/
+├── bank-solution-backoffice/            # React backoffice UI
+├── libraries/
+│   └── avro-schema-library/            # Shared Avro schemas
+├── simulation_tests/                    # 10K-payment evaluation suite
+├── data/                                # SAML-D dataset (9.5M+ rows)
+└── docs/design/                         # Architecture diagrams
+```
 
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Docker & Docker Compose
+- Java 25+
+- Python 3.11+
+- Node.js 18+
+
+### Quick Start
+
+```bash
+# 1. Start infrastructure (Kafka, PostgreSQL, Neo4j)
+cd bank-solution-backend && docker compose up -d
+
+# 2. Start backend microservices
+./gradlew bootRun
+
+# 3. Start AI agents & orchestrator
+cd ai-services && docker compose up -d
+
+# 4. Start backoffice UI
+cd bank-solution-backoffice && npm install && npm run dev
+```
+
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgements
+
+This dissertation was completed as part of the MSc in Computer Science at the **University of Liverpool**. Sincere gratitude to **Dr. Chunyan Mu** for her guidance and support throughout this research.
