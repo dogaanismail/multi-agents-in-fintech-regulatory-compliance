@@ -152,6 +152,18 @@ register_schema "$SCHEMAS_DIR/payment/PaymentBlockedEvent.avsc" "payment-blocked
 register_schema "$SCHEMAS_DIR/payment/PaymentReviewRequiredEvent.avsc" "payment-review-required-event-value"
 echo ""
 
+# Register account charge schemas
+echo "Account Charge Schemas:"
+register_schema "$SCHEMAS_DIR/account/AccountChargeRequestedEvent.avsc" "account.charge.requested-value"
+register_schema "$SCHEMAS_DIR/account/AccountChargeCompletedEvent.avsc" "account.charge.completed-value"
+echo ""
+
+# Register agent observation + customer feature schemas
+echo "Agent / Customer Feature Schemas:"
+register_schema "$SCHEMAS_DIR/agents/AgentObservation.avsc" "agent.observation-value"
+register_schema "$SCHEMAS_DIR/customer/CustomerFeatures.avsc" "customer.features-value"
+echo ""
+
 # Register compliance feedback schemas
 echo "Compliance Feedback Schemas:"
 register_schema "$SCHEMAS_DIR/feedback/ComplianceAgentManualFeedbackEvent.avsc" "agent.manual.feedback-value"

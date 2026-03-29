@@ -105,6 +105,8 @@ services:
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
       SERVER_PORT: 5002
+      SIMULATION_BALANCE_SEED_ENABLED: "true"
+      SIMULATION_BALANCE_SEED_AMOUNT: "1000000.00"
     depends_on:
       account-db-migration:
         condition: service_completed_successfully

@@ -26,33 +26,41 @@ public class AccountChargeCompletedEventHandler {
 
         PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
 
-        if (event.getSuccess()) {
-            UUID sourceAccountId = event.getSourceAccountId() != null ? UUID.fromString(event.getSourceAccountId()) : null;
-            UUID destinationAccountId = event.getDestinationAccountId() != null ? UUID.fromString(event.getDestinationAccountId()) : null;
-            BigDecimal amount = new BigDecimal(event.getAmount());
+        try {
+            if (event.getSuccess()) {
+                UUID sourceAccountId = event.getSourceAccountId() != null ? UUID.fromString(event.getSourceAccountId()) : null;
+                UUID destinationAccountId = event.getDestinationAccountId() != null ? UUID.fromString(event.getDestinationAccountId()) : null;
+                BigDecimal amount = new BigDecimal(event.getAmount());
 
-            ConfirmAccountChargedCommand command = new ConfirmAccountChargedCommand(
-                    paymentId,
-                    sourceAccountId,
-                    destinationAccountId,
-                    amount,
-                    event.getFromCurrency(),
-                    event.getToCurrency(),
-                    event.getPaymentType().toString()
-            );
+                ConfirmAccountChargedCommand command = new ConfirmAccountChargedCommand(
+                        paymentId,
+                        sourceAccountId,
+                        destinationAccountId,
+                        amount,
+                        event.getFromCurrency(),
+                        event.getToCurrency(),
+                        event.getPaymentType().toString()
+                );
 
-            commandGateway.sendAndWait(command);
-            log.info("ConfirmAccountChargedCommand sent for paymentId: {}", paymentId);
-        } else {
-            log.error("Account charge failed for payment: {}, reason: {}", paymentId, event.getFailureReason());
-            
-            FailAccountChargeCommand command = new FailAccountChargeCommand(
-                    paymentId,
-                    event.getFailureReason()
-            );
-            
-            commandGateway.sendAndWait(command);
-            log.info("FailAccountChargeCommand sent for paymentId: {}", paymentId);
+                commandGateway.sendAndWait(command);
+                log.info("ConfirmAccountChargedCommand sent for paymentId: {}", paymentId);
+            } else {
+                log.error("Account charge failed for payment: {}, reason: {}", paymentId, event.getFailureReason());
+
+                FailAccountChargeCommand command = new FailAccountChargeCommand(
+                        paymentId,
+                        event.getFailureReason()
+                );
+
+                commandGateway.sendAndWait(command);
+                log.info("FailAccountChargeCommand sent for paymentId: {}", paymentId);
+            }
+        } catch (Exception ex) {
+            // Stale events (e.g. Kafka consumer rewound to offset 0 after container restart)
+            // arrive for payments already in a terminal state. Log and skip — do not rethrow
+            // so the Kafka consumer commits the offset and continues.
+            log.warn("Skipping AccountChargeCompletedEvent for paymentId={} — aggregate rejected command ({}): {}",
+                    paymentId, ex.getClass().getSimpleName(), ex.getMessage());
         }
     }
 }
