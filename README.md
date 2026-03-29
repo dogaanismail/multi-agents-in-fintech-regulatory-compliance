@@ -212,22 +212,47 @@ The React UI will be available at `http://localhost:5173`.
 
 ### Service URLs
 
-| Service | URL |
-|---------|-----|
-| Kafka UI | http://localhost:8080 |
-| Schema Registry | http://localhost:8081 |
-| Transaction Pattern Agent | http://localhost:1001 |
-| Customer Risk Agent | http://localhost:1002 |
-| Network Analysis Agent | http://localhost:1003 |
-| MADDPG Orchestrator | http://localhost:1004 |
-| Backoffice Gateway | http://localhost:3030 |
-| Backoffice UI (dev) | http://localhost:5173 |
+| Service | URL | Port |
+|---------|-----|------|
+| **Infrastructure** | | |
+| PostgreSQL | `localhost:5433` | 5433 |
+| Neo4j Browser | http://localhost:7474 | 7474 |
+| Neo4j Bolt | `localhost:7687` | 7687 |
+| Kafka Broker | `localhost:9092` | 9092 |
+| Schema Registry | http://localhost:8081 | 8081 |
+| Kafka UI | http://localhost:8080 | 8080 |
+| **Backend Microservices** | | |
+| Customer Service | http://localhost:5001 | 5001 |
+| Account Service | http://localhost:5002 | 5002 |
+| Payment Service | http://localhost:5003 | 5003 |
+| Payment Engine Service | http://localhost:5004 | 5004 |
+| Payment History Service | http://localhost:5005 | 5005 |
+| Risk Engine Service | http://localhost:5006 | 5006 |
+| Network Topology Service | http://localhost:5007 | 5007 |
+| Customer Profile Service | http://localhost:5008 | 5008 |
+| Configuration Service | http://localhost:5009 | 5009 |
+| Backoffice Gateway | http://localhost:3030 | 3030 |
+| **AI Services** | | |
+| Transaction Pattern Agent | http://localhost:1001 | 1001 |
+| Customer Risk Agent | http://localhost:1002 | 1002 |
+| Network Analysis Agent | http://localhost:1003 | 1003 |
+| MADDPG Orchestrator | http://localhost:1004 | 1004 |
+| MADDPG Orchestrator DB | `localhost:5438` | 5438 |
+| **Frontend** | | |
+| Backoffice UI (Docker) | http://localhost:6060 | 6060 |
+| Backoffice UI (dev) | http://localhost:5173 | 5173 |
 
 ---
 
 ## 📄 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📊 Dataset
+
+This project uses the [**Synthetic AML Transaction Monitoring Dataset (SAML-D)**](https://www.kaggle.com/datasets/berkanoztas/synthetic-transaction-monitoring-dataset-aml) — a typology-based AML dataset containing 9.5 M+ transactions across five laundering patterns (smurfing, fan-out, layering, high-value, round-trip). Credit to **Berkan Öztaş** for making this dataset publicly available.
 
 ---
 
