@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **MSc Computer Science — University of Liverpool**
+> **MSc Artificial Intelligence — University of Liverpool**
 >
 > A cooperative multi-agent reinforcement learning system for Anti-Money Laundering detection, built as a production-grade, event-driven microservices ecosystem.
 
