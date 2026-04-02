@@ -252,7 +252,11 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 📊 Dataset
 
-This project uses the [**Synthetic AML Transaction Monitoring Dataset (SAML-D)**](https://www.kaggle.com/datasets/berkanoztas/synthetic-transaction-monitoring-dataset-aml) — a typology-based AML dataset containing 9.5 M+ transactions across five laundering patterns (smurfing, fan-out, layering, high-value, round-trip). Credit to **Berkan Öztaş** for making this dataset publicly available.
+This project uses the [**Synthetic AML Transaction Monitoring Dataset (SAML-D)**](https://www.kaggle.com/datasets/berkanoztas/synthetic-transaction-monitoring-dataset-aml) — a typology-based AML dataset containing 9.5 M+ transactions across five laundering patterns (smurfing, fan-out, layering, high-value, round-trip).
+
+Credit to [**Berkan Öztaş**](https://github.com/BOztasUK) for making this dataset publicly available on Kaggle.
+
+> B. Öztaş, D. Çetinkaya, F. Adedoyin, M. Budka, H. Doğan, and G. Aksu, "Enhancing Anti-Money Laundering: Development of a Synthetic Transaction Monitoring Dataset," *2023 IEEE International Conference on e-Business Engineering (ICEBE)*, Sydney, Australia, 2023, pp. 47–54, doi: [10.1109/ICEBE59045.2023.00028](https://doi.org/10.1109/ICEBE59045.2023.00028).
 
 ---
 

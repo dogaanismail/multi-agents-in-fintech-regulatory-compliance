@@ -90,7 +90,7 @@ class CustomerFactory:
         create_data = CustomerCreateData(
             first_name=self._fake.first_name(),
             last_name=self._fake.last_name(),
-            email=f"sim.{self._run_tag}.u{index}@aml-sim.test",  # unique per run
+            email=f"sim.{self._run_tag}.u{index}@aml-sim-presentation.test",  # unique per run
             phone_number=_phone(),
             date_of_birth=_random_dob(),
             nationality=country,

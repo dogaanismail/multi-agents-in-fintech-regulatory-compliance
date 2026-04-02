@@ -101,12 +101,6 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SCHEMA_REGISTRY_URL=http://schema-registry:8081
       - DATABASE_URL=postgresql+asyncpg://marl_user:marl_password@marl-orchestrator-db:5432/marl_orchestrator_db
-      - TRAINING_INTERVAL_SECONDS=30        # train every 30s → ~20+ training runs during 10k simulation → real convergence curve
-      - MIN_EXPERIENCES_FOR_TRAINING=256    # wait for 256 experiences before first training step → no noisy early updates
-      - TRAINING_BATCH_SIZE=256             # larger batch → smoother loss gradient → cleaner dissertation convergence plots
-      - MAX_EXPERIENCES_PER_BATCH=5000      # load up to 5k from 10k buffer per cycle → faster buffer drainage
-      - EXPERIENCE_RETENTION_DAYS=30        # keep all data from this dissertation run
-      # configuration-service URL — reachable via the shared aml-network (bank-solution-backend compose)
       - CONFIGURATION_SERVICE_URL=http://configuration-service:5009
     depends_on:
       marl-orchestrator-db:
