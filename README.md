@@ -108,6 +108,100 @@ Evaluated on **10,000 synthetic payments** across five money-laundering typologi
 
 ---
 
+## 🖥️ Backoffice UI
+
+The React backoffice provides compliance officers with a single pane of glass over customers, accounts, payments, MARL training, and system configuration. Every screen is backed by the `backoffice-gateway` aggregating data from the 10 Java microservices and the MADDPG orchestrator.
+
+### Home & Dashboard
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_home_page.png" alt="Backoffice Home Page" width="800"/>
+  <br/>
+  <em>Figure 9 — Home Page: landing view with quick navigation to all operational areas.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_dashboard_page.png" alt="Backoffice Dashboard" width="800"/>
+  <br/>
+  <em>Figure 10 — Dashboard: real-time KPIs across payments, alerts, and agent performance.</em>
+</p>
+
+### Customers & Accounts
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_customers_page.png" alt="Customers Page" width="800"/>
+  <br/>
+  <em>Figure 11 — Customers Page: customer registry with risk profiles aggregated from the Customer Profile Service.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_accounts_page.png" alt="Accounts Page" width="800"/>
+  <br/>
+  <em>Figure 12 — Accounts Page: account inventory linked to customers and payment activity.</em>
+</p>
+
+### Payments
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_payments_page.png" alt="Payments Page" width="800"/>
+  <br/>
+  <em>Figure 13 — Payments Page: searchable ledger of every payment with compliance decision and agent verdicts.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_payment_detail_page_1.png" alt="Payment Detail — Overview" width="800"/>
+  <br/>
+  <em>Figure 14 — Payment Detail (Overview): saga timeline, risk score, and MADDPG ensemble decision.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_payment_details_page_1_1.png" alt="Payment Detail — Agent Breakdown" width="800"/>
+  <br/>
+  <em>Figure 15 — Payment Detail (Agent Breakdown): per-agent scores with SHAP / Integrated Gradients attributions.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_payment_detail_page_2.png" alt="Payment Detail — Officer Review" width="800"/>
+  <br/>
+  <em>Figure 16 — Payment Detail (Officer Review): approve / override workflow that feeds the three-tier reward function.</em>
+</p>
+
+### MARL Training & Replay Buffer
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_marl_training_page.png" alt="MARL Training Page" width="800"/>
+  <br/>
+  <em>Figure 17 — MARL Training Page: episode control, critic loss, and reward trajectories for the MADDPG orchestrator.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_replay_buffer_page.png" alt="Replay Buffer Page" width="800"/>
+  <br/>
+  <em>Figure 18 — Replay Buffer Page: inspection of stored (state, action, reward, next-state) transitions used for training.</em>
+</p>
+
+### Configuration, Exchange Rates & Audit
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_configurations_page.png" alt="Configurations Page" width="800"/>
+  <br/>
+  <em>Figure 19 — Configurations Page: hot-reloadable reward multipliers, thresholds, and feature flags served by the Configuration Service.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_exchange_rate_page.png" alt="Exchange Rate Page" width="800"/>
+  <br/>
+  <em>Figure 20 — Exchange Rate Page: multi-currency rate management used during payment normalisation.</em>
+</p>
+
+<p align="center">
+  <img src="docs/backoffice/backoffice_audit_log_page.png" alt="Audit Log Page" width="800"/>
+  <br/>
+  <em>Figure 21 — Audit Log Page: immutable event trail aggregated from all 300K+ domain events for regulatory traceability.</em>
+</p>
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
