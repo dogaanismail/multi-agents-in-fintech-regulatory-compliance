@@ -1,47 +1,55 @@
-# Multi-Agents in Fintech Regulatory Compliance
+# # 🚀 AI-Native Event-Driven Digital Banking Platform & Core AML Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **MSc Artificial Intelligence — University of Liverpool**
 >
-> A cooperative multi-agent reinforcement learning system for Anti-Money Laundering detection, built as a production-grade, event-driven microservices ecosystem.
+> A production-grade, event-driven Digital Banking ecosystem featuring a cooperative multi-agent reinforcement learning core for end-to-end transaction monitoring and compliance.
 
 ---
 
 ## 📖 Overview
 
-Traditional AML systems rely on static rules with false-positive rates exceeding 95 %, costing billions in manual review while sophisticated laundering schemes go undetected. This project replaces the rule-based paradigm with three specialised ML agents that learn to cooperate through Multi-Agent Deep Deterministic Policy Gradient (MADDPG), producing a single auditable compliance decision for every payment.
+This platform is a comprehensive **AI-Native Digital Banking Backend and Core Engine** built from scratch to address the industry's most critical compliance bottlenecks. Traditional AML systems rely on static rules with false-positive rates exceeding 95 %, costing billions in manual review while sophisticated laundering schemes go undetected. 
 
-The system is designed to be **adaptive** (agents learn from officer feedback at runtime), **collaborative** (independent agents cover different fraud dimensions), and **explainable** (TreeSHAP + Integrated Gradients provide per-decision attribution).
+This project replaces legacy rule engines with an intelligent core workflow: a fully functional, event-driven banking environment integrated with three specialised ML agents that learn to cooperate through Multi-Agent Deep Deterministic Policy Gradient (MADDPG). The result is a next-generation core banking architecture capable of producing a single, fully auditable, and explainable compliance decision for every payment in real time.
+
+The platform is designed to be:
+* **Production-Grade & Scalable:** Driven by event-sourcing and ultra-high-performance financial ledgering concepts.
+* **Adaptive:** Agents learn directly from compliance officer feedback (Human-in-the-Loop) at runtime.
+* **Collaborative:** Multi-agent framework ensures independent neural networks cover different fraud dimensions simultaneously.
+* **Explainable & Regulatory-Compliant:** Powered by TreeSHAP and Integrated Gradients to guarantee dual-layer decision attribution.
 
 ---
 
 ## 🏗️ System Architecture
 
-The platform runs as **22 Docker containers** — 10 Java microservices, 3 Python ML agents, 1 MADDPG orchestrator, and supporting infrastructure — communicating exclusively through Apache Kafka with Avro schemas (zero synchronous coupling).
+The enterprise platform runs as **22 Docker containers** — 10 Java core banking microservices, 3 Python ML agents, 1 MADDPG orchestrator, and supporting infrastructure — communicating exclusively through Apache Kafka with Avro schemas (zero synchronous coupling, high-throughput streaming architecture).
 
 <p align="center">
   <img src="docs/design/high_level_system_design.png" alt="High-Level System Design" width="800"/>
   <br/>
-  <em>Figure 1 — High-Level System Design: 22 containers across three Docker Compose stacks.</em>
+  <em>Figure 1 — High-Level System Design: 22 containers across three Docker Compose stacks implementing an autonomous Core Banking infrastructure.</em>
 </p>
 
-### Simulated Banking Environment
+### Core Digital Banking Framework
 
-Every payment traverses a deterministic compliance workflow orchestrated by Axon Framework's saga pattern, producing over **300,000 immutable domain events** in a single simulation run.
+Every simulated payment traverses a strict, deterministic financial workflow managed by **Axon Framework's saga pattern**. The core architecture enforces **CQRS and Event Sourcing** across the banking cluster, producing over **300,000 immutable domain events** in a single simulation run, establishing a zero-tamper audit trail for financial regulators.
 
 <p align="center">
   <img src="docs/design/simulated_banking_envrionment.png" alt="Simulated Banking Environment" width="800"/>
   <br/>
-  <em>Figure 2 — Simulated Banking Environment: 10 Java microservices connected via Kafka.</em>
+  <em>Figure 2 — Simulated Digital Banking Environment: 10 decoupled Java microservices connected via high-performance Kafka pipelines.</em>
 </p>
 
 ### Payment Processing Lifecycle
 
+The lifecycle demonstrates how a modern Neobank processes payments alongside real-time AI intervention. Ledger state updates, account risk validations, and beneficiary checks are entirely decoupled from the heavy AI-inference pipelines.
+
 <p align="center">
   <img src="docs/design/payment_processing_lifecycle.png" alt="Payment Processing Lifecycle" width="800"/>
   <br/>
-  <em>Figure 3 — Payment Processing Lifecycle: Axon saga orchestrating risk assessment, agent analysis, and compliance decisioning.</em>
+  <em>Figure 3 — Payment Processing Lifecycle: End-to-end banking saga orchestrating microservice state transitions, MARL agent analysis, and instantaneous compliance decisioning.</em>
 </p>
 
 ### Agent Decomposition
