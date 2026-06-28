@@ -12,6 +12,7 @@ from app.infrastructure.kafka.kafka_config import kafka_config
 from app.infrastructure.kafka.avro_producer_wrapper import AvroProducerWrapper
 from app.core.config import settings
 from app.core.logging import logger
+from app.core.telemetry import inject_context_into_kafka_headers
 
 
 class FraudAnalysisCompletedPublisher:
@@ -91,12 +92,17 @@ class FraudAnalysisCompletedPublisher:
         try:
             # Convert to Avro format if needed
             avro_response = self._to_avro_format(response)
-            
+
+            # Propagate the active trace context to the downstream (Java) consumer
+            # so the fraud.analysis.completed hop stays on the same trace.
+            trace_headers = inject_context_into_kafka_headers()
+
             # Publish to Kafka
             success = self.producer_wrapper.send(
                 topic=self.topic,
                 value=avro_response,
-                key=payment_id
+                key=payment_id,
+                headers=trace_headers
             )
             
             if success:

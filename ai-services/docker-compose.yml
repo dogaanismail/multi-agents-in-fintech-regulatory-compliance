@@ -31,6 +31,7 @@ services:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
       - PORT=1001
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
     networks:
       - aml-multi-agent-network
     restart: unless-stopped
@@ -52,6 +53,7 @@ services:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
       - PORT=1002
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
     networks:
       - aml-multi-agent-network
     restart: unless-stopped
@@ -73,6 +75,7 @@ services:
       - MODEL_PATH=/app/trained_models
       - LOG_LEVEL=info
       - PORT=1003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
     networks:
       - aml-multi-agent-network
     restart: unless-stopped
@@ -102,6 +105,7 @@ services:
       - SCHEMA_REGISTRY_URL=http://schema-registry:8081
       - DATABASE_URL=postgresql+asyncpg://marl_user:marl_password@marl-orchestrator-db:5432/marl_orchestrator_db
       - CONFIGURATION_SERVICE_URL=http://configuration-service:5009
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
     depends_on:
       marl-orchestrator-db:
         condition: service_healthy

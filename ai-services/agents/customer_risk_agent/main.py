@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.logging import logger
+from app.core.telemetry import setup_telemetry
 from app.services.model_loader import model_loader
 from app.api import api_router
 
@@ -48,6 +49,9 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# Distributed tracing: instrument inbound FastAPI requests and export to Jaeger.
+setup_telemetry("customer-risk-agent", app=app)
 
 # CORS middleware
 app.add_middleware(

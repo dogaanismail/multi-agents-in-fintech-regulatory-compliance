@@ -37,6 +37,8 @@ dependencies {
     implementation 'org.liquibase:liquibase-core'
 
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
+    // Propagate W3C trace context across Feign HTTP calls (distributed tracing)
+    implementation 'io.github.openfeign:feign-micrometer'
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
 
     // Kafka + Avro

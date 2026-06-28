@@ -25,7 +25,9 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull FraudAnalysisRequestedEvent> fraudAnalysisRequestedEventKafkaTemplate() {
-        return new KafkaTemplate<>(fraudAnalysisRequestedProducerFactory());
+        var template = new KafkaTemplate<>(fraudAnalysisRequestedProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean
@@ -35,7 +37,9 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentCompletedEvent> riskAssessmentCompletedEventKafkaTemplate() {
-        return new KafkaTemplate<>(riskAssessmentCompletedEventProducerFactory());
+        var template = new KafkaTemplate<>(riskAssessmentCompletedEventProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean

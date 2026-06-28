@@ -24,6 +24,10 @@ dependencies {
 
     implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:${openApiVersion}"
 
+    // Distributed tracing (Spring Boot 4 OpenTelemetry auto-configuration).
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+    implementation 'org.springframework.boot:spring-boot-micrometer-tracing-opentelemetry'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

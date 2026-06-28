@@ -11,10 +11,20 @@ import asyncio
 from threading import Thread
 from confluent_kafka import KafkaError, KafkaException
 
+from opentelemetry import context as otel_context
+from opentelemetry import trace
+from opentelemetry.trace import SpanKind
+
 from app.infrastructure.kafka.kafka_config import kafka_config
 from app.handlers.fraud_analysis_requested_handler import fraud_analysis_requested_handler
 from app.core.config import settings
 from app.core.logging import logger
+from app.core.telemetry import (
+    extract_context_from_kafka_headers,
+    run_coroutine_with_context,
+)
+
+tracer = trace.get_tracer(__name__)
 
 
 class FraudAnalysisRequestedListener:
@@ -105,14 +115,32 @@ class FraudAnalysisRequestedListener:
                     continue
                 
                 try:
-                    future = asyncio.run_coroutine_threadsafe(
-                        self.handler.handle(deserialized_value),
-                        self._loop
-                    )
-                    future.result(timeout=30)
-                    # Commit offset only after successful processing
-                    # (enable_auto_commit=False, so we control exactly-once commits)
-                    self.consumer.commit(message=msg)
+                    # Continue the distributed trace started upstream (risk-engine)
+                    # by extracting the W3C trace context from the Kafka headers.
+                    parent_ctx = extract_context_from_kafka_headers(msg.headers())
+                    with tracer.start_as_current_span(
+                        f"{msg.topic()} process",
+                        context=parent_ctx,
+                        kind=SpanKind.CONSUMER,
+                    ) as span:
+                        span.set_attribute("messaging.system", "kafka")
+                        span.set_attribute("messaging.destination.name", msg.topic())
+                        span.set_attribute("messaging.kafka.partition", msg.partition())
+                        span.set_attribute("messaging.kafka.offset", msg.offset())
+
+                        # Carry the consumer span into the asyncio handler so the
+                        # agent HTTP calls and the produced event link to this trace.
+                        captured_ctx = otel_context.get_current()
+                        future = asyncio.run_coroutine_threadsafe(
+                            run_coroutine_with_context(
+                                self.handler.handle(deserialized_value), captured_ctx
+                            ),
+                            self._loop
+                        )
+                        future.result(timeout=30)
+                        # Commit offset only after successful processing
+                        # (enable_auto_commit=False, so we control exactly-once commits)
+                        self.consumer.commit(message=msg)
                 except Exception as e:
                     logger.error(f"Error processing message: {str(e)}")
                     logger.debug(f"Message details - Topic: {msg.topic()}, Partition: {msg.partition()}, Offset: {msg.offset()}")

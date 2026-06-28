@@ -15,6 +15,10 @@ dependencies {
     compileOnly "com.fasterxml.jackson.core:jackson-annotations:${jacksonAnnotationsVersion}"
     compileOnly "org.springframework:spring-web:${springWebVersion}"
 
+    // Distributed tracing (Spring Boot 4 OpenTelemetry auto-configuration -> OTLP).
+    api 'org.springframework.boot:spring-boot-starter-opentelemetry'
+    api 'org.springframework.boot:spring-boot-micrometer-tracing-opentelemetry'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

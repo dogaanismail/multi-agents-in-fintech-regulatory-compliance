@@ -48,22 +48,30 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentRequestedEventKafkaTemplate() {
-        return new KafkaTemplate<>(riskAssessmentProducerFactory());
+        var template = new KafkaTemplate<>(riskAssessmentProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotKafkaTemplate() {
-        return new KafkaTemplate<>(paymentSnapshotProducerFactory());
+        var template = new KafkaTemplate<>(paymentSnapshotProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull AccountChargeRequestedEvent> accountChargeRequestedEventKafkaTemplate() {
-        return new KafkaTemplate<>(accountChargeRequestedProducerFactory());
+        var template = new KafkaTemplate<>(accountChargeRequestedProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventKafkaTemplate() {
-        return new KafkaTemplate<>(paymentCompletedProducerFactory());
+        var template = new KafkaTemplate<>(paymentCompletedProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean
@@ -73,7 +81,9 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull ComplianceAgentManualFeedbackEvent> agentManualFeedbackEventKafkaTemplate() {
-        return new KafkaTemplate<>(agentManualFeedbackProducerFactory());
+        var template = new KafkaTemplate<>(agentManualFeedbackProducerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     private Map<String, Object> getCommonProducerProps() {

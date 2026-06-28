@@ -9,10 +9,20 @@ import asyncio
 from threading import Thread
 from confluent_kafka import KafkaError, KafkaException
 
+from opentelemetry import context as otel_context
+from opentelemetry import trace
+from opentelemetry.trace import SpanKind
+
 from app.infrastructure.kafka.kafka_config import kafka_config
 from app.handlers.compliance_agent_manual_feedback_handler import compliance_agent_manual_feedback_handler
 from app.core.config import settings
 from app.core.logging import logger
+from app.core.telemetry import (
+    extract_context_from_kafka_headers,
+    run_coroutine_with_context,
+)
+
+tracer = trace.get_tracer(__name__)
 
 
 class ComplianceAgentManualFeedbackListener:
@@ -78,12 +88,28 @@ class ComplianceAgentManualFeedbackListener:
                     continue
 
                 try:
-                    future = asyncio.run_coroutine_threadsafe(
-                        self.handler.handle(deserialized_value),
-                        self._loop
-                    )
-                    future.result(timeout=30)
-                    self.consumer.commit(message=msg)
+                    # Continue the distributed trace by extracting the W3C trace
+                    # context from the Kafka headers (set by the upstream producer).
+                    parent_ctx = extract_context_from_kafka_headers(msg.headers())
+                    with tracer.start_as_current_span(
+                        f"{msg.topic()} process",
+                        context=parent_ctx,
+                        kind=SpanKind.CONSUMER,
+                    ) as span:
+                        span.set_attribute("messaging.system", "kafka")
+                        span.set_attribute("messaging.destination.name", msg.topic())
+                        span.set_attribute("messaging.kafka.partition", msg.partition())
+                        span.set_attribute("messaging.kafka.offset", msg.offset())
+
+                        captured_ctx = otel_context.get_current()
+                        future = asyncio.run_coroutine_threadsafe(
+                            run_coroutine_with_context(
+                                self.handler.handle(deserialized_value), captured_ctx
+                            ),
+                            self._loop
+                        )
+                        future.result(timeout=30)
+                        self.consumer.commit(message=msg)
                 except Exception as e:
                     logger.error(f"Error processing message: {str(e)}")
 
