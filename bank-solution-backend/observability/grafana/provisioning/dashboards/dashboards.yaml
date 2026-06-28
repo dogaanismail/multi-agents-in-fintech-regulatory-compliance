@@ -1,0 +1,11 @@
+# Auto-loads every dashboard JSON in this directory into Grafana on startup.
+apiVersion: 1
+
+providers:
+  - name: Banking dashboards
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

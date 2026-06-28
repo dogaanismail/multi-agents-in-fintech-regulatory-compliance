@@ -1,8 +1,16 @@
-# Grafana datasources — Tempo (traces) + Loki (logs), with two-way correlation
-# keyed on the trace id that every service stamps into its logs.
+# Grafana datasources — Prometheus (metrics) + Tempo (traces) + Loki (logs),
+# with two-way trace/log correlation keyed on the trace id that every service
+# stamps into its logs.
 apiVersion: 1
 
 datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+
   - name: Tempo
     type: tempo
     uid: tempo

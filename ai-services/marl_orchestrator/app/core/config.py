@@ -65,6 +65,13 @@ class Settings(BaseSettings):
     fraud_analysis_completed_topic: str = "fraud.analysis.completed"
     agent_manual_feedback_topic: str = "agent.manual.feedback"
 
+    # Dead-letter queue + bounded retry
+    kafka_dlq_topic_suffix: str = os.getenv("KAFKA_DLQ_TOPIC_SUFFIX", ".DLT")
+    kafka_max_delivery_attempts: int = int(os.getenv("KAFKA_MAX_DELIVERY_ATTEMPTS", "3"))
+    kafka_retry_backoff_seconds: float = float(os.getenv("KAFKA_RETRY_BACKOFF_SECONDS", "1.0"))
+    kafka_retry_backoff_max_seconds: float = float(os.getenv("KAFKA_RETRY_BACKOFF_MAX_SECONDS", "10.0"))
+    kafka_statistics_interval_ms: int = int(os.getenv("KAFKA_STATISTICS_INTERVAL_MS", "10000"))
+
     # Database (Offline Replay Buffer Persistence)
     database_url: str = os.getenv(
         "DATABASE_URL",

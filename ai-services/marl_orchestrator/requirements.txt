@@ -28,6 +28,7 @@ urllib3==2.2.3              # HTTP library required by confluent-kafka avro
 
 # Monitoring & Logging
 python-json-logger==3.2.1   # Structured JSON logging
+prometheus-client==0.21.1   # Prometheus metrics exposed at /metrics
 
 # Database (Offline Replay Buffer Persistence)
 sqlalchemy[asyncio]==2.0.36 # Async ORM for PostgreSQL
