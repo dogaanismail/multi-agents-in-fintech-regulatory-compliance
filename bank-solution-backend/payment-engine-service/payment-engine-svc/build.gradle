@@ -51,6 +51,11 @@ dependencies {
     implementation 'org.liquibase:liquibase-core'
 
     implementation 'org.postgresql:postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.axonframework:axon-test:${axonVersion}"
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:kafka'
 }
 
 springBoot {
