@@ -24,7 +24,9 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull PaymentCreatedEvent> paymentCreatedEventKafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+        var template = new KafkaTemplate<>(producerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     @Bean

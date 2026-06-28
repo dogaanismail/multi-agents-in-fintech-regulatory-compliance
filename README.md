@@ -210,6 +210,18 @@ The React backoffice provides compliance officers with a single pane of glass ov
 
 ---
 
+## 🔭 Observability — Distributed Tracing
+
+Every request is traced end-to-end across the Java microservices **and** the Python AI services, over HTTP, Kafka, and Feign hops, using OpenTelemetry. Traces are viewed in **Grafana Tempo** and correlated with logs in **Loki**. A single payment becomes one trace — from the gateway, through the payment saga and risk engine, into the MADDPG orchestrator and the three detection agents, and back.
+
+<p align="center">
+  <img src="docs/implementations/distributed_tracing.png" alt="End-to-end distributed trace in Grafana Tempo" width="800"/>
+  <br/>
+  <em>Figure 22 — End-to-end trace of a single payment (35 spans) across the gateway, payment, risk-engine, MADDPG orchestrator, and the transaction/customer/network agents.</em>
+</p>
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
@@ -340,6 +352,10 @@ The React UI will be available at `http://localhost:5173`.
 | Network Analysis Agent | http://localhost:1003 | 1003 |
 | MADDPG Orchestrator | http://localhost:1004 | 1004 |
 | MADDPG Orchestrator DB | `localhost:5438` | 5438 |
+| **Observability** | | |
+| Grafana (logs + traces) | http://localhost:3009 | 3009 |
+| Tempo (traces) | http://localhost:3200 | 3200 |
+| Loki (logs) | http://localhost:3100 | 3100 |
 | **Frontend** | | |
 | Backoffice UI (Docker) | http://localhost:6060 | 6060 |
 | Backoffice UI (dev) | http://localhost:5173 | 5173 |

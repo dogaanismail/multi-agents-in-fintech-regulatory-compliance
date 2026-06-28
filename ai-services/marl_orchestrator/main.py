@@ -25,6 +25,7 @@ from app.consumers.fraud_analysis_requested_listener import fraud_analysis_reque
 from app.core.config import settings
 from app.core.dynamic_config import dynamic_config
 from app.core.logging import logger
+from app.core.telemetry import setup_telemetry
 from app.infrastructure.database.database import init_db
 from app.services.offline_trainer_service import offline_trainer_service
 
@@ -150,6 +151,10 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan,
 )
+
+# Distributed tracing: instrument inbound FastAPI requests + outbound httpx calls
+# to the three agents, and export spans to Jaeger via OTLP.
+setup_telemetry("marl-orchestrator", app=app, instrument_httpx=True)
 
 app.add_middleware(
     CORSMiddleware,

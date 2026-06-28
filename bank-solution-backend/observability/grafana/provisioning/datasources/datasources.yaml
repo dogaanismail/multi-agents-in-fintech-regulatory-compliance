@@ -1,0 +1,33 @@
+# Grafana datasources — Tempo (traces) + Loki (logs), with two-way correlation
+# keyed on the trace id that every service stamps into its logs.
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # From a trace span, jump to the matching logs in Loki.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        filterByTraceID: true
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      # From a log line, jump to its trace in Tempo. The regex extracts the
+      # 32-hex trace id from JSON logs ("trace.id"/"trace_id") and text logs (trace=...).
+      derivedFields:
+        - name: TraceID
+          matcherType: regex
+          matcherRegex: '(?:"?trace[._]?id"?\s*[:=]\s*"?)([0-9a-fA-F]{32})'
+          url: '${__value.raw}'
+          datasourceUid: tempo
+          urlDisplayLabel: 'View Trace'

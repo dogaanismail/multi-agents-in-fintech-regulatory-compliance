@@ -54,6 +54,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: default
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SERVER_PORT: 5001
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     depends_on:
       customer-db-migration:
         condition: service_completed_successfully
@@ -107,6 +109,8 @@ services:
       SERVER_PORT: 5002
       SIMULATION_BALANCE_SEED_ENABLED: "true"
       SIMULATION_BALANCE_SEED_AMOUNT: "1000000.00"
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     depends_on:
       account-db-migration:
         condition: service_completed_successfully
@@ -159,6 +163,8 @@ services:
       ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
       EXCHANGE_RATE_API_BASE_URL: https://api.exchangerate-api.com/v4/latest
       SERVER_PORT: 5003
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     depends_on:
       payment-db-migration:
         condition: service_completed_successfully
@@ -189,6 +195,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       SERVER_PORT: 5004
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     networks:
       - bank-network
       - aml-network
@@ -239,6 +247,8 @@ services:
       NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-svc:5007/api/v1/networks
       CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-svc:5008/api/v1/customer-profiles
       SERVER_PORT: 5006
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     networks:
       - bank-network
       - aml-network
@@ -296,6 +306,8 @@ services:
       - DB_SERVICE_USERNAME=default
       - DB_SERVICE_PASSWORD=default
       - APP_GRAPH_ALGORITHM_INTERVAL_MS=600000
+      - OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
+      - LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs
     depends_on:
       neo4j:
         condition: service_healthy
@@ -348,6 +360,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       SERVER_PORT: 5008
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     networks:
       - bank-network
       - aml-network
@@ -395,6 +409,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       SERVER_PORT: 5005
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     depends_on:
       payment-history-db-migration:
         condition: service_completed_successfully
@@ -443,6 +459,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: default
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SERVER_PORT: 5009
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     depends_on:
       configuration-db-migration:
         condition: service_completed_successfully
@@ -477,6 +495,8 @@ services:
       CONFIGURATION_SERVICE_URL: http://configuration-service:5009
       MARL_ORCHESTRATOR_URL: http://marl-orchestrator:1004
       CORS_ORIGINS: http://localhost:6060
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     networks:
       - bank-network
       - aml-multi-agent-network
@@ -505,10 +525,96 @@ services:
       - bank-network
     restart: unless-stopped
 
+  # ────────────────────────────────────────────────────────────────────────
+  # Observability stack: logs (Loki) + traces (Tempo) viewed in Grafana.
+  # All Java + Python services export OTLP spans to Tempo; Alloy ships every
+  # container's logs to Loki; Grafana correlates the two on the trace id.
+  # Grafana UI: http://localhost:3001
+  # ────────────────────────────────────────────────────────────────────────
+
+  # Distributed tracing backend (OTLP receiver + trace store)
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    volumes:
+      - ./observability/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo query API
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks:
+      - bank-network             # reachable by all Java services
+      - aml-multi-agent-network  # reachable by the Python AI services
+    restart: unless-stopped
+
+  # Log store
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: loki
+    command: [ "-config.file=/etc/loki/loki-config.yaml" ]
+    volumes:
+      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - bank-network
+      - aml-multi-agent-network
+    restart: unless-stopped
+
+  # Log collector — tails all Docker container logs and pushes them to Loki
+  alloy:
+    image: grafana/alloy:v1.5.1
+    container_name: alloy
+    command:
+      - "run"
+      - "--server.http.listen-addr=0.0.0.0:12345"
+      - "/etc/alloy/config.alloy"
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "12345:12345"   # Alloy UI
+    depends_on:
+      - loki
+    networks:
+      - bank-network
+      - aml-multi-agent-network
+    restart: unless-stopped
+
+  # Single UI for logs + traces
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3009:3000"   # Grafana UI (3001 is used by temporal-ui)
+    depends_on:
+      - tempo
+      - loki
+    networks:
+      - bank-network
+      - aml-multi-agent-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
   neo4j_data:
+    driver: local
+  tempo_data:
+    driver: local
+  loki_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:

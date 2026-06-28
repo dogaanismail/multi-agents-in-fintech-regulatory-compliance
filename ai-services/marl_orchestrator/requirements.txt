@@ -45,3 +45,9 @@ pytest==8.3.4               # Testing framework
 pytest-asyncio==0.24.0      # Async testing support
 pytest-cov==6.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Enhanced mocking
+
+# Distributed tracing (OpenTelemetry -> OTLP -> Jaeger)
+opentelemetry-sdk==1.29.0
+opentelemetry-exporter-otlp-proto-http==1.29.0
+opentelemetry-instrumentation-fastapi==0.50b0
+opentelemetry-instrumentation-httpx==0.50b0

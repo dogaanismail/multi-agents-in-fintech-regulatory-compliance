@@ -5,7 +5,7 @@ Generic producer that can publish any Avro message.
 Similar to Spring's KafkaTemplate<K,V>.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from confluent_kafka.avro import AvroProducer
 from confluent_kafka.avro.serializer import SerializerError
 
@@ -34,17 +34,19 @@ class AvroProducerWrapper:
         topic: str,
         value: Dict[str, Any],
         key: Optional[str] = None,
-        callback: Optional[callable] = None
+        callback: Optional[callable] = None,
+        headers: Optional[List[Tuple[str, bytes]]] = None
     ) -> bool:
         """
         Send Avro message to Kafka topic.
-        
+
         Args:
             topic: Kafka topic name
             value: Message value (will be Avro-serialized)
             key: Optional message key
             callback: Optional delivery callback
-        
+            headers: Optional Kafka record headers (e.g. W3C trace context)
+
         Returns:
             True if sent successfully, False otherwise
         """
@@ -53,7 +55,8 @@ class AvroProducerWrapper:
                 topic=topic,
                 value=value,
                 key=key,
-                callback=callback or self._default_callback
+                callback=callback or self._default_callback,
+                headers=headers
             )
             self.producer.poll(0)  # Trigger callbacks
             return True
