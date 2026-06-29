@@ -52,7 +52,7 @@ class KafkaAvroIntegrationTest {
 
         try (KafkaProducer<String, Object> producer = avroProducer()) {
             producer.send(new ProducerRecord<>(topic, PaymentFixtures.PAYMENT_UUID.toString(),
-                    AvroEventFixtures.riskAssessmentRequestedEvent()));
+                    AvroEventFixtures.createRiskAssessmentRequestedEvent()));
             producer.flush();
         }
 
@@ -71,7 +71,7 @@ class KafkaAvroIntegrationTest {
 
         try (KafkaProducer<String, Object> producer = avroProducer()) {
             producer.send(new ProducerRecord<>(topic, PaymentFixtures.PAYMENT_UUID.toString(),
-                    AvroEventFixtures.paymentCreatedEvent()));
+                    AvroEventFixtures.createPaymentCreatedEvent()));
             producer.flush();
         }
 

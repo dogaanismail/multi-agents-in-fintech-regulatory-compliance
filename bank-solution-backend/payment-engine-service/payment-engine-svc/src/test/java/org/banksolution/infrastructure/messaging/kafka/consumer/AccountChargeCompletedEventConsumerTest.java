@@ -30,7 +30,7 @@ class AccountChargeCompletedEventConsumerTest {
 
     @Test
     void shouldDelegateToHandlerAndAcknowledge() {
-        AccountChargeCompletedEvent event = AvroEventFixtures.accountChargeCompletedEvent(true, null);
+        AccountChargeCompletedEvent event = AvroEventFixtures.createAccountChargeCompletedEvent(true, null);
 
         consumer.consume(event, 0, 0L, acknowledgment);
 
@@ -40,7 +40,7 @@ class AccountChargeCompletedEventConsumerTest {
 
     @Test
     void shouldWrapHandlerFailureAndNotAcknowledge() {
-        AccountChargeCompletedEvent event = AvroEventFixtures.accountChargeCompletedEvent(true, null);
+        AccountChargeCompletedEvent event = AvroEventFixtures.createAccountChargeCompletedEvent(true, null);
         doThrow(new RuntimeException("boom")).when(handler).handle(any());
 
         assertThatThrownBy(() -> consumer.consume(event, 0, 0L, acknowledgment))

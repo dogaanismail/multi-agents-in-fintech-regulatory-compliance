@@ -30,7 +30,7 @@ class PaymentCreatedEventConsumerTest {
 
     @Test
     void shouldDelegateToHandlerAndAcknowledge() {
-        PaymentCreatedEvent event = AvroEventFixtures.paymentCreatedEvent();
+        PaymentCreatedEvent event = AvroEventFixtures.createPaymentCreatedEvent();
 
         consumer.consume(event, 0, 0L, acknowledgment);
 
@@ -40,7 +40,7 @@ class PaymentCreatedEventConsumerTest {
 
     @Test
     void shouldWrapHandlerFailureAndNotAcknowledge() {
-        PaymentCreatedEvent event = AvroEventFixtures.paymentCreatedEvent();
+        PaymentCreatedEvent event = AvroEventFixtures.createPaymentCreatedEvent();
         doThrow(new RuntimeException("boom")).when(handler).handle(any());
 
         assertThatThrownBy(() -> consumer.consume(event, 0, 0L, acknowledgment))

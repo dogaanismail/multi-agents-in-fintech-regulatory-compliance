@@ -31,7 +31,7 @@ class AccountChargeRequestedEventProducerTest {
 
     @Test
     void shouldPublishMappedAvroRequestToConfiguredTopic() {
-        producer.publishAccountChargeRequestedEvent(PaymentFixtures.accountChargeInitiatedEvent());
+        producer.publishAccountChargeRequestedEvent(PaymentFixtures.createAccountChargeInitiatedEvent());
 
         ArgumentCaptor<AccountChargeRequestedEvent> captor = ArgumentCaptor.forClass(AccountChargeRequestedEvent.class);
         verify(template).send(eq("account.charge.requested"), eq(PaymentFixtures.PAYMENT_UUID.toString()), captor.capture());

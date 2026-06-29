@@ -9,14 +9,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
-import static org.banksolution.fixtures.PaymentFixtures.accountChargeFailedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.accountChargeInitiatedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.accountChargedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.blockAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.confirmAccountChargedCommand;
-import static org.banksolution.fixtures.PaymentFixtures.failAccountChargeCommand;
-import static org.banksolution.fixtures.PaymentFixtures.paymentBlockedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.paymentCompletedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createAccountChargeFailedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createAccountChargeInitiatedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createAccountChargedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createBlockAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createConfirmAccountChargedCommand;
+import static org.banksolution.fixtures.PaymentFixtures.createFailAccountChargeCommand;
+import static org.banksolution.fixtures.PaymentFixtures.createPaymentBlockedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createPaymentCompletedEvent;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -36,7 +36,7 @@ class AccountChargeSagaTest {
     @Test
     void shouldStartSagaAndPublishAccountChargeRequest() {
         fixture.givenNoPriorActivity()
-                .whenPublishingA(accountChargeInitiatedEvent())
+                .whenPublishingA(createAccountChargeInitiatedEvent())
                 .expectActiveSagas(1);
 
         verify(accountChargeRequestedEventProducer).publishAccountChargeRequestedEvent(any(AccountChargeInitiatedEvent.class));
@@ -44,38 +44,38 @@ class AccountChargeSagaTest {
 
     @Test
     void shouldDispatchConfirmCommandOnAccountCharged() {
-        fixture.givenAPublished(accountChargeInitiatedEvent())
-                .whenPublishingA(accountChargedEvent())
+        fixture.givenAPublished(createAccountChargeInitiatedEvent())
+                .whenPublishingA(createAccountChargedEvent())
                 .expectActiveSagas(1)
-                .expectDispatchedCommands(confirmAccountChargedCommand());
+                .expectDispatchedCommands(createConfirmAccountChargedCommand());
     }
 
     @Test
     void shouldDispatchFailAccountChargeOnTimeout() {
-        fixture.givenAPublished(accountChargeInitiatedEvent())
+        fixture.givenAPublished(createAccountChargeInitiatedEvent())
                 .whenTimeElapses(Duration.ofMinutes(3))
                 .expectActiveSagas(1)
-                .expectDispatchedCommands(failAccountChargeCommand("Account charge timeout after 2 minutes"));
+                .expectDispatchedCommands(createFailAccountChargeCommand("Account charge timeout after 2 minutes"));
     }
 
     @Test
     void shouldEndSagaOnPaymentCompleted() {
-        fixture.givenAPublished(accountChargeInitiatedEvent())
-                .whenPublishingA(paymentCompletedEvent(PaymentStatus.COMPLETED, "Payment successfully processed and account charged"))
+        fixture.givenAPublished(createAccountChargeInitiatedEvent())
+                .whenPublishingA(createPaymentCompletedEvent(PaymentStatus.COMPLETED, "Payment successfully processed and account charged"))
                 .expectActiveSagas(0);
     }
 
     @Test
     void shouldEndSagaOnPaymentBlocked() {
-        fixture.givenAPublished(accountChargeInitiatedEvent())
-                .whenPublishingA(paymentBlockedEvent(blockAssessment()))
+        fixture.givenAPublished(createAccountChargeInitiatedEvent())
+                .whenPublishingA(createPaymentBlockedEvent(createBlockAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
     void shouldEndSagaOnAccountChargeFailed() {
-        fixture.givenAPublished(accountChargeInitiatedEvent())
-                .whenPublishingA(accountChargeFailedEvent("Insufficient funds"))
+        fixture.givenAPublished(createAccountChargeInitiatedEvent())
+                .whenPublishingA(createAccountChargeFailedEvent("Insufficient funds"))
                 .expectActiveSagas(0);
     }
 }

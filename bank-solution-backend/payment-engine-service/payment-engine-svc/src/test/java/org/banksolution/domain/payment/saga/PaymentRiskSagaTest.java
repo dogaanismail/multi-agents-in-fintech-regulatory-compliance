@@ -13,18 +13,18 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
-import static org.banksolution.fixtures.PaymentFixtures.blockAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.escalateAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.fraudCheckApprovedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.manualReviewRequestedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.paymentBlockedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.paymentCompletedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.paymentId;
-import static org.banksolution.fixtures.PaymentFixtures.proceedAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.riskAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.riskAssessmentCompletedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.riskAssessmentCompletedEventWithoutAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.riskAssessmentInitiatedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createBlockAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createEscalateAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createFraudCheckApprovedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createManualReviewRequestedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createPaymentBlockedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createPaymentCompletedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createPaymentId;
+import static org.banksolution.fixtures.PaymentFixtures.createProceedAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentCompletedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentCompletedEventWithoutAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentInitiatedEvent;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -43,7 +43,7 @@ class PaymentRiskSagaTest {
 
     @Test
     void shouldStartSagaAndPublishRiskAssessmentRequest() {
-        RiskAssessmentInitiatedEvent event = riskAssessmentInitiatedEvent();
+        RiskAssessmentInitiatedEvent event = createRiskAssessmentInitiatedEvent();
 
         fixture.givenNoPriorActivity()
                 .whenPublishingA(event)
@@ -54,51 +54,51 @@ class PaymentRiskSagaTest {
 
     @Test
     void shouldDispatchApproveFraudCheckOnProceedAction() {
-        RiskAssessment riskAssessment = proceedAssessment();
+        RiskAssessment riskAssessment = createProceedAssessment();
 
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(riskAssessmentCompletedEvent(riskAssessment))
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
                 .expectActiveSagas(1)
-                .expectDispatchedCommands(new ApproveFraudCheckCommand(paymentId(), riskAssessment));
+                .expectDispatchedCommands(new ApproveFraudCheckCommand(createPaymentId(), riskAssessment));
     }
 
     @Test
     void shouldDispatchRequestManualReviewOnEscalateAction() {
-        RiskAssessment riskAssessment = escalateAssessment();
+        RiskAssessment riskAssessment = createEscalateAssessment();
 
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(riskAssessmentCompletedEvent(riskAssessment))
-                .expectDispatchedCommands(new RequestManualReviewCommand(paymentId(), riskAssessment));
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
+                .expectDispatchedCommands(new RequestManualReviewCommand(createPaymentId(), riskAssessment));
     }
 
     @Test
     void shouldDispatchBlockPaymentOnBlockAction() {
-        RiskAssessment riskAssessment = blockAssessment();
+        RiskAssessment riskAssessment = createBlockAssessment();
 
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(riskAssessmentCompletedEvent(riskAssessment))
-                .expectDispatchedCommands(new BlockPaymentCommand(paymentId(), riskAssessment));
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
+                .expectDispatchedCommands(new BlockPaymentCommand(createPaymentId(), riskAssessment));
     }
 
     @Test
     void shouldEndSagaWithoutCommandsOnNullAssessment() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(riskAssessmentCompletedEventWithoutAssessment())
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createRiskAssessmentCompletedEventWithoutAssessment())
                 .expectActiveSagas(0)
                 .expectNoDispatchedCommands();
     }
 
     @Test
     void shouldEndSagaWithoutCommandsOnUnknownAction() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(riskAssessmentCompletedEvent(riskAssessment("HOLD", "LOW", 0.50)))
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createRiskAssessmentCompletedEvent(createRiskAssessment("HOLD", "LOW", 0.50)))
                 .expectActiveSagas(0)
                 .expectNoDispatchedCommands();
     }
 
     @Test
     void shouldEndSagaWithoutDispatchingCommandsOnTimeout() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
                 .whenTimeElapses(Duration.ofMinutes(2))
                 .expectActiveSagas(0)
                 .expectNoDispatchedCommands();
@@ -106,29 +106,29 @@ class PaymentRiskSagaTest {
 
     @Test
     void shouldEndSagaOnFraudCheckApproved() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(fraudCheckApprovedEvent(proceedAssessment()))
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createFraudCheckApprovedEvent(createProceedAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
     void shouldEndSagaOnManualReviewRequested() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(manualReviewRequestedEvent(escalateAssessment()))
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createManualReviewRequestedEvent(createEscalateAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
     void shouldEndSagaOnPaymentBlocked() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(paymentBlockedEvent(blockAssessment()))
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createPaymentBlockedEvent(createBlockAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
     void shouldEndSagaOnPaymentCompleted() {
-        fixture.givenAPublished(riskAssessmentInitiatedEvent())
-                .whenPublishingA(paymentCompletedEvent(PaymentStatus.COMPLETED, "done"))
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createPaymentCompletedEvent(PaymentStatus.COMPLETED, "done"))
                 .expectActiveSagas(0);
     }
 }

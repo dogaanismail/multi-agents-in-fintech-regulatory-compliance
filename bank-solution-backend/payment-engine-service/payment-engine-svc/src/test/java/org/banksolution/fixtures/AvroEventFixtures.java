@@ -17,7 +17,7 @@ public final class AvroEventFixtures {
     private AvroEventFixtures() {
     }
 
-    public static PaymentCreatedEvent paymentCreatedEvent() {
+    public static PaymentCreatedEvent createPaymentCreatedEvent() {
         return PaymentCreatedEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())
                 .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
@@ -36,7 +36,7 @@ public final class AvroEventFixtures {
                 .build();
     }
 
-    public static PaymentCreatedEvent depositPaymentCreatedEvent() {
+    public static PaymentCreatedEvent createDepositPaymentCreatedEvent() {
         return PaymentCreatedEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())
                 .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
@@ -55,7 +55,7 @@ public final class AvroEventFixtures {
                 .build();
     }
 
-    public static RiskAssessmentCompletedEvent riskAssessmentCompletedEvent(RiskAction action, RiskLevel level, double score) {
+    public static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEvent(RiskAction action, RiskLevel level, double score) {
         return RiskAssessmentCompletedEvent.newBuilder()
                 .setRiskCheckRequestId(UUID.randomUUID().toString())
                 .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
@@ -69,7 +69,7 @@ public final class AvroEventFixtures {
                 .build();
     }
 
-    public static AccountChargeCompletedEvent accountChargeCompletedEvent(boolean success, String failureReason) {
+    public static AccountChargeCompletedEvent createAccountChargeCompletedEvent(boolean success, String failureReason) {
         return AccountChargeCompletedEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())
                 .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
@@ -85,7 +85,7 @@ public final class AvroEventFixtures {
                 .build();
     }
 
-    public static RiskAssessmentRequestedEvent riskAssessmentRequestedEvent() {
+    public static RiskAssessmentRequestedEvent createRiskAssessmentRequestedEvent() {
         return RiskAssessmentRequestedEvent.newBuilder()
                 .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
                 .setCustomerId(PaymentFixtures.CUSTOMER_ID.toString())

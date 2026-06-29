@@ -45,29 +45,29 @@ public final class PaymentFixtures {
     private PaymentFixtures() {
     }
 
-    public static PaymentId paymentId() {
+    public static PaymentId createPaymentId() {
         return new PaymentId(PAYMENT_UUID);
     }
 
-    public static RiskAssessment riskAssessment(String action, String level, double score) {
+    public static RiskAssessment createRiskAssessment(String action, String level, double score) {
         return new RiskAssessment("risk-req-1", score, level, action, List.of("NONE"), "model-v1", 12L, null);
     }
 
-    public static RiskAssessment proceedAssessment() {
-        return riskAssessment("PROCEED", "LOW", 0.10);
+    public static RiskAssessment createProceedAssessment() {
+        return createRiskAssessment("PROCEED", "LOW", 0.10);
     }
 
-    public static RiskAssessment escalateAssessment() {
-        return riskAssessment("ESCALATE", "MEDIUM", 0.60);
+    public static RiskAssessment createEscalateAssessment() {
+        return createRiskAssessment("ESCALATE", "MEDIUM", 0.60);
     }
 
-    public static RiskAssessment blockAssessment() {
-        return riskAssessment("BLOCK", "HIGH", 0.95);
+    public static RiskAssessment createBlockAssessment() {
+        return createRiskAssessment("BLOCK", "HIGH", 0.95);
     }
 
-    public static InitiatePaymentCommand initiatePaymentCommand() {
+    public static InitiatePaymentCommand createInitiatePaymentCommand() {
         return new InitiatePaymentCommand(
-                paymentId(),
+                createPaymentId(),
                 CUSTOMER_ID,
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
@@ -82,33 +82,33 @@ public final class PaymentFixtures {
         );
     }
 
-    public static ApproveFraudCheckCommand approveFraudCheckCommand(RiskAssessment riskAssessment) {
-        return new ApproveFraudCheckCommand(paymentId(), riskAssessment);
+    public static ApproveFraudCheckCommand createApproveFraudCheckCommand(RiskAssessment riskAssessment) {
+        return new ApproveFraudCheckCommand(createPaymentId(), riskAssessment);
     }
 
-    public static RequestManualReviewCommand requestManualReviewCommand(RiskAssessment riskAssessment) {
-        return new RequestManualReviewCommand(paymentId(), riskAssessment);
+    public static RequestManualReviewCommand createRequestManualReviewCommand(RiskAssessment riskAssessment) {
+        return new RequestManualReviewCommand(createPaymentId(), riskAssessment);
     }
 
-    public static BlockPaymentCommand blockPaymentCommand(RiskAssessment riskAssessment) {
-        return new BlockPaymentCommand(paymentId(), riskAssessment);
+    public static BlockPaymentCommand createBlockPaymentCommand(RiskAssessment riskAssessment) {
+        return new BlockPaymentCommand(createPaymentId(), riskAssessment);
     }
 
-    public static ApproveManualReviewCommand approveManualReviewCommand() {
-        return new ApproveManualReviewCommand(paymentId(), "officer-1", "Looks legitimate");
+    public static ApproveManualReviewCommand createApproveManualReviewCommand() {
+        return new ApproveManualReviewCommand(createPaymentId(), "officer-1", "Looks legitimate");
     }
 
-    public static RejectManualReviewCommand rejectManualReviewCommand() {
-        return new RejectManualReviewCommand(paymentId(), "officer-1", "Confirmed fraud");
+    public static RejectManualReviewCommand createRejectManualReviewCommand() {
+        return new RejectManualReviewCommand(createPaymentId(), "officer-1", "Confirmed fraud");
     }
 
-    public static OverrideDecisionCommand overrideDecisionCommand() {
-        return new OverrideDecisionCommand(paymentId(), "officer-1", "False positive", true);
+    public static OverrideDecisionCommand createOverrideDecisionCommand() {
+        return new OverrideDecisionCommand(createPaymentId(), "officer-1", "False positive", true);
     }
 
-    public static ChargeAccountCommand chargeAccountCommand() {
+    public static ChargeAccountCommand createChargeAccountCommand() {
         return new ChargeAccountCommand(
-                paymentId(),
+                createPaymentId(),
                 CUSTOMER_ID,
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
@@ -122,13 +122,13 @@ public final class PaymentFixtures {
         );
     }
 
-    public static OverrideDecisionCommand overrideDecisionCommand(boolean approvePayment) {
-        return new OverrideDecisionCommand(paymentId(), "officer-1", "False positive", approvePayment);
+    public static OverrideDecisionCommand createOverrideDecisionCommand(boolean approvePayment) {
+        return new OverrideDecisionCommand(createPaymentId(), "officer-1", "False positive", approvePayment);
     }
 
-    public static ConfirmAccountChargedCommand confirmAccountChargedCommand() {
+    public static ConfirmAccountChargedCommand createConfirmAccountChargedCommand() {
         return new ConfirmAccountChargedCommand(
-                paymentId(),
+                createPaymentId(),
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
                 AMOUNT,
@@ -138,13 +138,13 @@ public final class PaymentFixtures {
         );
     }
 
-    public static FailAccountChargeCommand failAccountChargeCommand(String reason) {
-        return new FailAccountChargeCommand(paymentId(), reason);
+    public static FailAccountChargeCommand createFailAccountChargeCommand(String reason) {
+        return new FailAccountChargeCommand(createPaymentId(), reason);
     }
 
-    public static PaymentInitiatedEvent paymentInitiatedEvent() {
+    public static PaymentInitiatedEvent createPaymentInitiatedEvent() {
         return new PaymentInitiatedEvent(
-                paymentId(),
+                createPaymentId(),
                 CUSTOMER_ID,
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
@@ -159,9 +159,9 @@ public final class PaymentFixtures {
         );
     }
 
-    public static RiskAssessmentInitiatedEvent riskAssessmentInitiatedEvent() {
+    public static RiskAssessmentInitiatedEvent createRiskAssessmentInitiatedEvent() {
         return new RiskAssessmentInitiatedEvent(
-                paymentId(),
+                createPaymentId(),
                 CUSTOMER_ID,
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
@@ -173,27 +173,27 @@ public final class PaymentFixtures {
         );
     }
 
-    public static RiskAssessmentCompletedEvent riskAssessmentCompletedEvent(RiskAssessment riskAssessment) {
-        return new RiskAssessmentCompletedEvent(paymentId(), riskAssessment);
+    public static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEvent(RiskAssessment riskAssessment) {
+        return new RiskAssessmentCompletedEvent(createPaymentId(), riskAssessment);
     }
 
-    public static FraudCheckApprovedEvent fraudCheckApprovedEvent(RiskAssessment riskAssessment) {
-        return new FraudCheckApprovedEvent(paymentId(), riskAssessment);
+    public static FraudCheckApprovedEvent createFraudCheckApprovedEvent(RiskAssessment riskAssessment) {
+        return new FraudCheckApprovedEvent(createPaymentId(), riskAssessment);
     }
 
-    public static ManualReviewRequestedEvent manualReviewRequestedEvent(RiskAssessment riskAssessment) {
-        return new ManualReviewRequestedEvent(paymentId(), riskAssessment.riskScore(), null, riskAssessment);
+    public static ManualReviewRequestedEvent createManualReviewRequestedEvent(RiskAssessment riskAssessment) {
+        return new ManualReviewRequestedEvent(createPaymentId(), riskAssessment.riskScore(), null, riskAssessment);
     }
 
-    public static PaymentBlockedEvent paymentBlockedEvent(RiskAssessment riskAssessment) {
+    public static PaymentBlockedEvent createPaymentBlockedEvent(RiskAssessment riskAssessment) {
         String reason = String.format("Risk level: %s, Risk score: %s",
                 riskAssessment.riskLevel(), riskAssessment.riskScore());
-        return new PaymentBlockedEvent(paymentId(), reason, riskAssessment.riskScore(), null, riskAssessment);
+        return new PaymentBlockedEvent(createPaymentId(), reason, riskAssessment.riskScore(), null, riskAssessment);
     }
 
-    public static AccountChargeInitiatedEvent accountChargeInitiatedEvent() {
+    public static AccountChargeInitiatedEvent createAccountChargeInitiatedEvent() {
         return new AccountChargeInitiatedEvent(
-                paymentId(),
+                createPaymentId(),
                 CUSTOMER_ID,
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
@@ -207,9 +207,9 @@ public final class PaymentFixtures {
         );
     }
 
-    public static AccountChargedEvent accountChargedEvent() {
+    public static AccountChargedEvent createAccountChargedEvent() {
         return new AccountChargedEvent(
-                paymentId(),
+                createPaymentId(),
                 SOURCE_ACCOUNT_ID,
                 DESTINATION_ACCOUNT_ID,
                 AMOUNT,
@@ -219,15 +219,15 @@ public final class PaymentFixtures {
         );
     }
 
-    public static PaymentCompletedEvent paymentCompletedEvent(PaymentStatus finalStatus, String reason) {
-        return new PaymentCompletedEvent(paymentId(), finalStatus, reason);
+    public static PaymentCompletedEvent createPaymentCompletedEvent(PaymentStatus finalStatus, String reason) {
+        return new PaymentCompletedEvent(createPaymentId(), finalStatus, reason);
     }
 
-    public static AccountChargeFailedEvent accountChargeFailedEvent(String reason) {
-        return new AccountChargeFailedEvent(paymentId(), reason);
+    public static AccountChargeFailedEvent createAccountChargeFailedEvent(String reason) {
+        return new AccountChargeFailedEvent(createPaymentId(), reason);
     }
 
-    public static RiskAssessmentCompletedEvent riskAssessmentCompletedEventWithoutAssessment() {
-        return new RiskAssessmentCompletedEvent(paymentId(), null);
+    public static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEventWithoutAssessment() {
+        return new RiskAssessmentCompletedEvent(createPaymentId(), null);
     }
 }
