@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -50,13 +51,12 @@ class KafkaAvroIntegrationTest {
     static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
 
     @Test
-    void shouldPublishAndConsumeRiskAssessmentRequestedEvent() {
+    void shouldPublishAndConsumeRiskAssessmentRequestedEvent() throws Exception {
         String topic = "risk.assessment.requested";
 
         try (KafkaProducer<String, Object> producer = avroProducer()) {
             producer.send(new ProducerRecord<>(topic, PaymentFixtures.PAYMENT_UUID.toString(),
-                    AvroEventFixtures.createRiskAssessmentRequestedEvent()));
-            producer.flush();
+                    AvroEventFixtures.createRiskAssessmentRequestedEvent())).get(15, TimeUnit.SECONDS);
         }
 
         SpecificRecord consumed = consumeOne(topic);
@@ -69,13 +69,12 @@ class KafkaAvroIntegrationTest {
     }
 
     @Test
-    void shouldConsumePaymentCreatedEventAndDispatchInitiateCommand() {
+    void shouldConsumePaymentCreatedEventAndDispatchInitiateCommand() throws Exception {
         String topic = "payment-created-events";
 
         try (KafkaProducer<String, Object> producer = avroProducer()) {
             producer.send(new ProducerRecord<>(topic, PaymentFixtures.PAYMENT_UUID.toString(),
-                    AvroEventFixtures.createPaymentCreatedEvent()));
-            producer.flush();
+                    AvroEventFixtures.createPaymentCreatedEvent())).get(15, TimeUnit.SECONDS);
         }
 
         SpecificRecord consumed = consumeOne(topic);
