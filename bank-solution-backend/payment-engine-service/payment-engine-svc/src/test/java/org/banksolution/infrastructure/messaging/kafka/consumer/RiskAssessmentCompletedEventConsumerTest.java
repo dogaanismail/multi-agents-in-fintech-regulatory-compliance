@@ -31,7 +31,7 @@ class RiskAssessmentCompletedEventConsumerTest {
     }
 
     @Test
-    void delegatesToHandlerAndAcknowledges() {
+    void shouldDelegateToHandlerAndAcknowledge() {
         RiskAssessmentCompletedEvent event = AvroEventFixtures.riskAssessmentCompletedEvent(RiskAction.PROCEED, RiskLevel.LOW, 0.10);
 
         consumer.consume(event, 0, 0L, acknowledgment);
@@ -41,7 +41,7 @@ class RiskAssessmentCompletedEventConsumerTest {
     }
 
     @Test
-    void wrapsHandlerFailureAndDoesNotAcknowledge() {
+    void shouldWrapHandlerFailureAndNotAcknowledge() {
         RiskAssessmentCompletedEvent event = AvroEventFixtures.riskAssessmentCompletedEvent(RiskAction.PROCEED, RiskLevel.LOW, 0.10);
         doThrow(new RuntimeException("boom")).when(handler).handle(any());
 

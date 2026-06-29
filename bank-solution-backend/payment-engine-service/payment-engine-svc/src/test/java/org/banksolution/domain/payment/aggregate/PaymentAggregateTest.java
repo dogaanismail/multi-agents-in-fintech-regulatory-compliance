@@ -46,7 +46,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void initiatePaymentEmitsPaymentInitiatedAndRiskAssessmentInitiated() {
+    void shouldEmitPaymentInitiatedAndRiskAssessmentInitiatedOnInitiate() {
         fixture.givenNoPriorActivity()
                 .when(initiatePaymentCommand())
                 .expectSuccessfulHandlerExecution()
@@ -54,7 +54,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void approveFraudCheckApprovesAndInitiatesAccountCharge() {
+    void shouldApproveFraudCheckAndInitiateAccountCharge() {
         RiskAssessment riskAssessment = proceedAssessment();
 
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
@@ -63,14 +63,14 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void chargeAccountFromApprovedEmitsAccountChargeInitiated() {
+    void shouldEmitAccountChargeInitiatedWhenChargingApprovedPayment() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), fraudCheckApprovedEvent(proceedAssessment()))
                 .when(chargeAccountCommand())
                 .expectEvents(accountChargeInitiatedEvent());
     }
 
     @Test
-    void blockPaymentFromFraudPendingEmitsBlockedAndCompleted() {
+    void shouldEmitBlockedAndCompletedWhenBlockingFromFraudPending() {
         RiskAssessment riskAssessment = blockAssessment();
         String reason = String.format("Risk level: %s, Risk score: %s",
                 riskAssessment.riskLevel(), riskAssessment.riskScore());
@@ -82,7 +82,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void blockPaymentFromAccountChargePendingEmitsBlockedAndCompleted() {
+    void shouldEmitBlockedAndCompletedWhenBlockingFromAccountChargePending() {
         RiskAssessment riskAssessment = blockAssessment();
         String reason = String.format("Risk level: %s, Risk score: %s",
                 riskAssessment.riskLevel(), riskAssessment.riskScore());
@@ -95,7 +95,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void requestManualReviewEmitsManualReviewRequested() {
+    void shouldEmitManualReviewRequestedWhenRequestingManualReview() {
         RiskAssessment riskAssessment = escalateAssessment();
 
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
@@ -104,7 +104,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void approveManualReviewResumesIntoAccountCharge() {
+    void shouldResumeIntoAccountChargeWhenApprovingManualReview() {
         RiskAssessment riskAssessment = escalateAssessment();
 
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), manualReviewRequestedEvent(riskAssessment))
@@ -114,7 +114,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void rejectManualReviewBlocksAndCompletesPayment() {
+    void shouldBlockAndCompletePaymentWhenRejectingManualReview() {
         RiskAssessment riskAssessment = escalateAssessment();
 
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), manualReviewRequestedEvent(riskAssessment))
@@ -124,7 +124,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void confirmAccountChargedCompletesPayment() {
+    void shouldCompletePaymentWhenConfirmingAccountCharged() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(),
                         fraudCheckApprovedEvent(proceedAssessment()), accountChargeInitiatedEvent())
                 .when(confirmAccountChargedCommand())
@@ -133,7 +133,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void failAccountChargeFailsAndCompletesPayment() {
+    void shouldFailAndCompletePaymentWhenAccountChargeFails() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(),
                         fraudCheckApprovedEvent(proceedAssessment()), accountChargeInitiatedEvent())
                 .when(failAccountChargeCommand("Insufficient funds"))
@@ -142,7 +142,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void overrideDecisionApproveFromBlockedEmitsDecisionOverridden() {
+    void shouldEmitDecisionOverriddenWhenApprovingOverrideFromBlocked() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), paymentBlockedEvent(blockAssessment()))
                 .when(overrideDecisionCommand(true))
                 .expectEvents(new DecisionOverriddenEvent(paymentId(), "officer-1", "False positive", true,
@@ -150,7 +150,7 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void overrideDecisionRejectFromBlockedEmitsDecisionOverridden() {
+    void shouldEmitDecisionOverriddenWhenRejectingOverrideFromBlocked() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), paymentBlockedEvent(blockAssessment()))
                 .when(overrideDecisionCommand(false))
                 .expectEvents(new DecisionOverriddenEvent(paymentId(), "officer-1", "False positive", false,
@@ -158,63 +158,63 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void approveFraudCheckRejectedWhenNotFraudPending() {
+    void shouldRejectApproveFraudCheckWhenNotFraudPending() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), fraudCheckApprovedEvent(proceedAssessment()))
                 .when(approveFraudCheckCommand(proceedAssessment()))
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void blockPaymentRejectedWhenNotPendingOrCharging() {
+    void shouldRejectBlockPaymentWhenNotPendingOrCharging() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), fraudCheckApprovedEvent(proceedAssessment()))
                 .when(blockPaymentCommand(blockAssessment()))
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void requestManualReviewRejectedWhenNotFraudPending() {
+    void shouldRejectRequestManualReviewWhenNotFraudPending() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent(), fraudCheckApprovedEvent(proceedAssessment()))
                 .when(requestManualReviewCommand(escalateAssessment()))
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void chargeAccountRejectedWhenNotApproved() {
+    void shouldRejectChargeAccountWhenNotApproved() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
                 .when(chargeAccountCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void approveManualReviewRejectedWhenNotInReview() {
+    void shouldRejectApproveManualReviewWhenNotInReview() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
                 .when(approveManualReviewCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void rejectManualReviewRejectedWhenNotInReview() {
+    void shouldRejectRejectManualReviewWhenNotInReview() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
                 .when(rejectManualReviewCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void confirmAccountChargedRejectedWhenNotCharging() {
+    void shouldRejectConfirmAccountChargedWhenNotCharging() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
                 .when(confirmAccountChargedCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void failAccountChargeRejectedWhenNotCharging() {
+    void shouldRejectFailAccountChargeWhenNotCharging() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
                 .when(failAccountChargeCommand("Insufficient funds"))
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void overrideDecisionRejectedWhenNotBlocked() {
+    void shouldRejectOverrideDecisionWhenNotBlocked() {
         fixture.given(paymentInitiatedEvent(), riskAssessmentInitiatedEvent())
                 .when(overrideDecisionCommand(true))
                 .expectException(InvalidPaymentStateException.class);

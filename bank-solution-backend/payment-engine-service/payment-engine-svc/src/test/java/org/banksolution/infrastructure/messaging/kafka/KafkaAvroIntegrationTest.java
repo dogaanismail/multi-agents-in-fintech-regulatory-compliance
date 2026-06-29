@@ -47,7 +47,7 @@ class KafkaAvroIntegrationTest {
     static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
 
     @Test
-    void publishesAndConsumesRiskAssessmentRequestedEvent() {
+    void shouldPublishAndConsumeRiskAssessmentRequestedEvent() {
         String topic = "risk.assessment.requested";
 
         try (KafkaProducer<String, Object> producer = avroProducer()) {
@@ -66,7 +66,7 @@ class KafkaAvroIntegrationTest {
     }
 
     @Test
-    void consumesPaymentCreatedEventAndDispatchesInitiateCommand() {
+    void shouldConsumePaymentCreatedEventAndDispatchInitiateCommand() {
         String topic = "payment-created-events";
 
         try (KafkaProducer<String, Object> producer = avroProducer()) {

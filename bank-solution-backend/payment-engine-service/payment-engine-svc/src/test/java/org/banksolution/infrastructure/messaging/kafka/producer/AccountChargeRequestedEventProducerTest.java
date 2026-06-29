@@ -30,7 +30,7 @@ class AccountChargeRequestedEventProducerTest {
     }
 
     @Test
-    void publishesMappedAvroRequestToConfiguredTopic() {
+    void shouldPublishMappedAvroRequestToConfiguredTopic() {
         producer.publishAccountChargeRequestedEvent(PaymentFixtures.accountChargeInitiatedEvent());
 
         ArgumentCaptor<AccountChargeRequestedEvent> captor = ArgumentCaptor.forClass(AccountChargeRequestedEvent.class);

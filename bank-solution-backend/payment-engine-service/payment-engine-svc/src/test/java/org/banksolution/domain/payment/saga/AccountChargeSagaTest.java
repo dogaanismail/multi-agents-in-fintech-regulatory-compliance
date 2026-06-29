@@ -34,7 +34,7 @@ class AccountChargeSagaTest {
     }
 
     @Test
-    void startsSagaAndPublishesAccountChargeRequest() {
+    void shouldStartSagaAndPublishAccountChargeRequest() {
         fixture.givenNoPriorActivity()
                 .whenPublishingA(accountChargeInitiatedEvent())
                 .expectActiveSagas(1);
@@ -43,7 +43,7 @@ class AccountChargeSagaTest {
     }
 
     @Test
-    void accountChargedDispatchesConfirmCommand() {
+    void shouldDispatchConfirmCommandOnAccountCharged() {
         fixture.givenAPublished(accountChargeInitiatedEvent())
                 .whenPublishingA(accountChargedEvent())
                 .expectActiveSagas(1)
@@ -51,7 +51,7 @@ class AccountChargeSagaTest {
     }
 
     @Test
-    void timeoutDispatchesFailAccountCharge() {
+    void shouldDispatchFailAccountChargeOnTimeout() {
         fixture.givenAPublished(accountChargeInitiatedEvent())
                 .whenTimeElapses(Duration.ofMinutes(3))
                 .expectActiveSagas(1)
@@ -59,21 +59,21 @@ class AccountChargeSagaTest {
     }
 
     @Test
-    void paymentCompletedEndsSaga() {
+    void shouldEndSagaOnPaymentCompleted() {
         fixture.givenAPublished(accountChargeInitiatedEvent())
                 .whenPublishingA(paymentCompletedEvent(PaymentStatus.COMPLETED, "Payment successfully processed and account charged"))
                 .expectActiveSagas(0);
     }
 
     @Test
-    void paymentBlockedEndsSaga() {
+    void shouldEndSagaOnPaymentBlocked() {
         fixture.givenAPublished(accountChargeInitiatedEvent())
                 .whenPublishingA(paymentBlockedEvent(blockAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
-    void accountChargeFailedEndsSaga() {
+    void shouldEndSagaOnAccountChargeFailed() {
         fixture.givenAPublished(accountChargeInitiatedEvent())
                 .whenPublishingA(accountChargeFailedEvent("Insufficient funds"))
                 .expectActiveSagas(0);

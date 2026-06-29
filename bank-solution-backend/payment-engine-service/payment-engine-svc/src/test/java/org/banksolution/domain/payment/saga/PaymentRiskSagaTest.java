@@ -42,7 +42,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void startsSagaAndPublishesRiskAssessmentRequest() {
+    void shouldStartSagaAndPublishRiskAssessmentRequest() {
         RiskAssessmentInitiatedEvent event = riskAssessmentInitiatedEvent();
 
         fixture.givenNoPriorActivity()
@@ -53,7 +53,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void proceedActionDispatchesApproveFraudCheck() {
+    void shouldDispatchApproveFraudCheckOnProceedAction() {
         RiskAssessment riskAssessment = proceedAssessment();
 
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
@@ -63,7 +63,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void escalateActionDispatchesRequestManualReview() {
+    void shouldDispatchRequestManualReviewOnEscalateAction() {
         RiskAssessment riskAssessment = escalateAssessment();
 
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
@@ -72,7 +72,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void blockActionDispatchesBlockPayment() {
+    void shouldDispatchBlockPaymentOnBlockAction() {
         RiskAssessment riskAssessment = blockAssessment();
 
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
@@ -81,7 +81,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void nullAssessmentEndsSagaWithoutCommands() {
+    void shouldEndSagaWithoutCommandsOnNullAssessment() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenPublishingA(riskAssessmentCompletedEventWithoutAssessment())
                 .expectActiveSagas(0)
@@ -89,7 +89,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void unknownActionEndsSagaWithoutCommands() {
+    void shouldEndSagaWithoutCommandsOnUnknownAction() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenPublishingA(riskAssessmentCompletedEvent(riskAssessment("HOLD", "LOW", 0.50)))
                 .expectActiveSagas(0)
@@ -97,7 +97,7 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void timeoutEndsSagaWithoutDispatchingCommands() {
+    void shouldEndSagaWithoutDispatchingCommandsOnTimeout() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenTimeElapses(Duration.ofMinutes(2))
                 .expectActiveSagas(0)
@@ -105,28 +105,28 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void fraudCheckApprovedEndsSaga() {
+    void shouldEndSagaOnFraudCheckApproved() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenPublishingA(fraudCheckApprovedEvent(proceedAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
-    void manualReviewRequestedEndsSaga() {
+    void shouldEndSagaOnManualReviewRequested() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenPublishingA(manualReviewRequestedEvent(escalateAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
-    void paymentBlockedEndsSaga() {
+    void shouldEndSagaOnPaymentBlocked() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenPublishingA(paymentBlockedEvent(blockAssessment()))
                 .expectActiveSagas(0);
     }
 
     @Test
-    void paymentCompletedEndsSaga() {
+    void shouldEndSagaOnPaymentCompleted() {
         fixture.givenAPublished(riskAssessmentInitiatedEvent())
                 .whenPublishingA(paymentCompletedEvent(PaymentStatus.COMPLETED, "done"))
                 .expectActiveSagas(0);

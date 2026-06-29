@@ -29,7 +29,7 @@ class AccountChargeCompletedEventHandlerTest {
     }
 
     @Test
-    void successfulChargeDispatchesConfirmCommand() {
+    void shouldDispatchConfirmCommandOnSuccessfulCharge() {
         handler.handle(AvroEventFixtures.accountChargeCompletedEvent(true, null));
 
         ArgumentCaptor<ConfirmAccountChargedCommand> captor = ArgumentCaptor.forClass(ConfirmAccountChargedCommand.class);
@@ -42,7 +42,7 @@ class AccountChargeCompletedEventHandlerTest {
     }
 
     @Test
-    void failedChargeDispatchesFailCommand() {
+    void shouldDispatchFailCommandOnFailedCharge() {
         handler.handle(AvroEventFixtures.accountChargeCompletedEvent(false, "Insufficient funds"));
 
         ArgumentCaptor<FailAccountChargeCommand> captor = ArgumentCaptor.forClass(FailAccountChargeCommand.class);
@@ -53,7 +53,7 @@ class AccountChargeCompletedEventHandlerTest {
     }
 
     @Test
-    void staleEventRejectedByAggregateIsSwallowed() {
+    void shouldSwallowStaleEventRejectedByAggregate() {
         when(commandGateway.sendAndWait(any())).thenThrow(new InvalidPaymentStateException("payment already terminal"));
 
         assertThatNoException()

@@ -24,7 +24,7 @@ class PaymentCreatedEventHandlerTest {
     }
 
     @Test
-    void dispatchesInitiatePaymentCommandFromAvroEvent() {
+    void shouldDispatchInitiatePaymentCommandFromAvroEvent() {
         handler.handle(AvroEventFixtures.paymentCreatedEvent());
 
         ArgumentCaptor<InitiatePaymentCommand> captor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);
@@ -40,7 +40,7 @@ class PaymentCreatedEventHandlerTest {
     }
 
     @Test
-    void mapsNullableAccountsAndExchangeRateForDeposit() {
+    void shouldMapNullableAccountsAndExchangeRateForDeposit() {
         handler.handle(AvroEventFixtures.depositPaymentCreatedEvent());
 
         ArgumentCaptor<InitiatePaymentCommand> captor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);

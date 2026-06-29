@@ -26,7 +26,7 @@ class RiskAssessmentCompletedEventHandlerTest {
     }
 
     @Test
-    void publishesDomainRiskAssessmentCompletedEvent() {
+    void shouldPublishDomainRiskAssessmentCompletedEvent() {
         handler.handle(AvroEventFixtures.riskAssessmentCompletedEvent(RiskAction.PROCEED, RiskLevel.LOW, 0.10));
 
         ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);

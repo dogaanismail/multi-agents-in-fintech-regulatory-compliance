@@ -30,7 +30,7 @@ class RiskAssessmentRequestedEventProducerTest {
     }
 
     @Test
-    void publishesMappedAvroRequestToConfiguredTopic() {
+    void shouldPublishMappedAvroRequestToConfiguredTopic() {
         producer.publishRiskAssessmentRequestedEvent(PaymentFixtures.riskAssessmentInitiatedEvent());
 
         ArgumentCaptor<RiskAssessmentRequestedEvent> captor = ArgumentCaptor.forClass(RiskAssessmentRequestedEvent.class);

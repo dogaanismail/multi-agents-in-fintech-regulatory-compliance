@@ -29,7 +29,7 @@ class PaymentCreatedEventConsumerTest {
     }
 
     @Test
-    void delegatesToHandlerAndAcknowledges() {
+    void shouldDelegateToHandlerAndAcknowledge() {
         PaymentCreatedEvent event = AvroEventFixtures.paymentCreatedEvent();
 
         consumer.consume(event, 0, 0L, acknowledgment);
@@ -39,7 +39,7 @@ class PaymentCreatedEventConsumerTest {
     }
 
     @Test
-    void wrapsHandlerFailureAndDoesNotAcknowledge() {
+    void shouldWrapHandlerFailureAndNotAcknowledge() {
         PaymentCreatedEvent event = AvroEventFixtures.paymentCreatedEvent();
         doThrow(new RuntimeException("boom")).when(handler).handle(any());
 
