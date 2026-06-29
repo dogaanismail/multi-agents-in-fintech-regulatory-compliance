@@ -38,4 +38,18 @@ class PaymentCreatedEventHandlerTest {
         assertThat(command.paymentType()).isEqualTo(PaymentFixtures.PAYMENT_TYPE);
         assertThat(command.isCrossBorderPayment()).isFalse();
     }
+
+    @Test
+    void mapsNullableAccountsAndExchangeRateForDeposit() {
+        handler.handle(AvroEventFixtures.depositPaymentCreatedEvent());
+
+        ArgumentCaptor<InitiatePaymentCommand> captor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);
+        verify(commandGateway).send(captor.capture());
+
+        InitiatePaymentCommand command = captor.getValue();
+        assertThat(command.sourceAccountId()).isNull();
+        assertThat(command.destinationAccountId()).isEqualTo(PaymentFixtures.DESTINATION_ACCOUNT_ID);
+        assertThat(command.appliedExchangeRate()).isNull();
+        assertThat(command.paymentType()).isEqualTo("DEPOSIT");
+    }
 }

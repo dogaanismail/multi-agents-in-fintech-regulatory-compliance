@@ -3,12 +3,14 @@ package org.banksolution.fixtures;
 import org.banksolution.domain.payment.command.ApproveFraudCheckCommand;
 import org.banksolution.domain.payment.command.ApproveManualReviewCommand;
 import org.banksolution.domain.payment.command.BlockPaymentCommand;
+import org.banksolution.domain.payment.command.ChargeAccountCommand;
 import org.banksolution.domain.payment.command.ConfirmAccountChargedCommand;
 import org.banksolution.domain.payment.command.FailAccountChargeCommand;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.command.OverrideDecisionCommand;
 import org.banksolution.domain.payment.command.RejectManualReviewCommand;
 import org.banksolution.domain.payment.command.RequestManualReviewCommand;
+import org.banksolution.domain.payment.event.AccountChargeFailedEvent;
 import org.banksolution.domain.payment.event.AccountChargeInitiatedEvent;
 import org.banksolution.domain.payment.event.AccountChargedEvent;
 import org.banksolution.domain.payment.event.FraudCheckApprovedEvent;
@@ -102,6 +104,26 @@ public final class PaymentFixtures {
 
     public static OverrideDecisionCommand overrideDecisionCommand() {
         return new OverrideDecisionCommand(paymentId(), "officer-1", "False positive", true);
+    }
+
+    public static ChargeAccountCommand chargeAccountCommand() {
+        return new ChargeAccountCommand(
+                paymentId(),
+                CUSTOMER_ID,
+                SOURCE_ACCOUNT_ID,
+                DESTINATION_ACCOUNT_ID,
+                AMOUNT,
+                FROM_CURRENCY,
+                TO_CURRENCY,
+                CONVERTED_AMOUNT,
+                EXCHANGE_RATE,
+                PAYMENT_TYPE,
+                DESCRIPTION
+        );
+    }
+
+    public static OverrideDecisionCommand overrideDecisionCommand(boolean approvePayment) {
+        return new OverrideDecisionCommand(paymentId(), "officer-1", "False positive", approvePayment);
     }
 
     public static ConfirmAccountChargedCommand confirmAccountChargedCommand() {
@@ -199,5 +221,13 @@ public final class PaymentFixtures {
 
     public static PaymentCompletedEvent paymentCompletedEvent(PaymentStatus finalStatus, String reason) {
         return new PaymentCompletedEvent(paymentId(), finalStatus, reason);
+    }
+
+    public static AccountChargeFailedEvent accountChargeFailedEvent(String reason) {
+        return new AccountChargeFailedEvent(paymentId(), reason);
+    }
+
+    public static RiskAssessmentCompletedEvent riskAssessmentCompletedEventWithoutAssessment() {
+        return new RiskAssessmentCompletedEvent(paymentId(), null);
     }
 }

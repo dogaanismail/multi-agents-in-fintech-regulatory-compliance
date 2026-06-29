@@ -36,6 +36,25 @@ public final class AvroEventFixtures {
                 .build();
     }
 
+    public static PaymentCreatedEvent depositPaymentCreatedEvent() {
+        return PaymentCreatedEvent.newBuilder()
+                .setEventId(UUID.randomUUID().toString())
+                .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
+                .setTimestamp(TIMESTAMP)
+                .setCustomerId(PaymentFixtures.CUSTOMER_ID.toString())
+                .setPaymentType(com.aml.payment.PaymentType.DEPOSIT)
+                .setIsCrossBorderPayment(false)
+                .setSourceAccountId(null)
+                .setDestinationAccountId(PaymentFixtures.DESTINATION_ACCOUNT_ID.toString())
+                .setAmount(PaymentFixtures.AMOUNT.toPlainString())
+                .setFromCurrency(PaymentFixtures.FROM_CURRENCY)
+                .setToCurrency(PaymentFixtures.TO_CURRENCY)
+                .setConvertedAmount(PaymentFixtures.CONVERTED_AMOUNT.toPlainString())
+                .setAppliedExchangeRate(null)
+                .setDescription(null)
+                .build();
+    }
+
     public static RiskAssessmentCompletedEvent riskAssessmentCompletedEvent(RiskAction action, RiskLevel level, double score) {
         return RiskAssessmentCompletedEvent.newBuilder()
                 .setRiskCheckRequestId(UUID.randomUUID().toString())

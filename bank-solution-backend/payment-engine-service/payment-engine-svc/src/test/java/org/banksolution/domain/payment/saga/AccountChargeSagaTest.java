@@ -9,10 +9,13 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
+import static org.banksolution.fixtures.PaymentFixtures.accountChargeFailedEvent;
 import static org.banksolution.fixtures.PaymentFixtures.accountChargeInitiatedEvent;
 import static org.banksolution.fixtures.PaymentFixtures.accountChargedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.blockAssessment;
 import static org.banksolution.fixtures.PaymentFixtures.confirmAccountChargedCommand;
 import static org.banksolution.fixtures.PaymentFixtures.failAccountChargeCommand;
+import static org.banksolution.fixtures.PaymentFixtures.paymentBlockedEvent;
 import static org.banksolution.fixtures.PaymentFixtures.paymentCompletedEvent;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -59,6 +62,20 @@ class AccountChargeSagaTest {
     void paymentCompletedEndsSaga() {
         fixture.givenAPublished(accountChargeInitiatedEvent())
                 .whenPublishingA(paymentCompletedEvent(PaymentStatus.COMPLETED, "Payment successfully processed and account charged"))
+                .expectActiveSagas(0);
+    }
+
+    @Test
+    void paymentBlockedEndsSaga() {
+        fixture.givenAPublished(accountChargeInitiatedEvent())
+                .whenPublishingA(paymentBlockedEvent(blockAssessment()))
+                .expectActiveSagas(0);
+    }
+
+    @Test
+    void accountChargeFailedEndsSaga() {
+        fixture.givenAPublished(accountChargeInitiatedEvent())
+                .whenPublishingA(accountChargeFailedEvent("Insufficient funds"))
                 .expectActiveSagas(0);
     }
 }
