@@ -14,6 +14,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -29,6 +31,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +106,9 @@ class KafkaAvroIntegrationTest {
 
         try (KafkaConsumer<String, Object> consumer =
                      new KafkaConsumer<>(props, new StringDeserializer(), new KafkaAvroDeserializer())) {
-            consumer.subscribe(List.of(topic));
+            List<TopicPartition> partitions = assignedPartitions(consumer, topic);
+            consumer.assign(partitions);
+            consumer.seekToBeginning(partitions);
             for (int attempt = 0; attempt < 40; attempt++) {
                 ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(500));
                 for (ConsumerRecord<String, Object> record : records) {
@@ -112,5 +117,19 @@ class KafkaAvroIntegrationTest {
             }
         }
         throw new AssertionError("No message received from topic " + topic);
+    }
+
+    private List<TopicPartition> assignedPartitions(KafkaConsumer<String, Object> consumer, String topic) {
+        for (int attempt = 0; attempt < 20; attempt++) {
+            List<PartitionInfo> info = consumer.partitionsFor(topic, Duration.ofSeconds(5));
+            if (info != null && !info.isEmpty()) {
+                List<TopicPartition> partitions = new ArrayList<>();
+                for (PartitionInfo partition : info) {
+                    partitions.add(new TopicPartition(partition.topic(), partition.partition()));
+                }
+                return partitions;
+            }
+        }
+        throw new AssertionError("Topic not available: " + topic);
     }
 }
