@@ -23,6 +23,7 @@ import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.fixtures.AvroEventFixtures;
 import org.banksolution.fixtures.PaymentFixtures;
 import org.banksolution.infrastructure.messaging.kafka.handler.PaymentCreatedEventHandler;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.testcontainers.containers.KafkaContainer;
@@ -42,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@Tag("integration")
 @Testcontainers
 class KafkaAvroIntegrationTest {
 
