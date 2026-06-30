@@ -20,7 +20,10 @@
         "type": "enum",
         "name": "FeedbackType",
         "doc": "MANUAL_REVIEW: officer acted on a payment escalated by MARL (REVIEW decision). DECISION_OVERRIDE: officer reversed a terminal ALLOW or BLOCK decision after the fact.",
-        "symbols": ["MANUAL_REVIEW", "DECISION_OVERRIDE"]
+        "symbols": [
+          "MANUAL_REVIEW",
+          "DECISION_OVERRIDE"
+        ]
       },
       "doc": "Type of compliance officer action that triggered this feedback"
     },
@@ -35,7 +38,10 @@
         "type": "enum",
         "name": "OfficerDecision",
         "doc": "APPROVE: officer considers the payment legitimate. REJECT: officer considers the payment fraudulent.",
-        "symbols": ["APPROVE", "REJECT"]
+        "symbols": [
+          "APPROVE",
+          "REJECT"
+        ]
       },
       "doc": "The compliance officer's final verdict on the payment"
     },
@@ -46,7 +52,10 @@
     },
     {
       "name": "notes",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Optional officer notes, approval notes, or rejection reason"
     },

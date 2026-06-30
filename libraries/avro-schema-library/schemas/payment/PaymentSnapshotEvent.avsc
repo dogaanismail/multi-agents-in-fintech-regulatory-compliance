@@ -56,13 +56,19 @@
     },
     {
       "name": "appliedExchangeRate",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Exchange rate applied: fromCurrency → toCurrency (null when no conversion)"
     },
     {
       "name": "description",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Payment description"
     },
