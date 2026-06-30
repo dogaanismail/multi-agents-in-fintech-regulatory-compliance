@@ -614,7 +614,7 @@ services:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
     ports:
-      - "3009:3000"   # Grafana UI (3001 is used by temporal-ui)
+      - "3009:3000"   # Grafana UI
     depends_on:
       - prometheus
       - tempo
