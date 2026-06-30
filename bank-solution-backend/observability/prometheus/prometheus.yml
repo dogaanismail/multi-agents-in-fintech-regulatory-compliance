@@ -1,0 +1,29 @@
+# Prometheus — scrapes metrics from the Java microservices (Micrometer at
+# /actuator/prometheus) and the Python MARL orchestrator (/metrics), so Grafana
+# can graph and alert on consumer lag and dead-letter-topic growth alongside the
+# existing Tempo (traces) and Loki (logs) datasources.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: banking-microservices
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - customer-svc-app:5001
+          - account-svc-app:5002
+          - payment-svc-app:5003
+          - payment-engine-svc-app:5004
+          - payment-history-svc-app:5005
+          - risk-engine-svc-app:5006
+          - network-topology-svc:5007
+          - customer-profile-svc-app:5008
+          - configuration-svc-app:5009
+          - backoffice-gateway-app:3030
+
+  - job_name: marl-orchestrator
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - marl-orchestrator:1004

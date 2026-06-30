@@ -585,6 +585,24 @@ services:
     restart: unless-stopped
 
   # Single UI for logs + traces
+  # Metrics store — scrapes /actuator/prometheus (Java) and /metrics (Python)
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - bank-network             # reachable by all Java services
+      - aml-multi-agent-network  # reachable by the Python AI services
+    restart: unless-stopped
+
+  # Single UI for metrics + logs + traces
   grafana:
     image: grafana/grafana:11.4.0
     container_name: grafana
@@ -596,8 +614,9 @@ services:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
     ports:
-      - "3009:3000"   # Grafana UI (3001 is used by temporal-ui)
+      - "3009:3000"   # Grafana UI
     depends_on:
+      - prometheus
       - tempo
       - loki
     networks:
@@ -615,6 +634,8 @@ volumes:
   loki_data:
     driver: local
   grafana_data:
+    driver: local
+  prometheus_data:
     driver: local
 
 networks:

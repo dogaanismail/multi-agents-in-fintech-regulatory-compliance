@@ -1,0 +1,52 @@
+name: Backend Build
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'bank-solution-backend/**'
+      - 'libraries/avro-schema-library/**'
+      - '.github/workflows/backend-build.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bank-solution-backend/**'
+      - 'libraries/avro-schema-library/**'
+      - '.github/workflows/backend-build.yml'
+
+concurrency:
+  group: backend-build-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compile and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compile and run tests
+        working-directory: bank-solution-backend
+        run: ./gradlew test --stacktrace
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: 'bank-solution-backend/**/build/reports/tests/**'
+          if-no-files-found: ignore
+          retention-days: 7

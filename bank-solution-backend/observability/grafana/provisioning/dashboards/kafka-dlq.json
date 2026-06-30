@@ -1,0 +1,110 @@
+{
+  "uid": "kafka-dlq",
+  "title": "Kafka DLQ & Consumer Health",
+  "tags": ["kafka", "dlq", "resilience"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Dead-letter messages (Java, total)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [ { "refId": "A", "expr": "sum(kafka_consumer_dlt_total)" } ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Dead-letter messages (Python, total)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [ { "refId": "A", "expr": "sum(marl_kafka_dlt_messages_total)" } ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Max consumer lag (all topics)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 1000 }, { "color": "red", "value": 10000 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "targets": [ { "refId": "A", "expr": "max(kafka_consumer_fetch_manager_records_lag)" }, { "refId": "B", "expr": "max(marl_kafka_consumer_lag)" } ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Dead-letter routing rate by topic (Java)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 }, "unit": "ops" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] } },
+      "targets": [ { "refId": "A", "expr": "sum by (topic) (rate(kafka_consumer_dlt_total[5m]))", "legendFormat": "{{topic}}" } ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Dead-letter routing rate by topic & reason (Python)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 }, "unit": "ops" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] } },
+      "targets": [ { "refId": "A", "expr": "sum by (topic, reason) (rate(marl_kafka_dlt_messages_total[5m]))", "legendFormat": "{{topic}} / {{reason}}" } ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Consumer lag by topic (Java)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["max"] } },
+      "targets": [ { "refId": "A", "expr": "sum by (topic) (kafka_consumer_fetch_manager_records_lag)", "legendFormat": "{{topic}}" } ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Consumer lag by partition (Python orchestrator)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["max"] } },
+      "targets": [ { "refId": "A", "expr": "marl_kafka_consumer_lag", "legendFormat": "{{topic}} [{{partition}}]" } ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Handler retries & commit failures (Python)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 }, "unit": "ops" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (topic) (rate(marl_kafka_processing_retries_total[5m]))", "legendFormat": "retries {{topic}}" },
+        { "refId": "B", "expr": "sum by (topic) (rate(marl_kafka_commit_failures_total[5m]))", "legendFormat": "commit failures {{topic}}" }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Messages consumed vs processed (Python)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 }, "unit": "ops" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (topic) (rate(marl_kafka_messages_consumed_total[5m]))", "legendFormat": "consumed {{topic}}" },
+        { "refId": "B", "expr": "sum by (topic) (rate(marl_kafka_messages_processed_total[5m]))", "legendFormat": "processed {{topic}}" }
+      ]
+    }
+  ]
+}

@@ -41,13 +41,19 @@
     },
     {
       "name": "sourceAccountId",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Source account ID — balance debited in fromCurrency (for TRANSFER_OUT, WITHDRAWAL)"
     },
     {
       "name": "destinationAccountId",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Destination account ID — balance credited in toCurrency (for TRANSFER_IN, DEPOSIT)"
     },
@@ -73,13 +79,19 @@
     },
     {
       "name": "appliedExchangeRate",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Exchange rate applied: fromCurrency → toCurrency (null means no conversion)"
     },
     {
       "name": "description",
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "default": null,
       "doc": "Payment description"
     }

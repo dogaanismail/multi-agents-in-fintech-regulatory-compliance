@@ -4,20 +4,33 @@ import com.aml.payment.PaymentSnapshotEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.MicrometerConsumerListener;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.ConsumerRecordRecoverer;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
+import org.springframework.kafka.support.serializer.DelegatingByTypeSerializer;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
 import java.util.HashMap;
@@ -29,10 +42,14 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
+    private final MeterRegistry meterRegistry;
 
     @Bean
     public ConsumerFactory<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotConsumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(getAvroConsumerConfigs());
+        DefaultKafkaConsumerFactory<@NonNull String, @NonNull PaymentSnapshotEvent> consumerFactory =
+                new DefaultKafkaConsumerFactory<>(getAvroConsumerConfigs());
+        consumerFactory.addListener(new MicrometerConsumerListener<>(meterRegistry));
+        return consumerFactory;
     }
 
     @Bean
@@ -71,19 +88,45 @@ public class KafkaConsumerConfig {
         backOff.setMultiplier(2.0);
         backOff.setMaxInterval(10000L);
 
-        DefaultErrorHandler errorHandler = new DefaultErrorHandler((consumerRecord, exception) ->
-                log.error("Failed to process PaymentSnapshotEvent after retries. Topic: {}, Partition: {}, Offset: {}, Key: {}",
-                        consumerRecord.topic(),
-                        consumerRecord.partition(),
-                        consumerRecord.offset(),
-                        consumerRecord.key(),
-                        exception), backOff);
-
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(deadLetterRecoverer(), backOff);
         errorHandler.addNotRetryableExceptions(
                 IllegalArgumentException.class,
                 IllegalStateException.class
         );
 
         return errorHandler;
+    }
+
+    private ConsumerRecordRecoverer deadLetterRecoverer() {
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(deadLetterKafkaTemplate());
+        return (record, exception) -> {
+            log.error("Routing PaymentSnapshotEvent to dead-letter topic. Topic: {}, Partition: {}, Offset: {}, Key: {}",
+                    record.topic(), record.partition(), record.offset(), record.key(), exception);
+            meterRegistry.counter("kafka.consumer.dlt", "topic", record.topic()).increment();
+            recoverer.accept(record, exception);
+        };
+    }
+
+    private KafkaTemplate<@NonNull String, @NonNull Object> deadLetterKafkaTemplate() {
+        return new KafkaTemplate<>(deadLetterProducerFactory());
+    }
+
+    private ProducerFactory<@NonNull String, @NonNull Object> deadLetterProducerFactory() {
+        KafkaAvroSerializer avroSerializer = new KafkaAvroSerializer();
+        avroSerializer.configure(
+                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                        kafkaConfigurationProperties.getSchemaRegistry().getUrl()),
+                false);
+
+        Map<Class<?>, Serializer<?>> delegates = new HashMap<>();
+        delegates.put(byte[].class, new ByteArraySerializer());
+        delegates.put(SpecificRecord.class, avroSerializer);
+        DelegatingByTypeSerializer valueSerializer = new DelegatingByTypeSerializer(delegates, true);
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigurationProperties.getBootstrapServers());
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
+
+        return new DefaultKafkaProducerFactory<>(props, new StringSerializer(), valueSerializer);
     }
 }
