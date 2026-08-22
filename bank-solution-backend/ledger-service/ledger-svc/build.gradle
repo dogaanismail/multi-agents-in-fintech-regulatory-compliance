@@ -1,0 +1,82 @@
+plugins {
+    id 'org.springframework.boot' version "${springframeworkBootVersion}"
+    id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+    id 'java'
+}
+
+group = 'org.bank.solution'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // TigerBeetle owns all ledger state: accounts, transfers, balances and history.
+    implementation "com.tigerbeetle:tigerbeetle-java:${tigerBeetleVersion}"
+
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
+
+    // Kafka + Avro
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
+    implementation "org.apache.avro:avro:${apacheAvroVersion}"
+
+    // Avro Schema Library
+    implementation project(':avro-schema-library-java')
+
+    implementation project(':common')
+
+    // vulnerabilities
+    implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+springBoot {
+    mainClass = 'org.banksolution.LedgerServiceApplication'
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs Testcontainers-based integration tests (requires a Docker daemon).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter test
+}
+
+tasks.withType(JavaExec).configureEach {
+    // JEP 472: tigerbeetle-java loads its native client via System.load. Without this
+    // the JVM warns, and a future release will refuse outright.
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
+
+bootJar {
+    enabled = true
+}
