@@ -35,7 +35,9 @@ public final class LedgerAccountMapper {
                 .build();
     }
 
-    public static LedgerInternalAccount toLedgerInternalAccount(AccountBatch batch) {
+    public static LedgerInternalAccount toLedgerInternalAccount(
+            AccountBatch batch) {
+
         Currency currency = Currency.fromNumericCode(batch.getLedger());
 
         return LedgerInternalAccount.builder()
@@ -50,7 +52,9 @@ public final class LedgerAccountMapper {
                 .build();
     }
 
-    public static LedgerAccountResponse toResponse(LedgerAccount account) {
+    public static LedgerAccountResponse toLedgerAccountResponse(
+            LedgerAccount account) {
+
         return LedgerAccountResponse.builder()
                 .ledgerAccountId(account.id())
                 .accountId(account.accountId())
@@ -65,7 +69,9 @@ public final class LedgerAccountMapper {
                 .build();
     }
 
-    public static LedgerInternalAccountResponse toResponse(LedgerInternalAccount account) {
+    public static LedgerInternalAccountResponse toLedgerInternalAccountResponse(
+            LedgerInternalAccount account) {
+
         return LedgerInternalAccountResponse.builder()
                 .ledgerAccountId(account.id())
                 .accountType(account.accountType())

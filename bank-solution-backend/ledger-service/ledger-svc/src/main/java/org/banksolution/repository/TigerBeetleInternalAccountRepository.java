@@ -1,4 +1,4 @@
-package org.banksolution.infrastructure.tigerbeetle;
+package org.banksolution.repository;
 
 import com.tigerbeetle.*;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +21,11 @@ public class TigerBeetleInternalAccountRepository {
 
     private final Client tigerBeetleClient;
 
-    public Optional<LedgerInternalAccount> findById(UUID ledgerAccountId) {
-        return findAll(List.of(ledgerAccountId)).stream().findFirst();
+    public Optional<LedgerInternalAccount> findInternalAccountById(UUID ledgerAccountId) {
+        return findInternalAccountsByIds(List.of(ledgerAccountId)).stream().findFirst();
     }
 
-    public List<LedgerInternalAccount> findAll(List<UUID> ledgerAccountIds) {
+    public List<LedgerInternalAccount> findInternalAccountsByIds(List<UUID> ledgerAccountIds) {
         if (ledgerAccountIds.isEmpty()) {
             return List.of();
         }
@@ -33,15 +33,16 @@ public class TigerBeetleInternalAccountRepository {
         IdBatch ids = new IdBatch(ledgerAccountIds.size());
         ledgerAccountIds.forEach(id -> ids.add(UInt128.asBytes(id)));
 
-        AccountBatch accounts = lookup(ids);
+        AccountBatch accounts = lookupAccountsInTigerBeetle(ids);
         List<LedgerInternalAccount> internalAccounts = new ArrayList<>();
         while (accounts.next()) {
             internalAccounts.add(LedgerAccountMapper.toLedgerInternalAccount(accounts));
         }
+
         return internalAccounts;
     }
 
-    public List<LedgerInternalAccount> persistAll(List<LedgerInternalAccount> internalAccounts) {
+    public List<LedgerInternalAccount> persistInternalAccounts(List<LedgerInternalAccount> internalAccounts) {
         if (internalAccounts.isEmpty()) {
             return List.of();
         }
@@ -55,16 +56,16 @@ public class TigerBeetleInternalAccountRepository {
             batch.setFlags(AccountFlags.HISTORY);
         });
 
-        create(batch);
+        createAccountsInTigerBeetle(batch);
 
-        return findAll(internalAccounts.stream().map(LedgerInternalAccount::id).toList());
+        return findInternalAccountsByIds(internalAccounts.stream().map(LedgerInternalAccount::id).toList());
     }
 
-    public LedgerInternalAccount persist(LedgerInternalAccount internalAccount) {
-        return persistAll(List.of(internalAccount)).getFirst();
+    public LedgerInternalAccount persistInternalAccount(LedgerInternalAccount internalAccount) {
+        return persistInternalAccounts(List.of(internalAccount)).getFirst();
     }
 
-    private AccountBatch lookup(IdBatch ids) {
+    private AccountBatch lookupAccountsInTigerBeetle(IdBatch ids) {
         try {
             return tigerBeetleClient.lookupAccounts(ids);
         } catch (InterruptedException e) {
@@ -73,7 +74,7 @@ public class TigerBeetleInternalAccountRepository {
         }
     }
 
-    private void create(AccountBatch batch) {
+    private void createAccountsInTigerBeetle(AccountBatch batch) {
         CreateAccountResultBatch results;
         try {
             results = tigerBeetleClient.createAccounts(batch);

@@ -16,22 +16,34 @@ public final class LedgerAccountFixtures {
     private LedgerAccountFixtures() {
     }
 
-    public static LedgerAccount createWallet(UUID accountId, Currency currency) {
-        return LedgerAccount.of(accountId, currency);
+    public static LedgerAccount createWallet(
+            UUID accountId,
+            Currency currency) {
+
+        return LedgerAccount.newWallet(accountId, currency);
     }
 
-    public static LedgerInternalAccount createInternalAccount(LedgerAccountType accountType, Currency currency) {
-        return LedgerInternalAccount.of(accountType, currency);
+    public static LedgerInternalAccount createInternalAccount(
+            LedgerAccountType accountType,
+            Currency currency) {
+
+        return LedgerInternalAccount.newInternalAccount(accountType, currency);
     }
 
-    public static CreateLedgerAccountRequest createLedgerAccountRequest(UUID accountId, Currency currency) {
+    public static CreateLedgerAccountRequest createLedgerAccountRequest(
+            UUID accountId,
+            Currency currency) {
+
         return CreateLedgerAccountRequest.builder()
                 .accountId(accountId)
                 .currency(currency)
                 .build();
     }
 
-    public static CreateLedgerAccountsRequest createLedgerAccountsRequest(UUID accountId, Currency... currencies) {
+    public static CreateLedgerAccountsRequest createLedgerAccountsRequest(
+            UUID accountId,
+            Currency... currencies) {
+
         return CreateLedgerAccountsRequest.builder()
                 .accounts(Stream.of(currencies)
                         .map(currency -> createLedgerAccountRequest(accountId, currency))
@@ -40,7 +52,9 @@ public final class LedgerAccountFixtures {
     }
 
     public static CreateLedgerInternalAccountRequest createInternalAccountRequest(
-            LedgerAccountType accountType, Currency currency) {
+            LedgerAccountType accountType,
+            Currency currency) {
+
         return CreateLedgerInternalAccountRequest.builder()
                 .accountType(accountType)
                 .currency(currency)

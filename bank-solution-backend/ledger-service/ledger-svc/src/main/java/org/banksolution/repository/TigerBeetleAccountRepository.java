@@ -1,4 +1,4 @@
-package org.banksolution.infrastructure.tigerbeetle;
+package org.banksolution.repository;
 
 import com.tigerbeetle.*;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +24,11 @@ public class TigerBeetleAccountRepository {
 
     private final Client tigerBeetleClient;
 
-    public Optional<LedgerAccount> findById(UUID ledgerAccountId) {
-        return findAll(List.of(ledgerAccountId)).stream().findFirst();
+    public Optional<LedgerAccount> findLedgerAccountById(UUID ledgerAccountId) {
+        return findLedgerAccountsByIds(List.of(ledgerAccountId)).stream().findFirst();
     }
 
-    public List<LedgerAccount> findAll(List<UUID> ledgerAccountIds) {
+    public List<LedgerAccount> findLedgerAccountsByIds(List<UUID> ledgerAccountIds) {
         if (ledgerAccountIds.isEmpty()) {
             return List.of();
         }
@@ -36,15 +36,16 @@ public class TigerBeetleAccountRepository {
         IdBatch ids = new IdBatch(ledgerAccountIds.size());
         ledgerAccountIds.forEach(id -> ids.add(UInt128.asBytes(id)));
 
-        AccountBatch accounts = lookup(ids);
+        AccountBatch accounts = lookupAccountsInTigerBeetle(ids);
         List<LedgerAccount> ledgerAccounts = new ArrayList<>();
         while (accounts.next()) {
             ledgerAccounts.add(LedgerAccountMapper.toLedgerAccount(accounts));
         }
+
         return ledgerAccounts;
     }
 
-    public List<LedgerAccount> persistAll(List<LedgerAccount> ledgerAccounts) {
+    public List<LedgerAccount> persistLedgerAccounts(List<LedgerAccount> ledgerAccounts) {
         if (ledgerAccounts.isEmpty()) {
             return List.of();
         }
@@ -59,16 +60,16 @@ public class TigerBeetleAccountRepository {
             batch.setFlags(WALLET_FLAGS);
         });
 
-        create(batch);
+        createAccountsInTigerBeetle(batch);
 
-        return findAll(ledgerAccounts.stream().map(LedgerAccount::id).toList());
+        return findLedgerAccountsByIds(ledgerAccounts.stream().map(LedgerAccount::id).toList());
     }
 
-    public LedgerAccount persist(LedgerAccount ledgerAccount) {
-        return persistAll(List.of(ledgerAccount)).getFirst();
+    public LedgerAccount persistLedgerAccount(LedgerAccount ledgerAccount) {
+        return persistLedgerAccounts(List.of(ledgerAccount)).getFirst();
     }
 
-    private AccountBatch lookup(IdBatch ids) {
+    private AccountBatch lookupAccountsInTigerBeetle(IdBatch ids) {
         try {
             return tigerBeetleClient.lookupAccounts(ids);
         } catch (InterruptedException e) {
@@ -77,7 +78,7 @@ public class TigerBeetleAccountRepository {
         }
     }
 
-    private void create(AccountBatch batch) {
+    private void createAccountsInTigerBeetle(AccountBatch batch) {
         CreateAccountResultBatch results;
         try {
             results = tigerBeetleClient.createAccounts(batch);

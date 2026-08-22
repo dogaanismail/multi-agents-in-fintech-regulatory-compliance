@@ -22,6 +22,7 @@ public enum LedgerAccountType {
                 return type;
             }
         }
+
         throw new IllegalArgumentException("Unknown ledger account type code: " + code);
     }
 

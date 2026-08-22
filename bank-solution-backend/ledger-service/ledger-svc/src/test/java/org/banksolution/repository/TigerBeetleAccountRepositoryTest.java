@@ -1,4 +1,4 @@
-package org.banksolution.infrastructure.tigerbeetle;
+package org.banksolution.repository;
 
 import org.banksolution.common.BaseIntegrationTest;
 import org.banksolution.domain.LedgerAccount;
@@ -24,9 +24,9 @@ class TigerBeetleAccountRepositoryTest extends BaseIntegrationTest {
     void shouldPersistAndRetrieveWalletAccount() {
         UUID accountId = UUID.randomUUID();
 
-        LedgerAccount persisted = tigerBeetleAccountRepository.persist(createWallet(accountId, Currency.GBP));
+        LedgerAccount persisted = tigerBeetleAccountRepository.persistLedgerAccount(createWallet(accountId, Currency.GBP));
 
-        assertThat(persisted.id()).isEqualTo(LedgerAccountIds.wallet(accountId, Currency.GBP));
+        assertThat(persisted.id()).isEqualTo(LedgerAccountIds.deriveWalletAccountId(accountId, Currency.GBP));
         assertThat(persisted.accountId()).isEqualTo(accountId);
         assertThat(persisted.accountType()).isEqualTo(LedgerAccountType.WALLET);
         assertThat(persisted.currency()).isEqualTo(Currency.GBP);
@@ -39,8 +39,8 @@ class TigerBeetleAccountRepositoryTest extends BaseIntegrationTest {
         UUID accountId = UUID.randomUUID();
         LedgerAccount wallet = createWallet(accountId, Currency.EUR);
 
-        LedgerAccount first = tigerBeetleAccountRepository.persist(wallet);
-        LedgerAccount second = tigerBeetleAccountRepository.persist(wallet);
+        LedgerAccount first = tigerBeetleAccountRepository.persistLedgerAccount(wallet);
+        LedgerAccount second = tigerBeetleAccountRepository.persistLedgerAccount(wallet);
 
         assertThat(second.id()).isEqualTo(first.id());
         assertThat(second.createdAt()).isEqualTo(first.createdAt());
@@ -50,7 +50,7 @@ class TigerBeetleAccountRepositoryTest extends BaseIntegrationTest {
     void shouldPersistWalletsPerCurrencyForTheSameAccount() {
         UUID accountId = UUID.randomUUID();
 
-        List<LedgerAccount> persisted = tigerBeetleAccountRepository.persistAll(List.of(
+        List<LedgerAccount> persisted = tigerBeetleAccountRepository.persistLedgerAccounts(List.of(
                 createWallet(accountId, Currency.GBP),
                 createWallet(accountId, Currency.USD),
                 createWallet(accountId, Currency.JPY)));
@@ -63,11 +63,11 @@ class TigerBeetleAccountRepositoryTest extends BaseIntegrationTest {
 
     @Test
     void shouldReturnEmptyWhenWalletDoesNotExist() {
-        assertThat(tigerBeetleAccountRepository.findById(UUID.randomUUID())).isEmpty();
+        assertThat(tigerBeetleAccountRepository.findLedgerAccountById(UUID.randomUUID())).isEmpty();
     }
 
     @Test
     void shouldReturnEmptyListWhenNoIdsRequested() {
-        assertThat(tigerBeetleAccountRepository.findAll(List.of())).isEmpty();
+        assertThat(tigerBeetleAccountRepository.findLedgerAccountsByIds(List.of())).isEmpty();
     }
 }

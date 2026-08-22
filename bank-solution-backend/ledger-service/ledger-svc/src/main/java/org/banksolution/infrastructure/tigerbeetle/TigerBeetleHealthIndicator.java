@@ -50,7 +50,10 @@ public class TigerBeetleHealthIndicator implements HealthIndicator {
                 .build();
     }
 
-    private Health down(String reason, Throwable cause) {
+    private Health down(
+            String reason,
+            Throwable cause) {
+
         log.warn("TigerBeetle health probe failed: {}", reason);
         return Health.down(cause)
                 .withDetail("clusterId", properties.clusterId())
