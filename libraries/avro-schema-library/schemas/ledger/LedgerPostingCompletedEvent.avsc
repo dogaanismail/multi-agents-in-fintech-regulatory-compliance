@@ -1,0 +1,82 @@
+{
+  "namespace": "com.aml.ledger",
+  "type": "record",
+  "name": "LedgerPostingCompletedEvent",
+  "doc": "Outcome of a posting instruction, published by ledger-svc back to payment-engine-svc",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID)"
+    },
+    {
+      "name": "clientTransactionId",
+      "type": "string",
+      "doc": "Payment identifier the posting was applied for"
+    },
+    {
+      "name": "postingInstructionType",
+      "type": {
+        "type": "enum",
+        "name": "PostingInstructionType",
+        "symbols": [
+          "INBOUND_AUTHORISATION",
+          "OUTBOUND_AUTHORISATION",
+          "SETTLEMENT",
+          "RELEASE",
+          "INBOUND_HARD_SETTLEMENT",
+          "OUTBOUND_HARD_SETTLEMENT",
+          "INTERNAL_TRANSFER_AUTHORISATION"
+        ]
+      },
+      "doc": "Posting instruction that was applied"
+    },
+    {
+      "name": "success",
+      "type": "boolean",
+      "doc": "Whether the ledger accepted the posting"
+    },
+    {
+      "name": "transferId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "TigerBeetle transfer identifier; null when the posting was rejected"
+    },
+    {
+      "name": "amount",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Amount actually posted, as string to preserve precision"
+    },
+    {
+      "name": "currency",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "ISO 4217 code of the posting"
+    },
+    {
+      "name": "failureReason",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Why the ledger rejected the posting, when success is false"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp"
+    }
+  ]
+}

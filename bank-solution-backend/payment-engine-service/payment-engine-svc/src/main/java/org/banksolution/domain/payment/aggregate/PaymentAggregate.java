@@ -63,9 +63,15 @@ public class PaymentAggregate {
     private Instant manualReviewRejectedAt;
     private String manualReviewedBy;
     private String manualReviewNotes;
-    private Instant accountChargeInitiatedAt;
-    private Instant accountChargedAt;
-    private Instant accountChargeFailedAt;
+    private Instant ledgerAuthorisationInitiatedAt;
+    private Instant ledgerAuthorisedAt;
+    private Instant ledgerSettlementInitiatedAt;
+    private Instant ledgerSettledAt;
+    private Instant ledgerReleaseInitiatedAt;
+    private Instant ledgerReleasedAt;
+    private Instant failedAt;
+    private UUID authorisationTransferId;
+    private UUID settlementTransferId;
     private Instant completedAt;
     private Instant blockedAt;
     private String blockReason;
@@ -97,7 +103,7 @@ public class PaymentAggregate {
                 command.description()
         ));
 
-        apply(new RiskAssessmentInitiatedEvent(
+        apply(new LedgerAuthorisationInitiatedEvent(
                 command.paymentId(),
                 command.customerId(),
                 command.sourceAccountId(),
@@ -108,6 +114,63 @@ public class PaymentAggregate {
                 command.paymentType(),
                 command.description()
         ));
+    }
+
+    @CommandHandler
+    public void handle(ConfirmLedgerAuthorisationCommand command) {
+        log.info("Handling ConfirmLedgerAuthorisationCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.AUTHORISATION_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in AUTHORISATION_PENDING status");
+        }
+
+        apply(new LedgerAuthorisedEvent(command.paymentId(), command.transferId()));
+    }
+
+    @CommandHandler
+    public void handle(DeclineLedgerAuthorisationCommand command) {
+        log.warn("Handling DeclineLedgerAuthorisationCommand for payment: {}, reason: {}",
+                command.paymentId(), command.reason());
+
+        if (this.status != PaymentStatus.AUTHORISATION_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in AUTHORISATION_PENDING status");
+        }
+
+        apply(new LedgerAuthorisationDeclinedEvent(command.paymentId(), command.reason()));
+    }
+
+    @CommandHandler
+    public void handle(ConfirmLedgerSettlementCommand command) {
+        log.info("Handling ConfirmLedgerSettlementCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.SETTLEMENT_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in SETTLEMENT_PENDING status");
+        }
+
+        apply(new LedgerSettledEvent(command.paymentId(), command.transferId()));
+    }
+
+    @CommandHandler
+    public void handle(FailLedgerSettlementCommand command) {
+        log.error("Handling FailLedgerSettlementCommand for payment: {}, reason: {}",
+                command.paymentId(), command.reason());
+
+        if (this.status != PaymentStatus.SETTLEMENT_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in SETTLEMENT_PENDING status");
+        }
+
+        apply(new LedgerSettlementFailedEvent(command.paymentId(), command.reason()));
+    }
+
+    @CommandHandler
+    public void handle(ConfirmLedgerReleaseCommand command) {
+        log.info("Handling ConfirmLedgerReleaseCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.RELEASE_PENDING) {
+            throw new InvalidPaymentStateException("Payment is not in RELEASE_PENDING status");
+        }
+
+        apply(new LedgerReleasedEvent(command.paymentId()));
     }
 
     @CommandHandler
@@ -125,13 +188,15 @@ public class PaymentAggregate {
     public void handle(BlockPaymentCommand command) {
         log.info("Handling BlockPaymentCommand for payment: {}", command.paymentId());
 
-        if (this.status != PaymentStatus.FRAUD_CHECK_PENDING && this.status != PaymentStatus.ACCOUNT_CHARGE_PENDING) {
+        if (this.status != PaymentStatus.FRAUD_CHECK_PENDING && this.status != PaymentStatus.AUTHORISED) {
             throw new InvalidPaymentStateException("Payment cannot be blocked from current status: " + this.status);
         }
 
         String riskLevel = command.riskAssessment().riskLevel();
         Double riskScore = command.riskAssessment().riskScore();
-        String reason = String.format("Risk level: %s, Risk score: %s", riskLevel, riskScore);
+        String reason = String.format("Risk level: %s, Risk score: %s",
+                riskLevel,
+                riskScore);
 
         apply(new PaymentBlockedEvent(
                 command.paymentId(),
@@ -140,12 +205,6 @@ public class PaymentAggregate {
                 command.riskAssessment().marlAssessment() != null ?
                         command.riskAssessment().marlAssessment().maddpgQValue() : null,
                 command.riskAssessment()
-        ));
-
-        apply(new PaymentCompletedEvent(
-                command.paymentId(),
-                PaymentStatus.BLOCKED,
-                reason
         ));
     }
 
@@ -213,69 +272,6 @@ public class PaymentAggregate {
         ));
     }
 
-    @CommandHandler
-    public void handle(ChargeAccountCommand command) {
-        log.info("Handling ChargeAccountCommand for payment: {}", command.paymentId());
-
-        if (this.status != PaymentStatus.FRAUD_CHECK_APPROVED) {
-            throw new InvalidPaymentStateException("Payment is not in FRAUD_CHECK_APPROVED status");
-        }
-
-        apply(new AccountChargeInitiatedEvent(
-                command.paymentId(),
-                command.customerId(),
-                command.sourceAccountId(),
-                command.destinationAccountId(),
-                command.amount(),
-                command.fromCurrency(),
-                command.toCurrency(),
-                command.convertedAmount(),
-                command.appliedExchangeRate(),
-                command.paymentType(),
-                command.description()
-        ));
-    }
-
-    @CommandHandler
-    public void handle(ConfirmAccountChargedCommand command) {
-        log.info("Handling ConfirmAccountChargedCommand for payment: {}", command.paymentId());
-
-        if (this.status != PaymentStatus.ACCOUNT_CHARGE_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in ACCOUNT_CHARGE_PENDING status");
-        }
-
-        apply(new AccountChargedEvent(
-                command.paymentId(),
-                command.sourceAccountId(),
-                command.destinationAccountId(),
-                command.amount(),
-                command.fromCurrency(),
-                command.toCurrency(),
-                command.paymentType()
-        ));
-
-        apply(new PaymentCompletedEvent(
-                command.paymentId(),
-                PaymentStatus.COMPLETED,
-                "Payment successfully processed and account charged"
-        ));
-    }
-
-    @CommandHandler
-    public void handle(FailAccountChargeCommand command) {
-        log.error("Handling FailAccountChargeCommand for payment: {}, reason: {}",
-                command.paymentId(), command.failureReason());
-
-        if (this.status != PaymentStatus.ACCOUNT_CHARGE_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in ACCOUNT_CHARGE_PENDING status");
-        }
-
-        apply(new AccountChargeFailedEvent(
-                command.paymentId(),
-                command.failureReason()
-        ));
-    }
-
     @EventSourcingHandler
     public void on(PaymentInitiatedEvent event) {
         this.paymentId = event.paymentId();
@@ -308,7 +304,9 @@ public class PaymentAggregate {
     public void on(RiskAssessmentCompletedEvent event) {
         this.riskAssessment = event.riskAssessment();
         this.riskAssessmentCompletedAt = Instant.now();
-        log.info("Risk assessment completed event for payment: {}, action: {}", this.paymentId, event.riskAssessment().riskAction());
+        log.info("Risk assessment completed event for payment: {}, action: {}",
+                this.paymentId,
+                event.riskAssessment().riskAction());
     }
 
     @EventSourcingHandler
@@ -320,19 +318,7 @@ public class PaymentAggregate {
         this.riskAssessmentCompletedAt = Instant.now();
         log.info("Fraud check approved for payment: {}", event.paymentId());
 
-        apply(new AccountChargeInitiatedEvent(
-                this.paymentId,
-                this.customerId,
-                this.sourceAccountId,
-                this.destinationAccountId,
-                this.amount,
-                this.fromCurrency,
-                this.toCurrency,
-                this.convertedAmount,
-                this.appliedExchangeRate,
-                this.paymentType,
-                this.description
-        ));
+        apply(new LedgerSettlementInitiatedEvent(this.paymentId));
     }
 
     @EventSourcingHandler
@@ -349,17 +335,107 @@ public class PaymentAggregate {
     }
 
     @EventSourcingHandler
-    public void on(AccountChargeInitiatedEvent event) {
-        this.status = PaymentStatus.ACCOUNT_CHARGE_PENDING;
-        this.accountChargeInitiatedAt = Instant.now();
-        log.info("Account charge initiated for payment: {}", event.paymentId());
+    public void on(LedgerAuthorisationInitiatedEvent event) {
+        this.status = PaymentStatus.AUTHORISATION_PENDING;
+        this.ledgerAuthorisationInitiatedAt = Instant.now();
+        log.info("Ledger authorisation initiated for payment: {}", event.paymentId());
     }
 
     @EventSourcingHandler
-    public void on(AccountChargedEvent event) {
-        this.status = PaymentStatus.ACCOUNT_CHARGED;
-        this.accountChargedAt = Instant.now();
-        log.info("Account charged for payment: {}", event.paymentId());
+    public void on(LedgerAuthorisedEvent event) {
+        this.status = PaymentStatus.AUTHORISED;
+        this.ledgerAuthorisedAt = Instant.now();
+        this.authorisationTransferId = event.transferId();
+        log.info("Ledger authorised payment: {}, transferId: {}",
+                event.paymentId(),
+                event.transferId());
+
+        apply(new RiskAssessmentInitiatedEvent(
+                this.paymentId,
+                this.customerId,
+                this.sourceAccountId,
+                this.destinationAccountId,
+                this.amount,
+                this.fromCurrency,
+                this.toCurrency,
+                this.paymentType,
+                this.description
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerAuthorisationDeclinedEvent event) {
+        this.status = PaymentStatus.AUTHORISATION_DECLINED;
+        this.failedAt = Instant.now();
+        this.failureReason = event.reason();
+        log.warn("Ledger declined authorisation for payment: {}, reason: {}",
+                event.paymentId(),
+                event.reason());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.AUTHORISATION_DECLINED,
+                event.reason()
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerSettlementInitiatedEvent event) {
+        this.status = PaymentStatus.SETTLEMENT_PENDING;
+        this.ledgerSettlementInitiatedAt = Instant.now();
+        log.info("Ledger settlement initiated for payment: {}", event.paymentId());
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerSettledEvent event) {
+        this.status = PaymentStatus.SETTLED;
+        this.ledgerSettledAt = Instant.now();
+        this.settlementTransferId = event.transferId();
+        log.info("Ledger settled payment: {}, transferId: {}",
+                event.paymentId(),
+                event.transferId());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.COMPLETED,
+                "Payment successfully settled on the ledger"
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerSettlementFailedEvent event) {
+        this.status = PaymentStatus.FAILED;
+        this.failedAt = Instant.now();
+        this.failureReason = event.reason();
+        log.error("Ledger settlement failed for payment: {}, reason: {}",
+                event.paymentId(),
+                event.reason());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.FAILED,
+                event.reason()
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerReleaseInitiatedEvent event) {
+        this.status = PaymentStatus.RELEASE_PENDING;
+        this.ledgerReleaseInitiatedAt = Instant.now();
+        log.info("Ledger release initiated for payment: {}", event.paymentId());
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerReleasedEvent event) {
+        this.status = PaymentStatus.RELEASED;
+        this.ledgerReleasedAt = Instant.now();
+        log.info("Ledger released the authorisation for payment: {}", event.paymentId());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.BLOCKED,
+                this.blockReason
+        ));
     }
 
     @EventSourcingHandler
@@ -370,7 +446,11 @@ public class PaymentAggregate {
         this.blockReason = event.reason();
         this.riskAssessmentCompletedAt = Instant.now();
         this.riskAssessment = event.riskAssessment();
-        log.info("Payment blocked: {} - Reason: {}", event.paymentId(), event.reason());
+        log.info("Payment blocked: {} - Reason: {}",
+                event.paymentId(),
+                event.reason());
+
+        apply(new LedgerReleaseInitiatedEvent(this.paymentId));
     }
 
     @EventSourcingHandler
@@ -391,21 +471,11 @@ public class PaymentAggregate {
         this.manualReviewedBy = event.approvedBy();
         this.manualReviewNotes = event.approvalNotes();
         this.riskAssessmentCompletedAt = Instant.now();
-        log.info("Manual review approved for payment: {} by {}", event.paymentId(), event.approvedBy());
+        log.info("Manual review approved for payment: {} by {}",
+                event.paymentId(),
+                event.approvedBy());
 
-        apply(new AccountChargeInitiatedEvent(
-                this.paymentId,
-                this.customerId,
-                this.sourceAccountId,
-                this.destinationAccountId,
-                this.amount,
-                this.fromCurrency,
-                this.toCurrency,
-                this.convertedAmount,
-                this.appliedExchangeRate,
-                this.paymentType,
-                this.description
-        ));
+        apply(new LedgerSettlementInitiatedEvent(this.paymentId));
     }
 
     @EventSourcingHandler
@@ -422,33 +492,16 @@ public class PaymentAggregate {
                 event.rejectedBy(),
                 event.rejectionReason());
 
-        apply(new PaymentCompletedEvent(
-                this.paymentId,
-                PaymentStatus.BLOCKED,
-                "Manual review rejected: " + event.rejectionReason()
-        ));
-    }
-
-    @EventSourcingHandler
-    public void on(AccountChargeFailedEvent event) {
-        this.status = PaymentStatus.FAILED;
-        this.fraudStatus = FraudAnalysisStatus.APPROVED;
-        this.accountChargeFailedAt = Instant.now();
-        this.failureReason = event.failureReason();
-        log.error("Account charge failed for payment: {}, reason: {}", event.paymentId(), event.failureReason());
-
-        apply(new PaymentCompletedEvent(
-                this.paymentId,
-                PaymentStatus.FAILED,
-                "Account charge failed: " + event.failureReason()
-        ));
+        apply(new LedgerReleaseInitiatedEvent(this.paymentId));
     }
 
     @EventSourcingHandler
     public void on(PaymentCompletedEvent event) {
         this.status = event.finalStatus();
         this.completedAt = Instant.now();
-        log.info("Payment completed with status: {} - {}", event.finalStatus(), event.reason());
+        log.info("Payment completed with status: {} - {}",
+                event.finalStatus(),
+                event.reason());
     }
 
 }

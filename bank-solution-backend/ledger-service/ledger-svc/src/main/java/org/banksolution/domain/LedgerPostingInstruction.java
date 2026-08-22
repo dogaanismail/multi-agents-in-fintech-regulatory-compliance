@@ -15,6 +15,7 @@ public record LedgerPostingInstruction(
         BigDecimal amount,
         Currency currency,
         UUID customerAccountId,
+        UUID counterpartyCustomerAccountId,
         LedgerAccountType internalAccountType) {
 
     public static LedgerPostingInstruction inboundAuthorisation(
@@ -29,6 +30,7 @@ public record LedgerPostingInstruction(
                 amount,
                 currency,
                 customerAccountId,
+                null,
                 internalAccountType);
     }
 
@@ -44,7 +46,24 @@ public record LedgerPostingInstruction(
                 amount,
                 currency,
                 customerAccountId,
+                null,
                 internalAccountType);
+    }
+
+    public static LedgerPostingInstruction internalTransferAuthorisation(
+            UUID clientTransactionId,
+            BigDecimal amount,
+            Currency currency,
+            UUID sourceCustomerAccountId,
+            UUID destinationCustomerAccountId) {
+
+        return new LedgerPostingInstruction(clientTransactionId,
+                INTERNAL_TRANSFER_AUTHORISATION,
+                amount,
+                currency,
+                sourceCustomerAccountId,
+                destinationCustomerAccountId,
+                null);
     }
 
     public static LedgerPostingInstruction inboundHardSettlement(
@@ -59,6 +78,7 @@ public record LedgerPostingInstruction(
                 amount,
                 currency,
                 customerAccountId,
+                null,
                 internalAccountType);
     }
 
@@ -74,26 +94,15 @@ public record LedgerPostingInstruction(
                 amount,
                 currency,
                 customerAccountId,
+                null,
                 internalAccountType);
     }
 
     public static LedgerPostingInstruction settlement(UUID clientTransactionId) {
-
-        return new LedgerPostingInstruction(clientTransactionId,
-                SETTLEMENT,
-                null,
-                null,
-                null,
-                null);
+        return new LedgerPostingInstruction(clientTransactionId, SETTLEMENT, null, null, null, null, null);
     }
 
     public static LedgerPostingInstruction release(UUID clientTransactionId) {
-
-        return new LedgerPostingInstruction(clientTransactionId,
-                RELEASE,
-                null,
-                null,
-                null,
-                null);
+        return new LedgerPostingInstruction(clientTransactionId, RELEASE, null, null, null, null, null);
     }
 }

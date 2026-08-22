@@ -3,6 +3,7 @@ package org.banksolution.mapper;
 import org.banksolution.domain.LedgerPostingInstruction;
 import org.banksolution.model.request.CreateLedgerPostingInstructionRequest;
 import org.banksolution.model.request.CustomerAccountMovementRequest;
+import org.banksolution.model.request.InternalTransferMovementRequest;
 
 import java.util.UUID;
 
@@ -38,6 +39,13 @@ public final class LedgerPostingInstructionMapper {
             CustomerAccountMovementRequest movement = request.getOutboundHardSettlement();
             return LedgerPostingInstruction.outboundHardSettlement(clientTransactionId, movement.getAmount(),
                     movement.getCurrency(), movement.getCustomerAccountId(), movement.getInternalAccountType());
+        }
+
+        if (request.getInternalTransferAuthorisation() != null) {
+            InternalTransferMovementRequest movement = request.getInternalTransferAuthorisation();
+            return LedgerPostingInstruction.internalTransferAuthorisation(clientTransactionId, movement.getAmount(),
+                    movement.getCurrency(), movement.getSourceCustomerAccountId(),
+                    movement.getDestinationCustomerAccountId());
         }
 
         if (request.getSettlement() != null) {

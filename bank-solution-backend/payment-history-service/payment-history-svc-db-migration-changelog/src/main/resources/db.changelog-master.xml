@@ -25,4 +25,9 @@
         <sqlFile path="changelog/rename_currency_add_conversion_columns.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-08-23-05-01" author="Ismail Dogan">
+        <comment>Replace account charge timestamps with ledger posting timestamps</comment>
+        <sqlFile path="changelog/replace_account_charge_with_ledger_columns.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

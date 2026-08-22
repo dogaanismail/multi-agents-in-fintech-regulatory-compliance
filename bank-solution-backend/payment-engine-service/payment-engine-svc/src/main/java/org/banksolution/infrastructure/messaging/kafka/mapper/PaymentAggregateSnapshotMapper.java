@@ -43,9 +43,12 @@ public class PaymentAggregateSnapshotMapper {
                 .setManualReviewRequestedAt(toEpochMillis(payment.manualReviewRequestedAt()))
                 .setManualReviewApprovedAt(toEpochMillis(payment.manualReviewApprovedAt()))
                 .setManualReviewRejectedAt(toEpochMillis(payment.manualReviewRejectedAt()))
-                .setAccountChargeInitiatedAt(toEpochMillis(payment.accountChargeInitiatedAt()))
-                .setAccountChargedAt(toEpochMillis(payment.accountChargedAt()))
-                .setAccountChargeFailedAt(toEpochMillis(payment.accountChargeFailedAt()))
+                .setLedgerAuthorisationInitiatedAt(toEpochMillis(payment.ledgerAuthorisationInitiatedAt()))
+                .setLedgerAuthorisedAt(toEpochMillis(payment.ledgerAuthorisedAt()))
+                .setLedgerSettlementInitiatedAt(toEpochMillis(payment.ledgerSettlementInitiatedAt()))
+                .setLedgerSettledAt(toEpochMillis(payment.ledgerSettledAt()))
+                .setLedgerReleaseInitiatedAt(toEpochMillis(payment.ledgerReleaseInitiatedAt()))
+                .setLedgerReleasedAt(toEpochMillis(payment.ledgerReleasedAt()))
                 .setCompletedAt(toEpochMillis(payment.completedAt()))
                 .setBlockedAt(toEpochMillis(payment.blockedAt()))
 
@@ -69,12 +72,17 @@ public class PaymentAggregateSnapshotMapper {
         }
         return switch (status) {
             case INITIATED -> com.aml.payment.PaymentStatus.INITIATED;
+            case AUTHORISATION_PENDING -> com.aml.payment.PaymentStatus.AUTHORISATION_PENDING;
+            case AUTHORISED -> com.aml.payment.PaymentStatus.AUTHORISED;
+            case AUTHORISATION_DECLINED -> com.aml.payment.PaymentStatus.AUTHORISATION_DECLINED;
             case FRAUD_CHECK_PENDING -> com.aml.payment.PaymentStatus.FRAUD_CHECK_PENDING;
             case FRAUD_CHECK_APPROVED -> com.aml.payment.PaymentStatus.FRAUD_CHECK_APPROVED;
             case FRAUD_CHECK_FAILED -> com.aml.payment.PaymentStatus.FRAUD_CHECK_FAILED;
             case MANUAL_REVIEW_REQUIRED -> com.aml.payment.PaymentStatus.MANUAL_REVIEW_REQUIRED;
-            case ACCOUNT_CHARGE_PENDING -> com.aml.payment.PaymentStatus.ACCOUNT_CHARGE_PENDING;
-            case ACCOUNT_CHARGED -> com.aml.payment.PaymentStatus.ACCOUNT_CHARGED;
+            case SETTLEMENT_PENDING -> com.aml.payment.PaymentStatus.SETTLEMENT_PENDING;
+            case SETTLED -> com.aml.payment.PaymentStatus.SETTLED;
+            case RELEASE_PENDING -> com.aml.payment.PaymentStatus.RELEASE_PENDING;
+            case RELEASED -> com.aml.payment.PaymentStatus.RELEASED;
             case COMPLETED -> com.aml.payment.PaymentStatus.COMPLETED;
             case BLOCKED -> com.aml.payment.PaymentStatus.BLOCKED;
             case FAILED -> com.aml.payment.PaymentStatus.FAILED;

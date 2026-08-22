@@ -69,6 +69,12 @@ create_topic "fraud.analysis.completed" "FraudAnalysisCompletedEvent from marl-o
 create_topic "agent.manual.feedback" "ComplianceAgentManualFeedbackEvent from payment-engine-svc to marl-orchestrator (compliance officer decisions)"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📒 LEDGER TOPICS"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+create_topic "ledger.posting.requested" "LedgerPostingRequestedEvent from payment-engine-svc to ledger-svc"
+create_topic "ledger.posting.completed" "LedgerPostingCompletedEvent from ledger-svc to payment-engine-svc"
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🏦 ACCOUNT SERVICE TOPICS"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 create_topic "account-created-events" "AccountCreatedEvent from account-svc"

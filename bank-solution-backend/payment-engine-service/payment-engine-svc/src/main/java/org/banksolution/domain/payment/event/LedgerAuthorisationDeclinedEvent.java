@@ -2,8 +2,8 @@ package org.banksolution.domain.payment.event;
 
 import org.banksolution.domain.payment.valueobject.PaymentId;
 
-public record AccountChargeFailedEvent(
+public record LedgerAuthorisationDeclinedEvent(
         PaymentId paymentId,
-        String failureReason
+        String reason
 ) {
 }

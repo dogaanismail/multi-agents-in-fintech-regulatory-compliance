@@ -31,18 +31,12 @@ public class KafkaConfigurationProperties {
 
         @Data
         public static class Incoming {
-            private String paymentCreated;
-            private String riskAssessmentCompleted;
-            private String ledgerPostingCompleted;
+            private String ledgerPostingRequested;
         }
 
         @Data
         public static class Outgoing {
-            private String riskAssessmentRequested;
-            private String paymentSnapshotEvents;
-            private String ledgerPostingRequested;
-            private String paymentCompleted;
-            private String agentManualFeedback;
+            private String ledgerPostingCompleted;
         }
     }
 }

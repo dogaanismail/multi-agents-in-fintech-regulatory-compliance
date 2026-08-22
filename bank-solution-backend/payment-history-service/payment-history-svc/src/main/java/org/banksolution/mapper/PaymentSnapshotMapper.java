@@ -45,9 +45,12 @@ public class PaymentSnapshotMapper {
         history.setManualReviewRequestedAt(convertToInstant(snapshot.getManualReviewRequestedAt()));
         history.setManualReviewApprovedAt(convertToInstant(snapshot.getManualReviewApprovedAt()));
         history.setManualReviewRejectedAt(convertToInstant(snapshot.getManualReviewRejectedAt()));
-        history.setAccountChargeInitiatedAt(convertToInstant(snapshot.getAccountChargeInitiatedAt()));
-        history.setAccountChargedAt(convertToInstant(snapshot.getAccountChargedAt()));
-        history.setAccountChargeFailedAt(convertToInstant(snapshot.getAccountChargeFailedAt()));
+        history.setLedgerAuthorisationInitiatedAt(convertToInstant(snapshot.getLedgerAuthorisationInitiatedAt()));
+        history.setLedgerAuthorisedAt(convertToInstant(snapshot.getLedgerAuthorisedAt()));
+        history.setLedgerSettlementInitiatedAt(convertToInstant(snapshot.getLedgerSettlementInitiatedAt()));
+        history.setLedgerSettledAt(convertToInstant(snapshot.getLedgerSettledAt()));
+        history.setLedgerReleaseInitiatedAt(convertToInstant(snapshot.getLedgerReleaseInitiatedAt()));
+        history.setLedgerReleasedAt(convertToInstant(snapshot.getLedgerReleasedAt()));
         history.setCompletedAt(convertToInstant(snapshot.getCompletedAt()));
         history.setBlockedAt(convertToInstant(snapshot.getBlockedAt()));
 

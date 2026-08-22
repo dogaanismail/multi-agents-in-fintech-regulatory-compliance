@@ -42,12 +42,12 @@
     {
       "name": "fromCurrency",
       "type": "string",
-      "doc": "Source currency — currency of the debit account (ISO 4217)"
+      "doc": "Source currency \u2014 currency of the debit account (ISO 4217)"
     },
     {
       "name": "toCurrency",
       "type": "string",
-      "doc": "Destination currency — equals fromCurrency for same-currency payments (ISO 4217)"
+      "doc": "Destination currency \u2014 equals fromCurrency for same-currency payments (ISO 4217)"
     },
     {
       "name": "convertedAmount",
@@ -61,7 +61,7 @@
         "string"
       ],
       "default": null,
-      "doc": "Exchange rate applied: fromCurrency → toCurrency (null when no conversion)"
+      "doc": "Exchange rate applied: fromCurrency \u2192 toCurrency (null when no conversion)"
     },
     {
       "name": "description",
@@ -79,12 +79,17 @@
         "name": "PaymentStatus",
         "symbols": [
           "INITIATED",
+          "AUTHORISATION_PENDING",
+          "AUTHORISED",
+          "AUTHORISATION_DECLINED",
           "FRAUD_CHECK_PENDING",
           "FRAUD_CHECK_APPROVED",
           "FRAUD_CHECK_FAILED",
           "MANUAL_REVIEW_REQUIRED",
-          "ACCOUNT_CHARGE_PENDING",
-          "ACCOUNT_CHARGED",
+          "SETTLEMENT_PENDING",
+          "SETTLED",
+          "RELEASE_PENDING",
+          "RELEASED",
           "COMPLETED",
           "BLOCKED",
           "FAILED",
@@ -402,34 +407,64 @@
       "doc": "Notes from compliance officer (approval notes or rejection reason)"
     },
     {
-      "name": "accountChargeInitiatedAt",
+      "name": "ledgerAuthorisationInitiatedAt",
       "type": [
         "null",
         "long"
       ],
       "default": null,
       "logicalType": "timestamp-millis",
-      "doc": "Account charge initiation timestamp"
+      "doc": "Timestamp for ledgerAuthorisationInitiatedAt"
     },
     {
-      "name": "accountChargedAt",
+      "name": "ledgerAuthorisedAt",
       "type": [
         "null",
         "long"
       ],
       "default": null,
       "logicalType": "timestamp-millis",
-      "doc": "Account successfully charged timestamp"
+      "doc": "Timestamp for ledgerAuthorisedAt"
     },
     {
-      "name": "accountChargeFailedAt",
+      "name": "ledgerSettlementInitiatedAt",
       "type": [
         "null",
         "long"
       ],
       "default": null,
       "logicalType": "timestamp-millis",
-      "doc": "Account charge failure timestamp"
+      "doc": "Timestamp for ledgerSettlementInitiatedAt"
+    },
+    {
+      "name": "ledgerSettledAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Timestamp for ledgerSettledAt"
+    },
+    {
+      "name": "ledgerReleaseInitiatedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Timestamp for ledgerReleaseInitiatedAt"
+    },
+    {
+      "name": "ledgerReleasedAt",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null,
+      "logicalType": "timestamp-millis",
+      "doc": "Timestamp for ledgerReleasedAt"
     },
     {
       "name": "completedAt",

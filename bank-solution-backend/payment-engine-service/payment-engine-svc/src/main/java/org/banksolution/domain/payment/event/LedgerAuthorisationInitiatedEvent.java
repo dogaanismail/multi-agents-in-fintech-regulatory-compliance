@@ -5,7 +5,7 @@ import org.banksolution.domain.payment.valueobject.PaymentId;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record AccountChargeInitiatedEvent(
+public record LedgerAuthorisationInitiatedEvent(
         PaymentId paymentId,
         UUID customerId,
         UUID sourceAccountId,
@@ -13,8 +13,6 @@ public record AccountChargeInitiatedEvent(
         BigDecimal amount,
         String fromCurrency,
         String toCurrency,
-        BigDecimal convertedAmount,
-        BigDecimal appliedExchangeRate,
         String paymentType,
         String description
 ) {

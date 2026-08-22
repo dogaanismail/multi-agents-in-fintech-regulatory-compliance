@@ -38,7 +38,7 @@ import org.axonframework.spring.messaging.unitofwork.SpringTransactionManager;
 import org.axonframework.tracing.SpanFactory;
 import org.axonframework.eventsourcing.EventSourcingRepository;
 import org.banksolution.domain.payment.aggregate.PaymentAggregate;
-import org.banksolution.domain.payment.saga.AccountChargeSaga;
+import org.banksolution.domain.payment.saga.LedgerPostingSaga;
 import org.banksolution.domain.payment.saga.PaymentRiskSaga;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -223,13 +223,13 @@ public class AxonConfig {
         );
         configurer.registerSubscribingEventProcessor("PaymentRiskSagaProcessor");
 
-        // Configure AccountChargeSaga
-        configurer.registerSaga(AccountChargeSaga.class);
+        // Configure LedgerPostingSaga
+        configurer.registerSaga(LedgerPostingSaga.class);
         configurer.assignHandlerTypesMatching(
-                "AccountChargeSagaProcessor",
-                clazz -> clazz.equals(AccountChargeSaga.class)
+                "LedgerPostingSagaProcessor",
+                clazz -> clazz.equals(LedgerPostingSaga.class)
         );
-        configurer.registerSubscribingEventProcessor("AccountChargeSagaProcessor");
+        configurer.registerSubscribingEventProcessor("LedgerPostingSagaProcessor");
     }
 
     @Bean
