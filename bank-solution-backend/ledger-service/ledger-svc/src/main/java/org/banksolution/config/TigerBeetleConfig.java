@@ -6,15 +6,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
+
 @Configuration
 @Slf4j
 public class TigerBeetleConfig {
 
     @Bean(destroyMethod = "close")
     public Client tigerBeetleClient(TigerBeetleProperties properties) {
-        String[] addresses = properties.addresses().toArray(String[]::new);
+        String[] addresses = TigerBeetleAddresses.resolve(properties.addresses());
 
-        log.info("Connecting to TigerBeetle cluster {} at {}", properties.clusterId(), properties.addresses());
+        log.info("Connecting to TigerBeetle cluster {} at {}", properties.clusterId(), Arrays.toString(addresses));
         Client client = new Client(UInt128.asBytes(properties.clusterId()), addresses);
         log.info("TigerBeetle client initialised");
 
