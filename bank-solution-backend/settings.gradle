@@ -43,6 +43,10 @@ include 'payment-history-service:payment-history-svc-db-migration-changelog'
 include 'network-topology-service'
 include 'network-topology-service:network-topology-svc'
 
+// ledger service modules
+include 'ledger-service'
+include 'ledger-service:ledger-svc'
+
 // payment engine service modules
 include 'payment-engine-service'
 include 'payment-engine-service:payment-engine-svc'

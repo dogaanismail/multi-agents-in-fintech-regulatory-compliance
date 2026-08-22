@@ -474,6 +474,72 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # TigerBeetle data file initialisation (one-shot, idempotent)
+  # seccomp=unconfined: TigerBeetle requires io_uring, which Docker's default
+  # seccomp profile blocks ("error(io): io_uring is not available").
+  tigerbeetle-format:
+    image: ghcr.io/tigerbeetle/tigerbeetle:0.17.9
+    container_name: tigerbeetle-format
+    security_opt:
+      - seccomp=unconfined
+    entrypoint: sh
+    command: >
+      -c "test -f /data/0_0.tigerbeetle ||
+          /tigerbeetle format --cluster=0 --replica=0 --replica-count=1 --development /data/0_0.tigerbeetle"
+    volumes:
+      - tigerbeetle_data:/data
+    networks:
+      - bank-network
+    restart: "no"
+
+  # TigerBeetle - source of truth for ledger accounts, transfers and balances
+  tigerbeetle:
+    image: ghcr.io/tigerbeetle/tigerbeetle:0.17.9
+    container_name: tigerbeetle
+    security_opt:
+      - seccomp=unconfined
+    command: start --addresses=0.0.0.0:3000 --development /data/0_0.tigerbeetle
+    ports:
+      - "3033:3000"
+    volumes:
+      - tigerbeetle_data:/data
+    depends_on:
+      tigerbeetle-format:
+        condition: service_completed_successfully
+    networks:
+      - bank-network
+    restart: unless-stopped
+
+  # Ledger Service
+  ledger-service:
+    image: ledger-svc:latest
+    build:
+      context: ./ledger-service/ledger-svc
+      dockerfile: Dockerfile
+    container_name: ledger-service
+    ports:
+      - "5013:5013"
+    environment:
+      - TIGERBEETLE_CLUSTER_ID=0
+      - TIGERBEETLE_ADDRESSES=tigerbeetle:3000
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      - OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
+      - LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs
+    depends_on:
+      tigerbeetle:
+        condition: service_started
+    networks:
+      - bank-network
+      - aml-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5013/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
   # Backoffice Gateway
   backoffice-gateway:
     image: backoffice-gateway-svc:latest
@@ -628,6 +694,8 @@ volumes:
   postgres_data:
     driver: local
   neo4j_data:
+    driver: local
+  tigerbeetle_data:
     driver: local
   tempo_data:
     driver: local
