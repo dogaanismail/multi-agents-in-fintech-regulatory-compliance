@@ -103,17 +103,16 @@ services:
       SPRING_DATASOURCE_USERNAME: default
       SPRING_DATASOURCE_PASSWORD: default
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
+      LEDGER_SERVICE_URL: http://ledger-service:5013/api/v1/ledger/accounts
       SERVER_PORT: 5002
-      SIMULATION_BALANCE_SEED_ENABLED: "true"
-      SIMULATION_BALANCE_SEED_AMOUNT: "1000000.00"
       OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     depends_on:
       account-db-migration:
         condition: service_completed_successfully
+      ledger-service:
+        condition: service_started
     networks:
       - bank-network
       - aml-network

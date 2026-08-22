@@ -56,9 +56,9 @@ public class AccountEntity extends BaseEntity {
     @Column(name = "closing_date")
     private LocalDate closingDate;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @Builder.Default
-    private List<AccountBalanceEntity> balances = new ArrayList<>();
+    private List<AccountWalletEntity> wallets = new ArrayList<>();
 
 }
 

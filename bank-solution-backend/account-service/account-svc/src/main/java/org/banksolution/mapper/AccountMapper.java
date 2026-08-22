@@ -1,78 +1,48 @@
 package org.banksolution.mapper;
 
 import lombok.experimental.UtilityClass;
-import org.banksolution.entity.AccountBalanceEntity;
 import org.banksolution.entity.AccountEntity;
-import org.banksolution.enums.Currency;
+import org.banksolution.entity.AccountWalletEntity;
 import org.banksolution.model.request.OpenAccountRequest;
 import org.banksolution.model.response.AccountResponse;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @UtilityClass
 public class AccountMapper {
 
-    public static AccountEntity toEntity(
+    public static AccountEntity toAccountEntity(
             OpenAccountRequest request,
             String accountNumber) {
-        return toEntity(request, accountNumber, BigDecimal.ZERO);
-    }
 
-    public static AccountEntity toEntity(
-            OpenAccountRequest request,
-            String accountNumber,
-            BigDecimal initialBalance) {
-
-        AccountEntity account = AccountEntity.builder()
+        return AccountEntity.builder()
                 .customerId(request.getCustomerId())
                 .accountNumber(accountNumber)
                 .bankLocation(request.getBankLocation())
                 .accountType(request.getAccountType())
                 .openingDate(LocalDate.now())
                 .build();
-
-        List<AccountBalanceEntity> balances = request.getCurrencies().stream()
-                .map(currency -> createBalance(account, currency, initialBalance))
-                .toList();
-        account.setBalances(balances);
-
-        return account;
     }
 
-    private static AccountBalanceEntity createBalance(
+    public static AccountResponse toAccountResponse(
             AccountEntity account,
-            Currency currency,
-            BigDecimal initialBalance) {
-
-        return AccountBalanceEntity.builder()
-                .account(account)
-                .currency(currency)
-                .availableBalance(initialBalance)
-                .pendingBalance(BigDecimal.ZERO)
-                .build();
-    }
-
-    public static AccountResponse toResponse(
-            AccountEntity entity) {
+            List<AccountWalletEntity> wallets) {
 
         return AccountResponse.builder()
-                .id(entity.getId())
-                .customerId(entity.getCustomerId())
-                .accountNumber(entity.getAccountNumber())
-                .bankLocation(entity.getBankLocation().name().toUpperCase())
-                .accountType(entity.getAccountType())
-                .accountStatus(entity.getAccountStatus())
-                .openingDate(entity.getOpeningDate())
-                .closingDate(entity.getClosingDate())
-                .balances(entity.getBalances().stream()
-                        .map(BalanceMapper::toResponse)
+                .id(account.getId())
+                .customerId(account.getCustomerId())
+                .accountNumber(account.getAccountNumber())
+                .bankLocation(account.getBankLocation().name().toUpperCase())
+                .accountType(account.getAccountType())
+                .accountStatus(account.getAccountStatus())
+                .openingDate(account.getOpeningDate())
+                .closingDate(account.getClosingDate())
+                .wallets(wallets.stream()
+                        .map(AccountWalletMapper::toAccountWalletResponse)
                         .toList())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
                 .build();
     }
-
 }
-

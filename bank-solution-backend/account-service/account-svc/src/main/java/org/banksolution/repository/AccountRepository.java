@@ -2,7 +2,6 @@ package org.banksolution.repository;
 
 import lombok.NonNull;
 import org.banksolution.entity.AccountEntity;
-import org.banksolution.enums.AccountType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,22 +17,15 @@ public interface AccountRepository extends JpaRepository<@NonNull AccountEntity,
 
     boolean existsByAccountNumber(String accountNumber);
 
-    @EntityGraph(attributePaths = {"balances"})
+    @EntityGraph(attributePaths = {"wallets"})
+    @Query("SELECT a FROM account a WHERE a.id = :id AND a.deletedAt IS NULL")
+    Optional<AccountEntity> findActiveById(@Param("id") UUID id);
+
+    @EntityGraph(attributePaths = {"wallets"})
+    @Query("SELECT a FROM account a WHERE a.id IN :ids AND a.deletedAt IS NULL")
+    List<AccountEntity> findActiveByIdIn(@Param("ids") List<UUID> ids);
+
+    @EntityGraph(attributePaths = {"wallets"})
     @Query("SELECT a FROM account a WHERE a.customerId = :customerId AND a.deletedAt IS NULL")
-    List<AccountEntity> findByCustomerId(@Param("customerId") UUID customerId);
-
-    @EntityGraph(attributePaths = {"balances"})
-    List<AccountEntity> findAllByIdIn(List<UUID> ids);
-
-    @Override
-    @EntityGraph(attributePaths = {"balances"})
-    @NonNull
-    Optional<@NonNull AccountEntity> findById(@NonNull UUID id);
-
-    @EntityGraph(attributePaths = {"balances"})
-    @Query("SELECT a FROM account a WHERE a.accountType = :accountType AND a.deletedAt IS NULL")
-    Optional<AccountEntity> findByAccountType(@Param("accountType") AccountType accountType);
-
+    List<AccountEntity> findActiveByCustomerId(@Param("customerId") UUID customerId);
 }
-
-
