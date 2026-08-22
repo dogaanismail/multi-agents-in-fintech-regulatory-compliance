@@ -14,43 +14,63 @@ public final class LedgerPostingFixtures {
     private LedgerPostingFixtures() {
     }
 
-    public static CustomerAccountMovementRequest createCustomerAccountMovement(UUID accountId, BigDecimal amount, Currency currency) {
+    public static CustomerAccountMovementRequest createCustomerAccountMovement(
+            UUID customerAccountId,
+            BigDecimal amount,
+            Currency currency) {
+
         return CustomerAccountMovementRequest.builder()
-                .customerAccountId(accountId)
+                .customerAccountId(customerAccountId)
                 .amount(amount)
                 .currency(currency)
                 .build();
     }
 
-    public static CreateLedgerPostingInstructionRequest createInboundHardSettlement(
-            UUID clientTransactionId, UUID accountId, BigDecimal amount, Currency currency) {
-        return CreateLedgerPostingInstructionRequest.builder()
-                .clientTransactionId(clientTransactionId)
-                .inboundHardSettlement(createCustomerAccountMovement(accountId, amount, currency))
-                .build();
-    }
-
-    public static CreateLedgerPostingInstructionRequest createOutboundHardSettlement(
-            UUID clientTransactionId, UUID accountId, BigDecimal amount, Currency currency) {
-        return CreateLedgerPostingInstructionRequest.builder()
-                .clientTransactionId(clientTransactionId)
-                .outboundHardSettlement(createCustomerAccountMovement(accountId, amount, currency))
-                .build();
-    }
-
     public static CreateLedgerPostingInstructionRequest createInboundAuthorisation(
-            UUID clientTransactionId, UUID accountId, BigDecimal amount, Currency currency) {
+            UUID clientTransactionId,
+            UUID customerAccountId,
+            BigDecimal amount,
+            Currency currency) {
+
         return CreateLedgerPostingInstructionRequest.builder()
                 .clientTransactionId(clientTransactionId)
-                .inboundAuthorisation(createCustomerAccountMovement(accountId, amount, currency))
+                .inboundAuthorisation(createCustomerAccountMovement(customerAccountId, amount, currency))
                 .build();
     }
 
     public static CreateLedgerPostingInstructionRequest createOutboundAuthorisation(
-            UUID clientTransactionId, UUID accountId, BigDecimal amount, Currency currency) {
+            UUID clientTransactionId,
+            UUID customerAccountId,
+            BigDecimal amount,
+            Currency currency) {
+
         return CreateLedgerPostingInstructionRequest.builder()
                 .clientTransactionId(clientTransactionId)
-                .outboundAuthorisation(createCustomerAccountMovement(accountId, amount, currency))
+                .outboundAuthorisation(createCustomerAccountMovement(customerAccountId, amount, currency))
+                .build();
+    }
+
+    public static CreateLedgerPostingInstructionRequest createInboundHardSettlement(
+            UUID clientTransactionId,
+            UUID customerAccountId,
+            BigDecimal amount,
+            Currency currency) {
+
+        return CreateLedgerPostingInstructionRequest.builder()
+                .clientTransactionId(clientTransactionId)
+                .inboundHardSettlement(createCustomerAccountMovement(customerAccountId, amount, currency))
+                .build();
+    }
+
+    public static CreateLedgerPostingInstructionRequest createOutboundHardSettlement(
+            UUID clientTransactionId,
+            UUID customerAccountId,
+            BigDecimal amount,
+            Currency currency) {
+
+        return CreateLedgerPostingInstructionRequest.builder()
+                .clientTransactionId(clientTransactionId)
+                .outboundHardSettlement(createCustomerAccountMovement(customerAccountId, amount, currency))
                 .build();
     }
 
