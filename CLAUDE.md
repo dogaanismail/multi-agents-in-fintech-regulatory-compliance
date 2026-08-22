@@ -229,9 +229,10 @@ domain is dense enough without abbreviation.
   `findAll`; `deriveWalletAccountId`, not `wallet`.
 - No vague factory names (`of`, `from`) on domain types — `LedgerAccount.newWallet`,
   `LedgerPostingInstruction.settlement(...)`.
-- No overloads that differ only by argument type on public API — `toResponse(LedgerAccount)`
-  and `toResponse(LedgerInternalAccount)` became `toLedgerAccountResponse` /
-  `toLedgerInternalAccountResponse`.
+- **Mapper methods name what they produce**, always — never bare `toEntity`, `toEntities`,
+  `toResponse` or `toDto`. `toAccountWalletEntities`, `toAccountResponse`,
+  `toLedgerPostingInstruction`, `toLedgerPostingResponse`. This also rules out overloads that
+  differ only by argument type, which read identically at the call site.
 - Avoid imported jargon. "Leg" was replaced by `CustomerAccountMovementRequest`, which says
   what the object actually holds.
 - Name variables for the layer they belong to: `ledgerTransfer` vs `transferBatch`,

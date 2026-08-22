@@ -2,6 +2,7 @@ package org.banksolution.model.response;
 
 import lombok.*;
 import org.banksolution.enums.Currency;
+import org.banksolution.enums.WalletStatus;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -11,12 +12,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BalanceResponse {
+public class AccountWalletResponse {
 
     private UUID id;
+    private UUID ledgerAccountId;
     private Currency currency;
-    private BigDecimal availableBalance;
-    private BigDecimal pendingBalance;
-    private BigDecimal totalBalance;
+    private WalletStatus walletStatus;
+    private BigDecimal balance;
+    private boolean primary;
 
 }

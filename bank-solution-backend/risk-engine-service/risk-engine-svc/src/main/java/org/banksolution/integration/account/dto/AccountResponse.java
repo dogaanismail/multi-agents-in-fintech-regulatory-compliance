@@ -24,7 +24,7 @@ public class AccountResponse {
     private AccountStatus accountStatus;
     private LocalDate openingDate;
     private LocalDate closingDate;
-    private List<BalanceResponse> balances;
+    private List<AccountWalletResponse> wallets;
     private Instant createdAt;
     private Instant updatedAt;
 

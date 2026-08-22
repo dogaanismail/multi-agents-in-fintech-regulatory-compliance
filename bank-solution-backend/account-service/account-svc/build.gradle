@@ -9,9 +9,6 @@ version = '0.0.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    maven {
-        url "https://packages.confluent.io/maven/"
-    }
 }
 
 dependencyManagement {
@@ -30,14 +27,6 @@ dependencies {
     // Propagate W3C trace context across Feign HTTP calls (distributed tracing)
     implementation 'io.github.openfeign:feign-micrometer'
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
-
-    // Kafka + Avro
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
-    implementation "org.apache.avro:avro:${apacheAvroVersion}"
-
-    // Avro Schema Library
-    implementation project(':avro-schema-library-java')
 
     implementation project(':common')
 

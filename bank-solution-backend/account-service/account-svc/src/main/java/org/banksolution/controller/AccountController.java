@@ -7,8 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.banksolution.enums.Currency;
 import org.banksolution.model.request.OpenAccountRequest;
 import org.banksolution.model.response.AccountResponse;
-import org.banksolution.model.response.BalanceResponse;
+import org.banksolution.model.response.AccountWalletResponse;
 import org.banksolution.service.AccountService;
+import org.banksolution.service.AccountWalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class AccountController {
 
     private final AccountService accountService;
+    private final AccountWalletService accountWalletService;
 
     @PostMapping("open-account")
     public ResponseEntity<@NonNull AccountResponse> openAccount(@Valid @RequestBody OpenAccountRequest request) {
@@ -51,20 +53,20 @@ public class AccountController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}/balances")
-    public ResponseEntity<@NonNull List<BalanceResponse>> getBalancesByAccountId(@PathVariable UUID id) {
-        log.info("GET /api/v1/accounts/{}/balances - Fetching balances", id);
-        List<BalanceResponse> response = accountService.getBalancesByAccountId(id);
+    @GetMapping("/{id}/wallets")
+    public ResponseEntity<@NonNull List<AccountWalletResponse>> getWalletsByAccountId(@PathVariable UUID id) {
+        log.info("GET /api/v1/accounts/{}/wallets - Fetching wallets", id);
+        List<AccountWalletResponse> response = accountWalletService.getWalletsByAccountId(id);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}/balances/{currency}")
-    public ResponseEntity<@NonNull BalanceResponse> getBalanceByCurrency(
+    @GetMapping("/{id}/wallets/{currency}")
+    public ResponseEntity<@NonNull AccountWalletResponse> getWalletByCurrency(
             @PathVariable UUID id,
             @PathVariable Currency currency) {
-        log.info("GET /api/v1/accounts/{}/balances/{} - Fetching balance", id, currency);
-        BalanceResponse response = accountService.getBalanceByCurrency(id, currency);
+
+        log.info("GET /api/v1/accounts/{}/wallets/{} - Fetching wallet", id, currency);
+        AccountWalletResponse response = accountWalletService.getWalletByCurrency(id, currency);
         return ResponseEntity.ok(response);
     }
 }
-

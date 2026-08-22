@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.banksolution.enums.Currency;
+import org.banksolution.enums.WalletStatus;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import static org.banksolution.enums.WalletStatus.ACTIVE;
 
 @Getter
 @Setter
@@ -14,10 +17,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "account_balance")
-@Table(name = "account_balance",
+@Entity(name = "account_wallet")
+@Table(name = "account_wallet",
        uniqueConstraints = @UniqueConstraint(columnNames = {"account_id", "currency"}))
-public class AccountBalanceEntity extends BaseEntity {
+public class AccountWalletEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,23 +31,24 @@ public class AccountBalanceEntity extends BaseEntity {
     @JoinColumn(name = "account_id", nullable = false)
     private AccountEntity account;
 
+    @Column(name = "ledger_account_id", nullable = false, updatable = false)
+    private UUID ledgerAccountId;
+
+    @Column(name = "wallet_status", nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private WalletStatus walletStatus = ACTIVE;
+
     @Column(name = "currency", nullable = false, length = 3)
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-    @Column(name = "available_balance", nullable = false, precision = 19, scale = 2)
+    @Column(name = "balance", nullable = false, precision = 19, scale = 2)
     @Builder.Default
-    private BigDecimal availableBalance = BigDecimal.ZERO;
+    private BigDecimal balance = BigDecimal.ZERO;
 
-    @Column(name = "pending_balance", nullable = false, precision = 19, scale = 2)
+    @Column(name = "is_primary", nullable = false)
     @Builder.Default
-    private BigDecimal pendingBalance = BigDecimal.ZERO;
+    private boolean primary = false;
 
-    /**
-     * Total balance = available + pending
-     */
-    public BigDecimal getTotalBalance() {
-        return availableBalance.add(pendingBalance);
-    }
 }
-

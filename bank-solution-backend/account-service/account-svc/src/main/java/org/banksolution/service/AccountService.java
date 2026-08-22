@@ -2,86 +2,68 @@ package org.banksolution.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.banksolution.entity.AccountBalanceEntity;
 import org.banksolution.entity.AccountEntity;
-import org.banksolution.enums.Currency;
-import org.banksolution.exception.AccountAlreadyExistsException;
+import org.banksolution.entity.AccountWalletEntity;
 import org.banksolution.exception.AccountNotFoundException;
-import org.banksolution.exception.BalanceNotFoundException;
-import org.banksolution.integration.customer.CustomerServiceClient;
-import org.banksolution.integration.customer.dto.CustomerResponse;
+import org.banksolution.exception.AccountNumberGenerationException;
+import org.banksolution.exception.CustomerNotFoundException;
 import org.banksolution.mapper.AccountMapper;
-import org.banksolution.mapper.BalanceMapper;
 import org.banksolution.model.request.OpenAccountRequest;
 import org.banksolution.model.response.AccountResponse;
-import org.banksolution.model.response.BalanceResponse;
-import org.banksolution.repository.AccountBalanceRepository;
 import org.banksolution.repository.AccountRepository;
 import org.banksolution.utils.AccountNumberUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-
-import static org.banksolution.mapper.AccountMapper.toEntity;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AccountService {
 
+    private static final int MAX_ACCOUNT_NUMBER_ATTEMPTS = 5;
+
     private final AccountRepository accountRepository;
-    private final AccountBalanceRepository accountBalanceRepository;
-    private final CustomerServiceClient customerServiceClient;
-
-    @Value("${simulation.balance.seed-enabled:false}")
-    private boolean simulationBalanceSeedEnabled;
-
-    @Value("${simulation.balance.seed-amount:1000000.00}")
-    private BigDecimal simulationBalanceSeedAmount;
+    private final AccountWalletService accountWalletService;
+    private final CustomerClientService customerClientService;
 
     @Transactional
     public AccountResponse openAccount(OpenAccountRequest request) {
         log.info("Opening account for customer: {}", request.getCustomerId());
 
-        String accountNumber = AccountNumberUtils.generateAccountNumber();
-
-        if (accountRepository.existsByAccountNumber(accountNumber)) {
-            throw new AccountAlreadyExistsException(accountNumber);
+        if (!customerClientService.customerExists(request.getCustomerId())) {
+            throw new CustomerNotFoundException(request.getCustomerId());
         }
 
-        if (!customerExists(request.getCustomerId())) {
-            throw new IllegalArgumentException("Customer with ID " + request.getCustomerId() + " does not exist.");
-        }
+        String accountNumber = generateUniqueAccountNumber();
 
-        AccountEntity entity = toEntity(request, accountNumber,
-                simulationBalanceSeedEnabled ? simulationBalanceSeedAmount : BigDecimal.ZERO);
-        AccountEntity savedEntity = accountRepository.save(entity);
+        AccountEntity account = accountRepository.save(AccountMapper.toAccountEntity(request, accountNumber));
+        List<AccountWalletEntity> wallets = accountWalletService.openWallets(account, request.getCurrencies());
 
         log.info("Account opened successfully with account number: {}", accountNumber);
-        return AccountMapper.toResponse(savedEntity);
+
+        return AccountMapper.toAccountResponse(account, wallets);
     }
 
     @Transactional(readOnly = true)
     public AccountResponse getAccountById(UUID id) {
         log.info("Fetching account with id: {}", id);
 
-        AccountEntity entity = accountRepository.findById(id)
+        AccountEntity account = accountRepository.findActiveById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id));
 
-        return AccountMapper.toResponse(entity);
+        return AccountMapper.toAccountResponse(account, account.getWallets());
     }
 
     @Transactional(readOnly = true)
     public List<AccountResponse> getByAccountIds(List<UUID> ids) {
         log.info("Fetching accounts with ids: {}", ids);
 
-        return accountRepository.findAllByIdIn(ids)
+        return accountRepository.findActiveByIdIn(ids)
                 .stream()
-                .map(AccountMapper::toResponse)
+                .map(account -> AccountMapper.toAccountResponse(account, account.getWallets()))
                 .toList();
     }
 
@@ -89,43 +71,24 @@ public class AccountService {
     public List<AccountResponse> getAccountsByCustomerId(UUID customerId) {
         log.info("Fetching accounts for customer: {}", customerId);
 
-        List<AccountEntity> accounts = accountRepository.findByCustomerId(customerId);
-
-        return accounts.stream()
-                .map(AccountMapper::toResponse)
+        return accountRepository.findActiveByCustomerId(customerId)
+                .stream()
+                .map(account -> AccountMapper.toAccountResponse(account, account.getWallets()))
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<BalanceResponse> getBalancesByAccountId(UUID accountId) {
-        log.info("Fetching balances for account: {}", accountId);
+    private String generateUniqueAccountNumber() {
+        for (int attempt = 1; attempt <= MAX_ACCOUNT_NUMBER_ATTEMPTS; attempt++) {
+            String accountNumber = AccountNumberUtils.generateAccountNumber();
 
-        List<AccountBalanceEntity> balances = accountBalanceRepository.findByAccountId(accountId);
+            if (!accountRepository.existsByAccountNumber(accountNumber)) {
+                return accountNumber;
+            }
 
-        return balances.stream()
-                .map(BalanceMapper::toResponse)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public BalanceResponse getBalanceByCurrency(UUID accountId, Currency currency) {
-        log.info("Fetching balance for account: {} and currency: {}", accountId, currency);
-
-        AccountBalanceEntity balance = accountBalanceRepository.findByAccountIdAndCurrency(accountId, currency)
-                .orElseThrow(() -> new BalanceNotFoundException(accountId, currency));
-
-        return BalanceMapper.toResponse(balance);
-    }
-
-    private boolean customerExists(UUID customerId) {
-        try {
-            CustomerResponse customerResponse = customerServiceClient.getCustomerById(customerId);
-            return customerResponse != null;
-        } catch (Exception e) {
-            log.error("Error while verifying customer existence: {}", e.getMessage());
-            return false;
+            log.warn("Generated account number {} is already taken, attempt {} of {}",
+                    accountNumber, attempt, MAX_ACCOUNT_NUMBER_ATTEMPTS);
         }
+
+        throw new AccountNumberGenerationException(MAX_ACCOUNT_NUMBER_ATTEMPTS);
     }
-
 }
-

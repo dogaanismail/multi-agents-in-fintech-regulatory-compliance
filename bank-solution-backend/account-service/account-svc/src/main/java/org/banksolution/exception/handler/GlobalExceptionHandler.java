@@ -4,9 +4,11 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.banksolution.exception.CustomError;
-import org.banksolution.exception.AccountAlreadyExistsException;
 import org.banksolution.exception.AccountNotFoundException;
-import org.banksolution.exception.BalanceNotFoundException;
+import org.banksolution.exception.AccountNumberGenerationException;
+import org.banksolution.exception.CustomerNotFoundException;
+import org.banksolution.exception.WalletCreationFailedException;
+import org.banksolution.exception.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -86,18 +88,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(AccountAlreadyExistsException.class)
-    protected ResponseEntity<@NonNull CustomError> handleAccountAlreadyExistException(AccountAlreadyExistsException ex) {
-
-        CustomError customError = CustomError.builder()
-                .httpStatus(HttpStatus.CONFLICT)
-                .header(CustomError.Header.API_ERROR.getName())
-                .message(ex.getMessage())
-                .build();
-
-        return new ResponseEntity<>(customError, HttpStatus.CONFLICT);
-    }
-
     @ExceptionHandler(AccountNotFoundException.class)
     protected ResponseEntity<@NonNull CustomError> handleAccountNotFoundException(AccountNotFoundException ex) {
 
@@ -110,8 +100,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(BalanceNotFoundException.class)
-    protected ResponseEntity<@NonNull CustomError> handleBalanceNotFoundException(BalanceNotFoundException ex) {
+    @ExceptionHandler(WalletNotFoundException.class)
+    protected ResponseEntity<@NonNull CustomError> handleWalletNotFoundException(WalletNotFoundException ex) {
 
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)
@@ -122,4 +112,40 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(CustomerNotFoundException.class)
+    protected ResponseEntity<@NonNull CustomError> handleCustomerNotFoundException(CustomerNotFoundException ex) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.NOT_FOUND)
+                .header(CustomError.Header.NOT_FOUND.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(WalletCreationFailedException.class)
+    protected ResponseEntity<@NonNull CustomError> handleWalletCreationFailedException(WalletCreationFailedException ex) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.SERVICE_UNAVAILABLE)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(AccountNumberGenerationException.class)
+    protected ResponseEntity<@NonNull CustomError> handleAccountNumberGenerationException(
+            AccountNumberGenerationException ex) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

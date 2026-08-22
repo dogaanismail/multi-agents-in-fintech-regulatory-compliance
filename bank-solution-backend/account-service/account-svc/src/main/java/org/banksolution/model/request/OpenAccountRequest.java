@@ -1,5 +1,6 @@
 package org.banksolution.model.request;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.banksolution.enums.AccountType;
@@ -25,7 +26,7 @@ public class OpenAccountRequest {
     @NotNull(message = "Bank location can't be null.")
     private BankLocation bankLocation;
 
-    @NotNull(message = "At least one currency must be specified.")
+    @NotEmpty(message = "At least one currency must be specified.")
     private List<Currency> currencies;
 
 }
