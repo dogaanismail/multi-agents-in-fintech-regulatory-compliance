@@ -2,9 +2,12 @@ package org.banksolution.exception.handler;
 
 import lombok.NonNull;
 import org.banksolution.exception.CustomError;
+import org.banksolution.exception.InsufficientLedgerFundsException;
 import org.banksolution.exception.LedgerAccountNotFoundException;
 import org.banksolution.exception.LedgerAccountPersistenceException;
+import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.LedgerUnavailableException;
+import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -65,6 +68,41 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LedgerAccountPersistenceException.class)
     protected ResponseEntity<@NonNull CustomError> handleLedgerAccountPersistence(LedgerAccountPersistenceException ex) {
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.CONFLICT)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(PendingAuthorisationNotFoundException.class)
+    protected ResponseEntity<@NonNull CustomError> handlePendingAuthorisationNotFound(
+            PendingAuthorisationNotFoundException ex) {
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.NOT_FOUND)
+                .header(CustomError.Header.NOT_FOUND.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InsufficientLedgerFundsException.class)
+    protected ResponseEntity<@NonNull CustomError> handleInsufficientLedgerFunds(
+            InsufficientLedgerFundsException ex) {
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(LedgerPostingException.class)
+    protected ResponseEntity<@NonNull CustomError> handleLedgerPosting(LedgerPostingException ex) {
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.CONFLICT)
                 .header(CustomError.Header.PROCESS_ERROR.getName())

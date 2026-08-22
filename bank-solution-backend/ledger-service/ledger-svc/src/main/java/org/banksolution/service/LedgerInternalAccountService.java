@@ -7,7 +7,7 @@ import org.banksolution.domain.LedgerInternalAccount;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.LedgerAccountType;
 import org.banksolution.exception.LedgerAccountNotFoundException;
-import org.banksolution.infrastructure.tigerbeetle.TigerBeetleInternalAccountRepository;
+import org.banksolution.repository.TigerBeetleInternalAccountRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,33 +28,33 @@ public class LedgerInternalAccountService {
         }
 
         log.info("Creating internal ledger account type: {}, currency: {}", accountType, currency);
-        return tigerBeetleInternalAccountRepository.persist(LedgerInternalAccount.of(accountType, currency));
+        return tigerBeetleInternalAccountRepository.persistInternalAccount(LedgerInternalAccount.newInternalAccount(accountType, currency));
     }
 
     public LedgerInternalAccount getInternalAccount(UUID ledgerAccountId) {
-        return tigerBeetleInternalAccountRepository.findById(ledgerAccountId)
+        return tigerBeetleInternalAccountRepository.findInternalAccountById(ledgerAccountId)
                 .orElseThrow(() -> new LedgerAccountNotFoundException(ledgerAccountId));
     }
 
     public LedgerInternalAccount getInternalAccount(LedgerAccountType accountType, Currency currency) {
-        return getInternalAccount(LedgerAccountIds.internal(accountType, currency));
+        return getInternalAccount(LedgerAccountIds.deriveInternalAccountId(accountType, currency));
     }
 
     public List<LedgerInternalAccount> getInternalAccounts() {
         List<UUID> candidateIds = Arrays.stream(Currency.values())
                 .flatMap(currency -> Arrays.stream(LedgerAccountType.internalTypes())
-                        .map(type -> LedgerAccountIds.internal(type, currency)))
+                        .map(type -> LedgerAccountIds.deriveInternalAccountId(type, currency)))
                 .toList();
 
-        return tigerBeetleInternalAccountRepository.findAll(candidateIds);
+        return tigerBeetleInternalAccountRepository.findInternalAccountsByIds(candidateIds);
     }
 
     public List<LedgerInternalAccount> getInternalAccounts(Currency currency) {
         List<UUID> candidateIds = Arrays.stream(LedgerAccountType.internalTypes())
-                .map(type -> LedgerAccountIds.internal(type, currency))
+                .map(type -> LedgerAccountIds.deriveInternalAccountId(type, currency))
                 .toList();
 
-        return tigerBeetleInternalAccountRepository.findAll(candidateIds);
+        return tigerBeetleInternalAccountRepository.findInternalAccountsByIds(candidateIds);
     }
 
     public BigDecimal netBalance(Currency currency) {

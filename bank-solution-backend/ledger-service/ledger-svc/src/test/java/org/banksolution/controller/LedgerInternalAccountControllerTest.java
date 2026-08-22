@@ -54,7 +54,7 @@ class LedgerInternalAccountControllerTest extends BaseIntegrationTest {
                                 createInternalAccountRequest(LedgerAccountType.FEES_INCOME, Currency.TRY))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.ledgerAccountId")
-                        .value(LedgerAccountIds.internal(LedgerAccountType.FEES_INCOME, Currency.TRY).toString()))
+                        .value(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.FEES_INCOME, Currency.TRY).toString()))
                 .andExpect(jsonPath(ACCOUNT_TYPE).value(LedgerAccountType.FEES_INCOME.name()))
                 .andExpect(jsonPath(CURRENCY).value(Currency.TRY.name()))
                 .andExpect(jsonPath("$.netBalance").value(0));
@@ -63,7 +63,7 @@ class LedgerInternalAccountControllerTest extends BaseIntegrationTest {
     @Test
     void shouldRetrieveInternalAccountById() throws Exception {
         mockMvc.perform(get(BY_ID_URL,
-                        LedgerAccountIds.internal(LedgerAccountType.INBOUND_CLEARING, Currency.GBP)))
+                        LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.INBOUND_CLEARING, Currency.GBP)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(ACCOUNT_TYPE).value(LedgerAccountType.INBOUND_CLEARING.name()))
                 .andExpect(jsonPath(CURRENCY).value(Currency.GBP.name()));

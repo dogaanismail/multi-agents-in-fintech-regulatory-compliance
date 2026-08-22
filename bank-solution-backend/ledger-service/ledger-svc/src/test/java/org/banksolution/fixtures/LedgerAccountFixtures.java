@@ -17,11 +17,11 @@ public final class LedgerAccountFixtures {
     }
 
     public static LedgerAccount createWallet(UUID accountId, Currency currency) {
-        return LedgerAccount.of(accountId, currency);
+        return LedgerAccount.newWallet(accountId, currency);
     }
 
     public static LedgerInternalAccount createInternalAccount(LedgerAccountType accountType, Currency currency) {
-        return LedgerInternalAccount.of(accountType, currency);
+        return LedgerInternalAccount.newInternalAccount(accountType, currency);
     }
 
     public static CreateLedgerAccountRequest createLedgerAccountRequest(UUID accountId, Currency currency) {

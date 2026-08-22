@@ -39,7 +39,7 @@ public class LedgerAccountController {
         LedgerAccount ledgerAccount = ledgerAccountService
                 .createLedgerAccount(request.getAccountId(), request.getCurrency());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(LedgerAccountMapper.toResponse(ledgerAccount));
+        return ResponseEntity.status(HttpStatus.CREATED).body(LedgerAccountMapper.toLedgerAccountResponse(ledgerAccount));
     }
 
     @PostMapping("/batch")
@@ -50,18 +50,18 @@ public class LedgerAccountController {
 
         List<LedgerAccount> ledgerAccounts = ledgerAccountService.createLedgerAccounts(
                 request.getAccounts().stream()
-                        .map(account -> LedgerAccount.of(account.getAccountId(), account.getCurrency()))
+                        .map(account -> LedgerAccount.newWallet(account.getAccountId(), account.getCurrency()))
                         .toList());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ledgerAccounts.stream().map(LedgerAccountMapper::toResponse).toList());
+                .body(ledgerAccounts.stream().map(LedgerAccountMapper::toLedgerAccountResponse).toList());
     }
 
     @GetMapping("/{ledgerAccountId}")
     @Operation(summary = "Retrieve a ledger account", description = "Retrieves a ledger account and its balances")
     public ResponseEntity<@NonNull LedgerAccountResponse> getLedgerAccount(@PathVariable UUID ledgerAccountId) {
         log.info("GET /api/v1/ledger/accounts/{}", ledgerAccountId);
-        return ResponseEntity.ok(LedgerAccountMapper.toResponse(ledgerAccountService.getLedgerAccount(ledgerAccountId)));
+        return ResponseEntity.ok(LedgerAccountMapper.toLedgerAccountResponse(ledgerAccountService.getLedgerAccount(ledgerAccountId)));
     }
 
     @GetMapping("/bank-account/{accountId}")
@@ -69,7 +69,7 @@ public class LedgerAccountController {
     public ResponseEntity<@NonNull List<LedgerAccountResponse>> getWallets(@PathVariable UUID accountId) {
         log.info("GET /api/v1/ledger/accounts/bank-account/{}", accountId);
         return ResponseEntity.ok(ledgerAccountService.getWallets(accountId).stream()
-                .map(LedgerAccountMapper::toResponse)
+                .map(LedgerAccountMapper::toLedgerAccountResponse)
                 .toList());
     }
 
@@ -79,6 +79,6 @@ public class LedgerAccountController {
             @PathVariable UUID accountId,
             @PathVariable Currency currency) {
         log.info("GET /api/v1/ledger/accounts/bank-account/{}/{}", accountId, currency);
-        return ResponseEntity.ok(LedgerAccountMapper.toResponse(ledgerAccountService.getWallet(accountId, currency)));
+        return ResponseEntity.ok(LedgerAccountMapper.toLedgerAccountResponse(ledgerAccountService.getWallet(accountId, currency)));
     }
 }

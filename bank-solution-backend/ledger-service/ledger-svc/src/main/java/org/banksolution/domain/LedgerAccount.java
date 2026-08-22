@@ -24,9 +24,12 @@ public record LedgerAccount(
         return creditsPosted.subtract(debitsPosted).subtract(debitsPending);
     }
 
-    public static LedgerAccount of(UUID accountId, Currency currency) {
+    public static LedgerAccount newWallet(
+            UUID accountId,
+            Currency currency) {
+
         return LedgerAccount.builder()
-                .id(LedgerAccountIds.wallet(accountId, currency))
+                .id(LedgerAccountIds.deriveWalletAccountId(accountId, currency))
                 .accountId(accountId)
                 .accountType(LedgerAccountType.WALLET)
                 .currency(currency)

@@ -23,9 +23,12 @@ public record LedgerInternalAccount(
         return creditsPosted.subtract(debitsPosted);
     }
 
-    public static LedgerInternalAccount of(LedgerAccountType accountType, Currency currency) {
+    public static LedgerInternalAccount newInternalAccount(
+            LedgerAccountType accountType,
+            Currency currency) {
+
         return LedgerInternalAccount.builder()
-                .id(LedgerAccountIds.internal(accountType, currency))
+                .id(LedgerAccountIds.deriveInternalAccountId(accountType, currency))
                 .accountType(accountType)
                 .currency(currency)
                 .build();

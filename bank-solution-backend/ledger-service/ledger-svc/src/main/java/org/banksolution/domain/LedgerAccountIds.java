@@ -11,15 +11,21 @@ public final class LedgerAccountIds {
     private LedgerAccountIds() {
     }
 
-    public static UUID wallet(UUID accountId, Currency currency) {
-        return derive("wallet:" + accountId + ":" + currency.name());
+    public static UUID deriveWalletAccountId(
+            UUID customerAccountId,
+            Currency currency) {
+
+        return deriveFrom("wallet:" + customerAccountId + ":" + currency.name());
     }
 
-    public static UUID internal(LedgerAccountType accountType, Currency currency) {
-        return derive("internal:" + accountType.name() + ":" + currency.name());
+    public static UUID deriveInternalAccountId(
+            LedgerAccountType internalAccountType,
+            Currency currency) {
+
+        return deriveFrom("internal:" + internalAccountType.name() + ":" + currency.name());
     }
 
-    private static UUID derive(String seed) {
+    private static UUID deriveFrom(String seed) {
         return UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8));
     }
 }

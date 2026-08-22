@@ -14,37 +14,37 @@ class LedgerAccountIdsTest {
 
     @Test
     void shouldDeriveTheSameWalletIdForTheSameInputs() {
-        assertThat(LedgerAccountIds.wallet(ACCOUNT_ID, Currency.GBP))
-                .isEqualTo(LedgerAccountIds.wallet(ACCOUNT_ID, Currency.GBP));
+        assertThat(LedgerAccountIds.deriveWalletAccountId(ACCOUNT_ID, Currency.GBP))
+                .isEqualTo(LedgerAccountIds.deriveWalletAccountId(ACCOUNT_ID, Currency.GBP));
     }
 
     @Test
     void shouldDeriveDistinctWalletIdsPerCurrency() {
-        assertThat(LedgerAccountIds.wallet(ACCOUNT_ID, Currency.GBP))
-                .isNotEqualTo(LedgerAccountIds.wallet(ACCOUNT_ID, Currency.EUR));
+        assertThat(LedgerAccountIds.deriveWalletAccountId(ACCOUNT_ID, Currency.GBP))
+                .isNotEqualTo(LedgerAccountIds.deriveWalletAccountId(ACCOUNT_ID, Currency.EUR));
     }
 
     @Test
     void shouldDeriveDistinctWalletIdsPerAccount() {
-        assertThat(LedgerAccountIds.wallet(ACCOUNT_ID, Currency.GBP))
-                .isNotEqualTo(LedgerAccountIds.wallet(UUID.randomUUID(), Currency.GBP));
+        assertThat(LedgerAccountIds.deriveWalletAccountId(ACCOUNT_ID, Currency.GBP))
+                .isNotEqualTo(LedgerAccountIds.deriveWalletAccountId(UUID.randomUUID(), Currency.GBP));
     }
 
     @Test
     void shouldDeriveTheSameInternalIdForTheSameInputs() {
-        assertThat(LedgerAccountIds.internal(LedgerAccountType.INBOUND_CLEARING, Currency.GBP))
-                .isEqualTo(LedgerAccountIds.internal(LedgerAccountType.INBOUND_CLEARING, Currency.GBP));
+        assertThat(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.INBOUND_CLEARING, Currency.GBP))
+                .isEqualTo(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.INBOUND_CLEARING, Currency.GBP));
     }
 
     @Test
     void shouldDeriveDistinctInternalIdsPerType() {
-        assertThat(LedgerAccountIds.internal(LedgerAccountType.INBOUND_CLEARING, Currency.GBP))
-                .isNotEqualTo(LedgerAccountIds.internal(LedgerAccountType.OUTBOUND_CLEARING, Currency.GBP));
+        assertThat(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.INBOUND_CLEARING, Currency.GBP))
+                .isNotEqualTo(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.OUTBOUND_CLEARING, Currency.GBP));
     }
 
     @Test
     void shouldNotCollideBetweenWalletAndInternalNamespaces() {
-        assertThat(LedgerAccountIds.wallet(ACCOUNT_ID, Currency.GBP))
-                .isNotEqualTo(LedgerAccountIds.internal(LedgerAccountType.SUSPENSE, Currency.GBP));
+        assertThat(LedgerAccountIds.deriveWalletAccountId(ACCOUNT_ID, Currency.GBP))
+                .isNotEqualTo(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.SUSPENSE, Currency.GBP));
     }
 }

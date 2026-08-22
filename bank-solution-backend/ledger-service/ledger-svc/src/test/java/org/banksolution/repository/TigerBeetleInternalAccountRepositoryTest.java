@@ -1,4 +1,4 @@
-package org.banksolution.infrastructure.tigerbeetle;
+package org.banksolution.repository;
 
 import org.banksolution.common.BaseIntegrationTest;
 import org.banksolution.domain.LedgerAccountIds;
@@ -23,10 +23,10 @@ class TigerBeetleInternalAccountRepositoryTest extends BaseIntegrationTest {
     @Test
     void shouldPersistAndRetrieveInternalAccount() {
         LedgerInternalAccount persisted = tigerBeetleInternalAccountRepository
-                .persist(createInternalAccount(LedgerAccountType.SUSPENSE, Currency.GBP));
+                .persistInternalAccount(createInternalAccount(LedgerAccountType.SUSPENSE, Currency.GBP));
 
         assertThat(persisted.id())
-                .isEqualTo(LedgerAccountIds.internal(LedgerAccountType.SUSPENSE, Currency.GBP));
+                .isEqualTo(LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.SUSPENSE, Currency.GBP));
         assertThat(persisted.accountType()).isEqualTo(LedgerAccountType.SUSPENSE);
         assertThat(persisted.currency()).isEqualTo(Currency.GBP);
         assertThat(persisted.netBalance()).isEqualByComparingTo(BigDecimal.ZERO);
@@ -40,8 +40,8 @@ class TigerBeetleInternalAccountRepositoryTest extends BaseIntegrationTest {
                 createInternalAccount(LedgerAccountType.FEES_INCOME, Currency.USD),
                 createInternalAccount(LedgerAccountType.SUSPENSE, Currency.USD));
 
-        List<LedgerInternalAccount> first = tigerBeetleInternalAccountRepository.persistAll(chart);
-        List<LedgerInternalAccount> second = tigerBeetleInternalAccountRepository.persistAll(chart);
+        List<LedgerInternalAccount> first = tigerBeetleInternalAccountRepository.persistInternalAccounts(chart);
+        List<LedgerInternalAccount> second = tigerBeetleInternalAccountRepository.persistInternalAccounts(chart);
 
         assertThat(first).hasSize(4);
         assertThat(second).extracting(LedgerInternalAccount::id)
@@ -51,10 +51,10 @@ class TigerBeetleInternalAccountRepositoryTest extends BaseIntegrationTest {
     @Test
     void shouldLookUpInternalAccountsByDerivedIdWithoutARegistry() {
         List<UUID> derivedIds = List.of(
-                LedgerAccountIds.internal(LedgerAccountType.INBOUND_CLEARING, Currency.EUR),
-                LedgerAccountIds.internal(LedgerAccountType.OUTBOUND_CLEARING, Currency.EUR));
+                LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.INBOUND_CLEARING, Currency.EUR),
+                LedgerAccountIds.deriveInternalAccountId(LedgerAccountType.OUTBOUND_CLEARING, Currency.EUR));
 
-        assertThat(tigerBeetleInternalAccountRepository.findAll(derivedIds))
+        assertThat(tigerBeetleInternalAccountRepository.findInternalAccountsByIds(derivedIds))
                 .extracting(LedgerInternalAccount::accountType)
                 .containsExactlyInAnyOrder(LedgerAccountType.INBOUND_CLEARING, LedgerAccountType.OUTBOUND_CLEARING);
     }

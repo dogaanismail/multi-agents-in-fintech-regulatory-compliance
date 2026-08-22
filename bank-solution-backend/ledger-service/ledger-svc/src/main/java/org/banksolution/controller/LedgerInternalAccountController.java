@@ -41,7 +41,7 @@ public class LedgerInternalAccountController {
         LedgerInternalAccount internalAccount = ledgerInternalAccountService
                 .createInternalAccount(request.getAccountType(), request.getCurrency());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(LedgerAccountMapper.toResponse(internalAccount));
+        return ResponseEntity.status(HttpStatus.CREATED).body(LedgerAccountMapper.toLedgerInternalAccountResponse(internalAccount));
     }
 
     @GetMapping
@@ -54,7 +54,7 @@ public class LedgerInternalAccountController {
                 ? ledgerInternalAccountService.getInternalAccounts()
                 : ledgerInternalAccountService.getInternalAccounts(currency);
 
-        return ResponseEntity.ok(internalAccounts.stream().map(LedgerAccountMapper::toResponse).toList());
+        return ResponseEntity.ok(internalAccounts.stream().map(LedgerAccountMapper::toLedgerInternalAccountResponse).toList());
     }
 
     @GetMapping("/{ledgerAccountId}")
@@ -63,7 +63,7 @@ public class LedgerInternalAccountController {
             @PathVariable UUID ledgerAccountId) {
         log.info("GET /api/v1/ledger/internal-accounts/{}", ledgerAccountId);
         return ResponseEntity.ok(
-                LedgerAccountMapper.toResponse(ledgerInternalAccountService.getInternalAccount(ledgerAccountId)));
+                LedgerAccountMapper.toLedgerInternalAccountResponse(ledgerInternalAccountService.getInternalAccount(ledgerAccountId)));
     }
 
     @GetMapping("/trial-balance/{currency}")
@@ -78,7 +78,7 @@ public class LedgerInternalAccountController {
                 .currency(currency)
                 .net(net)
                 .balanced(net.signum() == 0)
-                .internalAccounts(internalAccounts.stream().map(LedgerAccountMapper::toResponse).toList())
+                .internalAccounts(internalAccounts.stream().map(LedgerAccountMapper::toLedgerInternalAccountResponse).toList())
                 .build());
     }
 }

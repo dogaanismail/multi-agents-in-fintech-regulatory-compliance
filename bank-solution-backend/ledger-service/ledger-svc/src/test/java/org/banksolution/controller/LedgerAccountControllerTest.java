@@ -40,7 +40,7 @@ class LedgerAccountControllerTest extends BaseIntegrationTest {
                                 createLedgerAccountRequest(accountId, Currency.GBP))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(LEDGER_ACCOUNT_ID)
-                        .value(LedgerAccountIds.wallet(accountId, Currency.GBP).toString()))
+                        .value(LedgerAccountIds.deriveWalletAccountId(accountId, Currency.GBP).toString()))
                 .andExpect(jsonPath(ACCOUNT_ID).value(accountId.toString()))
                 .andExpect(jsonPath("$.accountType").value("WALLET"))
                 .andExpect(jsonPath(CURRENCY).value(Currency.GBP.name()))
@@ -58,7 +58,7 @@ class LedgerAccountControllerTest extends BaseIntegrationTest {
         mockMvc.perform(post(LEDGER_ACCOUNTS_URL).contentType(APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(LEDGER_ACCOUNT_ID)
-                        .value(LedgerAccountIds.wallet(accountId, Currency.GBP).toString()));
+                        .value(LedgerAccountIds.deriveWalletAccountId(accountId, Currency.GBP).toString()));
     }
 
     @Test
@@ -78,7 +78,7 @@ class LedgerAccountControllerTest extends BaseIntegrationTest {
         UUID accountId = UUID.randomUUID();
         givenWallet(accountId, Currency.USD);
 
-        mockMvc.perform(get(BY_ID_URL, LedgerAccountIds.wallet(accountId, Currency.USD)))
+        mockMvc.perform(get(BY_ID_URL, LedgerAccountIds.deriveWalletAccountId(accountId, Currency.USD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(ACCOUNT_ID).value(accountId.toString()))
                 .andExpect(jsonPath(CURRENCY).value(Currency.USD.name()));

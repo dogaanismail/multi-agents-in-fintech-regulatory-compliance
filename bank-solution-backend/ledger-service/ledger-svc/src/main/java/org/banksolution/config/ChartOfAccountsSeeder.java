@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.domain.LedgerInternalAccount;
 import org.banksolution.enums.LedgerAccountType;
-import org.banksolution.infrastructure.tigerbeetle.TigerBeetleInternalAccountRepository;
+import org.banksolution.repository.TigerBeetleInternalAccountRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -27,11 +27,11 @@ public class ChartOfAccountsSeeder implements ApplicationRunner {
     public void run(@NonNull ApplicationArguments args) {
         List<LedgerInternalAccount> internalAccounts = properties.currencies().stream()
                 .flatMap(currency -> Arrays.stream(LedgerAccountType.internalTypes())
-                        .map(type -> LedgerInternalAccount.of(type, currency)))
+                        .map(type -> LedgerInternalAccount.newInternalAccount(type, currency)))
                 .toList();
 
         try {
-            tigerBeetleInternalAccountRepository.persistAll(internalAccounts);
+            tigerBeetleInternalAccountRepository.persistInternalAccounts(internalAccounts);
             log.info("Chart of accounts ready: {} internal accounts across {}",
                     internalAccounts.size(), properties.currencies());
         } catch (Exception e) {
