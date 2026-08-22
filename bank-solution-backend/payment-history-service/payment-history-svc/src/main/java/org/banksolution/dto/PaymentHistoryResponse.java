@@ -53,9 +53,12 @@ public class PaymentHistoryResponse {
     private Instant manualReviewRequestedAt;
     private Instant manualReviewApprovedAt;
     private Instant manualReviewRejectedAt;
-    private Instant accountChargeInitiatedAt;
-    private Instant accountChargedAt;
-    private Instant accountChargeFailedAt;
+    private Instant ledgerAuthorisationInitiatedAt;
+    private Instant ledgerAuthorisedAt;
+    private Instant ledgerSettlementInitiatedAt;
+    private Instant ledgerSettledAt;
+    private Instant ledgerReleaseInitiatedAt;
+    private Instant ledgerReleasedAt;
     private Instant completedAt;
     private Instant blockedAt;
 

@@ -82,20 +82,50 @@ public class PaymentEventHandler {
 
     @EventHandler
     @AllowReplay
-    public void on(AccountChargeInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGE_INITIATED);
+    public void on(LedgerAuthorisationInitiatedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_AUTHORISATION_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(AccountChargedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGED);
+    public void on(LedgerAuthorisedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_AUTHORISED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(AccountChargeFailedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), ACCOUNT_CHARGE_FAILED);
+    public void on(LedgerAuthorisationDeclinedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_AUTHORISATION_DECLINED);
+    }
+
+    @EventHandler
+    @AllowReplay
+    public void on(LedgerSettlementInitiatedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_SETTLEMENT_INITIATED);
+    }
+
+    @EventHandler
+    @AllowReplay
+    public void on(LedgerSettledEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_SETTLED);
+    }
+
+    @EventHandler
+    @AllowReplay
+    public void on(LedgerSettlementFailedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_SETTLEMENT_FAILED);
+    }
+
+    @EventHandler
+    @AllowReplay
+    public void on(LedgerReleaseInitiatedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASE_INITIATED);
+    }
+
+    @EventHandler
+    @AllowReplay
+    public void on(LedgerReleasedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASED);
     }
 
     @EventHandler

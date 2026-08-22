@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.banksolution.enums.PostingInstructionType.INBOUND_AUTHORISATION;
+import static org.banksolution.enums.PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION;
 import static org.banksolution.enums.PostingInstructionType.OUTBOUND_AUTHORISATION;
 
 @Service
@@ -27,6 +28,11 @@ public class LedgerPostingService {
 
     private static final int NO_TIMEOUT = 0;
 
+    private static final List<PostingInstructionType> AUTHORISATION_TYPES = List.of(
+            INBOUND_AUTHORISATION,
+            OUTBOUND_AUTHORISATION,
+            INTERNAL_TRANSFER_AUTHORISATION);
+
     private final TigerBeetleTransferRepository tigerBeetleTransferRepository;
     private final LedgerPostingProperties ledgerPostingProperties;
 
@@ -35,7 +41,7 @@ public class LedgerPostingService {
                 postingInstruction.postingInstructionType(), postingInstruction.clientTransactionId());
 
         LedgerTransfer ledgerTransfer = switch (postingInstruction.postingInstructionType().getTransferType()) {
-            case PENDING, SINGLE_PHASE -> buildCustomerToInternalAccountTransfer(postingInstruction);
+            case PENDING, SINGLE_PHASE -> buildMovementTransfer(postingInstruction);
             case POST_PENDING, VOID_PENDING -> buildAuthorisationFollowUpTransfer(postingInstruction);
         };
 
@@ -44,6 +50,26 @@ public class LedgerPostingService {
 
     public List<LedgerTransfer> getPostingsByClientTransactionId(UUID clientTransactionId) {
         return tigerBeetleTransferRepository.findLedgerTransfersByClientTransactionId(clientTransactionId);
+    }
+
+    private LedgerTransfer buildMovementTransfer(LedgerPostingInstruction postingInstruction) {
+        return postingInstruction.postingInstructionType().movesBetweenCustomerWallets()
+                ? buildWalletToWalletTransfer(postingInstruction)
+                : buildCustomerToInternalAccountTransfer(postingInstruction);
+    }
+
+    private LedgerTransfer buildWalletToWalletTransfer(LedgerPostingInstruction postingInstruction) {
+        Currency currency = postingInstruction.currency();
+
+        return newLedgerTransferBuilder(postingInstruction)
+                .debitAccountId(LedgerAccountIds.deriveWalletAccountId(
+                        postingInstruction.customerAccountId(), currency))
+                .creditAccountId(LedgerAccountIds.deriveWalletAccountId(
+                        postingInstruction.counterpartyCustomerAccountId(), currency))
+                .amount(postingInstruction.amount())
+                .currency(currency)
+                .timeoutSeconds(ledgerPostingProperties.authorisationTimeoutSeconds())
+                .build();
     }
 
     private LedgerTransfer buildCustomerToInternalAccountTransfer(LedgerPostingInstruction postingInstruction) {
@@ -74,14 +100,11 @@ public class LedgerPostingService {
                 .build();
     }
 
-    /**
-     * Authorisation ids are derived, so both directions can be probed in a single lookup
-     * instead of searching the ledger for them.
-     */
     private UUID findAuthorisationTransferId(UUID clientTransactionId) {
-        List<UUID> candidateTransferIds = List.of(
-                LedgerTransferIds.deriveTransferId(clientTransactionId, INBOUND_AUTHORISATION),
-                LedgerTransferIds.deriveTransferId(clientTransactionId, OUTBOUND_AUTHORISATION));
+        List<UUID> candidateTransferIds = AUTHORISATION_TYPES.stream()
+                .map(postingInstructionType ->
+                        LedgerTransferIds.deriveTransferId(clientTransactionId, postingInstructionType))
+                .toList();
 
         return tigerBeetleTransferRepository.findLedgerTransfersByIds(candidateTransferIds).stream()
                 .filter(ledgerTransfer -> ledgerTransfer.postingInstructionType().isAuthorisation())
@@ -92,6 +115,7 @@ public class LedgerPostingService {
 
     private LedgerTransfer.LedgerTransferBuilder newLedgerTransferBuilder(
             LedgerPostingInstruction postingInstruction) {
+
         UUID clientTransactionId = postingInstruction.clientTransactionId();
         PostingInstructionType postingInstructionType = postingInstruction.postingInstructionType();
 

@@ -12,7 +12,8 @@ public enum PostingInstructionType {
     SETTLEMENT(3, TransferType.POST_PENDING, false),
     RELEASE(4, TransferType.VOID_PENDING, false),
     INBOUND_HARD_SETTLEMENT(5, TransferType.SINGLE_PHASE, true),
-    OUTBOUND_HARD_SETTLEMENT(6, TransferType.SINGLE_PHASE, false);
+    OUTBOUND_HARD_SETTLEMENT(6, TransferType.SINGLE_PHASE, false),
+    INTERNAL_TRANSFER_AUTHORISATION(7, TransferType.PENDING, false);
 
     private final int code;
     private final TransferType transferType;
@@ -30,5 +31,9 @@ public enum PostingInstructionType {
 
     public boolean isAuthorisation() {
         return transferType == TransferType.PENDING;
+    }
+
+    public boolean movesBetweenCustomerWallets() {
+        return this == INTERNAL_TRANSFER_AUTHORISATION;
     }
 }

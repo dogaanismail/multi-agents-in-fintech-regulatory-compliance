@@ -1,0 +1,86 @@
+{
+  "namespace": "com.aml.ledger",
+  "type": "record",
+  "name": "LedgerPostingRequestedEvent",
+  "doc": "Posting instruction sent by payment-engine-svc to ledger-svc",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID)"
+    },
+    {
+      "name": "clientTransactionId",
+      "type": "string",
+      "doc": "Payment identifier; every posting for one payment shares it"
+    },
+    {
+      "name": "postingInstructionType",
+      "type": {
+        "type": "enum",
+        "name": "PostingInstructionType",
+        "symbols": [
+          "INBOUND_AUTHORISATION",
+          "OUTBOUND_AUTHORISATION",
+          "SETTLEMENT",
+          "RELEASE",
+          "INBOUND_HARD_SETTLEMENT",
+          "OUTBOUND_HARD_SETTLEMENT",
+          "INTERNAL_TRANSFER_AUTHORISATION"
+        ]
+      },
+      "doc": "Which posting instruction to apply"
+    },
+    {
+      "name": "amount",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Amount as string to preserve precision; null for SETTLEMENT and RELEASE"
+    },
+    {
+      "name": "currency",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "ISO 4217 code; null for SETTLEMENT and RELEASE"
+    },
+    {
+      "name": "customerAccountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Customer account whose wallet moves; null for SETTLEMENT and RELEASE"
+    },
+    {
+      "name": "counterpartyCustomerAccountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Receiving customer account, set only for INTERNAL_TRANSFER_AUTHORISATION"
+    },
+    {
+      "name": "internalAccountType",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Internal account facing the customer wallet; defaults by direction when null"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp"
+    }
+  ]
+}

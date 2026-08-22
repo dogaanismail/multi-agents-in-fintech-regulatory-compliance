@@ -1,6 +1,6 @@
 package org.banksolution.config;
 
-import com.aml.account.AccountChargeRequestedEvent;
+import com.aml.ledger.LedgerPostingRequestedEvent;
 import com.aml.feedback.ComplianceAgentManualFeedbackEvent;
 import com.aml.payment.PaymentCompletedEvent;
 import com.aml.payment.PaymentSnapshotEvent;
@@ -37,7 +37,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull AccountChargeRequestedEvent> accountChargeRequestedProducerFactory() {
+    public ProducerFactory<@NonNull String, @NonNull LedgerPostingRequestedEvent> ledgerPostingRequestedProducerFactory() {
         return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
     }
 
@@ -61,8 +61,8 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<@NonNull String, @NonNull AccountChargeRequestedEvent> accountChargeRequestedEventKafkaTemplate() {
-        var template = new KafkaTemplate<>(accountChargeRequestedProducerFactory());
+    public KafkaTemplate<@NonNull String, @NonNull LedgerPostingRequestedEvent> ledgerPostingRequestedEventKafkaTemplate() {
+        var template = new KafkaTemplate<>(ledgerPostingRequestedProducerFactory());
         template.setObservationEnabled(true);
         return template;
     }

@@ -35,6 +35,9 @@ public class CreateLedgerPostingInstructionRequest {
     @Valid
     private CustomerAccountMovementRequest outboundHardSettlement;
 
+    @Valid
+    private InternalTransferMovementRequest internalTransferAuthorisation;
+
     private SettlementRequest settlement;
 
     private ReleaseRequest release;
@@ -42,7 +45,7 @@ public class CreateLedgerPostingInstructionRequest {
     @AssertTrue(message = "Exactly one posting instruction type must be provided.")
     public boolean isExactlyOnePostingInstructionProvided() {
         return Stream.of(inboundAuthorisation, outboundAuthorisation, inboundHardSettlement,
-                        outboundHardSettlement, settlement, release)
+                        outboundHardSettlement, internalTransferAuthorisation, settlement, release)
                 .filter(Objects::nonNull)
                 .count() == 1;
     }

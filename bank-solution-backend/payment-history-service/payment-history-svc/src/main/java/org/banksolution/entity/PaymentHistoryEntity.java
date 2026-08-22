@@ -110,14 +110,23 @@ public class PaymentHistoryEntity {
     @Column(name = "manual_review_notes", length = 2000)
     private String manualReviewNotes;
 
-    @Column(name = "account_charge_initiated_at")
-    private Instant accountChargeInitiatedAt;
+    @Column(name = "ledger_authorisation_initiated_at")
+    private Instant ledgerAuthorisationInitiatedAt;
 
-    @Column(name = "account_charged_at")
-    private Instant accountChargedAt;
+    @Column(name = "ledger_authorised_at")
+    private Instant ledgerAuthorisedAt;
 
-    @Column(name = "account_charge_failed_at")
-    private Instant accountChargeFailedAt;
+    @Column(name = "ledger_settlement_initiated_at")
+    private Instant ledgerSettlementInitiatedAt;
+
+    @Column(name = "ledger_settled_at")
+    private Instant ledgerSettledAt;
+
+    @Column(name = "ledger_release_initiated_at")
+    private Instant ledgerReleaseInitiatedAt;
+
+    @Column(name = "ledger_released_at")
+    private Instant ledgerReleasedAt;
 
     @Column(name = "completed_at")
     private Instant completedAt;

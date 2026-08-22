@@ -57,7 +57,20 @@ class PostingInstructionTypeTest {
     void shouldTreatOnlyAuthorisationsAsAuthorisations() {
         assertThat(values())
                 .filteredOn(PostingInstructionType::isAuthorisation)
-                .containsExactlyInAnyOrder(INBOUND_AUTHORISATION, OUTBOUND_AUTHORISATION);
+                .containsExactlyInAnyOrder(
+                        INBOUND_AUTHORISATION, OUTBOUND_AUTHORISATION, INTERNAL_TRANSFER_AUTHORISATION);
+    }
+
+    @Test
+    void shouldMapInternalTransferAuthorisationToAPendingTransfer() {
+        assertThat(INTERNAL_TRANSFER_AUTHORISATION.getTransferType()).isEqualTo(TransferType.PENDING);
+    }
+
+    @Test
+    void shouldFlagOnlyInternalTransferAsMovingBetweenCustomerWallets() {
+        assertThat(values())
+                .filteredOn(PostingInstructionType::movesBetweenCustomerWallets)
+                .containsExactly(INTERNAL_TRANSFER_AUTHORISATION);
     }
 
     @Test

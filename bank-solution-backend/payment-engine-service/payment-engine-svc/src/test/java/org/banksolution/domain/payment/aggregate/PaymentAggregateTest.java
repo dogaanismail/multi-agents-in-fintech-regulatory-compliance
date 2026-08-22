@@ -2,38 +2,13 @@ package org.banksolution.domain.payment.aggregate;
 
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
-import org.banksolution.domain.payment.event.DecisionOverriddenEvent;
-import org.banksolution.domain.payment.event.ManualReviewApprovedEvent;
-import org.banksolution.domain.payment.event.ManualReviewRejectedEvent;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.banksolution.enums.PaymentStatus;
 import org.banksolution.exception.InvalidPaymentStateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.banksolution.fixtures.PaymentFixtures.createAccountChargeFailedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createAccountChargeInitiatedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createAccountChargedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createApproveFraudCheckCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createApproveManualReviewCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createBlockAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createBlockPaymentCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createChargeAccountCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createConfirmAccountChargedCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createEscalateAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createFailAccountChargeCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createFraudCheckApprovedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createInitiatePaymentCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createManualReviewRequestedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createOverrideDecisionCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentBlockedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentCompletedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentId;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentInitiatedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createProceedAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createRejectManualReviewCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createRequestManualReviewCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentInitiatedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.*;
 
 class PaymentAggregateTest {
 
@@ -46,177 +21,140 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void shouldEmitPaymentInitiatedAndRiskAssessmentInitiatedOnInitiate() {
+    void shouldAuthoriseOnTheLedgerBeforeRiskAssessment() {
         fixture.givenNoPriorActivity()
                 .when(createInitiatePaymentCommand())
                 .expectSuccessfulHandlerExecution()
-                .expectEvents(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent());
+                .expectEvents(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent());
     }
 
     @Test
-    void shouldApproveFraudCheckAndInitiateAccountCharge() {
+    void shouldStartRiskAssessmentOnlyOnceFundsAreAuthorised() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent())
+                .when(createConfirmLedgerAuthorisationCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent());
+    }
+
+    @Test
+    void shouldFailThePaymentWhenTheLedgerDeclinesAuthorisation() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent())
+                .when(createDeclineLedgerAuthorisationCommand("Insufficient funds"))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createLedgerAuthorisationDeclinedEvent("Insufficient funds"),
+                        createPaymentCompletedEvent(PaymentStatus.AUTHORISATION_DECLINED, "Insufficient funds"));
+    }
+
+    @Test
+    void shouldSettleTheAuthorisationWhenFraudCheckApproves() {
         RiskAssessment riskAssessment = createProceedAssessment();
 
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
+        fixture.given(authorisedPayment())
                 .when(createApproveFraudCheckCommand(riskAssessment))
-                .expectEvents(createFraudCheckApprovedEvent(riskAssessment), createAccountChargeInitiatedEvent());
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createFraudCheckApprovedEvent(riskAssessment),
+                        createLedgerSettlementInitiatedEvent());
     }
 
     @Test
-    void shouldEmitAccountChargeInitiatedWhenChargingApprovedPayment() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createFraudCheckApprovedEvent(createProceedAssessment()))
-                .when(createChargeAccountCommand())
-                .expectEvents(createAccountChargeInitiatedEvent());
+    void shouldCompleteThePaymentOnceTheLedgerSettles() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createFraudCheckApprovedEvent(createProceedAssessment()),
+                        createLedgerSettlementInitiatedEvent())
+                .when(createConfirmLedgerSettlementCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createLedgerSettledEvent(),
+                        createPaymentCompletedEvent(PaymentStatus.COMPLETED,
+                                "Payment successfully settled on the ledger"));
     }
 
     @Test
-    void shouldEmitBlockedAndCompletedWhenBlockingFromFraudPending() {
+    void shouldFailThePaymentWhenSettlementIsRejected() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createFraudCheckApprovedEvent(createProceedAssessment()),
+                        createLedgerSettlementInitiatedEvent())
+                .when(createFailLedgerSettlementCommand("Pending transfer expired"))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createLedgerSettlementFailedEvent("Pending transfer expired"),
+                        createPaymentCompletedEvent(PaymentStatus.FAILED, "Pending transfer expired"));
+    }
+
+    @Test
+    void shouldReleaseTheAuthorisationWhenThePaymentIsBlocked() {
         RiskAssessment riskAssessment = createBlockAssessment();
-        String reason = String.format("Risk level: %s, Risk score: %s",
-                riskAssessment.riskLevel(), riskAssessment.riskScore());
 
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
+        fixture.given(authorisedPayment())
                 .when(createBlockPaymentCommand(riskAssessment))
-                .expectEvents(createPaymentBlockedEvent(riskAssessment),
-                        createPaymentCompletedEvent(PaymentStatus.BLOCKED, reason));
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createPaymentBlockedEvent(riskAssessment),
+                        createLedgerReleaseInitiatedEvent());
     }
 
     @Test
-    void shouldEmitBlockedAndCompletedWhenBlockingFromAccountChargePending() {
-        RiskAssessment riskAssessment = createBlockAssessment();
-        String reason = String.format("Risk level: %s, Risk score: %s",
-                riskAssessment.riskLevel(), riskAssessment.riskScore());
-
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(),
-                        createFraudCheckApprovedEvent(createProceedAssessment()), createAccountChargeInitiatedEvent())
-                .when(createBlockPaymentCommand(riskAssessment))
-                .expectEvents(createPaymentBlockedEvent(riskAssessment),
-                        createPaymentCompletedEvent(PaymentStatus.BLOCKED, reason));
+    void shouldSettleWhenManualReviewApproves() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createManualReviewRequestedEvent(createEscalateAssessment()))
+                .when(createApproveManualReviewCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(createManualReviewApprovedEvent(), createLedgerSettlementInitiatedEvent());
     }
 
     @Test
-    void shouldEmitManualReviewRequestedWhenRequestingManualReview() {
+    void shouldReleaseWhenManualReviewRejects() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createManualReviewRequestedEvent(createEscalateAssessment()))
+                .when(createRejectManualReviewCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(createManualReviewRejectedEvent(), createLedgerReleaseInitiatedEvent());
+    }
+
+    @Test
+    void shouldRequestManualReviewWhenRiskEscalates() {
         RiskAssessment riskAssessment = createEscalateAssessment();
 
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
+        fixture.given(authorisedPayment())
                 .when(createRequestManualReviewCommand(riskAssessment))
+                .expectSuccessfulHandlerExecution()
                 .expectEvents(createManualReviewRequestedEvent(riskAssessment));
     }
 
     @Test
-    void shouldResumeIntoAccountChargeWhenApprovingManualReview() {
-        RiskAssessment riskAssessment = createEscalateAssessment();
-
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createManualReviewRequestedEvent(riskAssessment))
-                .when(createApproveManualReviewCommand())
-                .expectEvents(new ManualReviewApprovedEvent(createPaymentId(), "officer-1", "Looks legitimate"),
-                        createAccountChargeInitiatedEvent());
-    }
-
-    @Test
-    void shouldBlockAndCompletePaymentWhenRejectingManualReview() {
-        RiskAssessment riskAssessment = createEscalateAssessment();
-
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createManualReviewRequestedEvent(riskAssessment))
-                .when(createRejectManualReviewCommand())
-                .expectEvents(new ManualReviewRejectedEvent(createPaymentId(), "officer-1", "Confirmed fraud"),
-                        createPaymentCompletedEvent(PaymentStatus.BLOCKED, "Manual review rejected: Confirmed fraud"));
-    }
-
-    @Test
-    void shouldCompletePaymentWhenConfirmingAccountCharged() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(),
-                        createFraudCheckApprovedEvent(createProceedAssessment()), createAccountChargeInitiatedEvent())
-                .when(createConfirmAccountChargedCommand())
-                .expectEvents(createAccountChargedEvent(),
-                        createPaymentCompletedEvent(PaymentStatus.COMPLETED, "Payment successfully processed and account charged"));
-    }
-
-    @Test
-    void shouldFailAndCompletePaymentWhenAccountChargeFails() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(),
-                        createFraudCheckApprovedEvent(createProceedAssessment()), createAccountChargeInitiatedEvent())
-                .when(createFailAccountChargeCommand("Insufficient funds"))
-                .expectEvents(createAccountChargeFailedEvent("Insufficient funds"),
-                        createPaymentCompletedEvent(PaymentStatus.FAILED, "Account charge failed: Insufficient funds"));
-    }
-
-    @Test
-    void shouldEmitDecisionOverriddenWhenApprovingOverrideFromBlocked() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createPaymentBlockedEvent(createBlockAssessment()))
-                .when(createOverrideDecisionCommand(true))
-                .expectEvents(new DecisionOverriddenEvent(createPaymentId(), "officer-1", "False positive", true,
-                        PaymentStatus.BLOCKED.name()));
-    }
-
-    @Test
-    void shouldEmitDecisionOverriddenWhenRejectingOverrideFromBlocked() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createPaymentBlockedEvent(createBlockAssessment()))
-                .when(createOverrideDecisionCommand(false))
-                .expectEvents(new DecisionOverriddenEvent(createPaymentId(), "officer-1", "False positive", false,
-                        PaymentStatus.BLOCKED.name()));
-    }
-
-    @Test
-    void shouldRejectApproveFraudCheckWhenNotFraudPending() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createFraudCheckApprovedEvent(createProceedAssessment()))
-                .when(createApproveFraudCheckCommand(createProceedAssessment()))
+    void shouldRejectSettlementConfirmationBeforeSettlementWasInitiated() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent())
+                .when(createConfirmLedgerSettlementCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void shouldRejectBlockPaymentWhenNotPendingOrCharging() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createFraudCheckApprovedEvent(createProceedAssessment()))
-                .when(createBlockPaymentCommand(createBlockAssessment()))
+    void shouldRejectAuthorisationConfirmationWhenNotAwaitingAuthorisation() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent())
+                .when(createConfirmLedgerAuthorisationCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
     @Test
-    void shouldRejectRequestManualReviewWhenNotFraudPending() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent(), createFraudCheckApprovedEvent(createProceedAssessment()))
-                .when(createRequestManualReviewCommand(createEscalateAssessment()))
+    void shouldRejectReleaseConfirmationBeforeReleaseWasInitiated() {
+        fixture.given(authorisedPayment())
+                .when(createConfirmLedgerReleaseCommand())
                 .expectException(InvalidPaymentStateException.class);
     }
 
-    @Test
-    void shouldRejectChargeAccountWhenNotApproved() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
-                .when(createChargeAccountCommand())
-                .expectException(InvalidPaymentStateException.class);
-    }
-
-    @Test
-    void shouldRejectApproveManualReviewWhenNotInReview() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
-                .when(createApproveManualReviewCommand())
-                .expectException(InvalidPaymentStateException.class);
-    }
-
-    @Test
-    void shouldRejectRejectManualReviewWhenNotInReview() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
-                .when(createRejectManualReviewCommand())
-                .expectException(InvalidPaymentStateException.class);
-    }
-
-    @Test
-    void shouldRejectConfirmAccountChargedWhenNotCharging() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
-                .when(createConfirmAccountChargedCommand())
-                .expectException(InvalidPaymentStateException.class);
-    }
-
-    @Test
-    void shouldRejectFailAccountChargeWhenNotCharging() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
-                .when(createFailAccountChargeCommand("Insufficient funds"))
-                .expectException(InvalidPaymentStateException.class);
-    }
-
-    @Test
-    void shouldRejectOverrideDecisionWhenNotBlocked() {
-        fixture.given(createPaymentInitiatedEvent(), createRiskAssessmentInitiatedEvent())
-                .when(createOverrideDecisionCommand(true))
-                .expectException(InvalidPaymentStateException.class);
+    private static Object[] authorisedPayment() {
+        return new Object[]{
+                createPaymentInitiatedEvent(),
+                createLedgerAuthorisationInitiatedEvent(),
+                createLedgerAuthorisedEvent(),
+                createRiskAssessmentInitiatedEvent()
+        };
     }
 }

@@ -1,18 +1,14 @@
 package org.banksolution.fixtures;
 
+import org.banksolution.domain.payment.command.*;
+import org.banksolution.domain.payment.event.*;
 import org.banksolution.domain.payment.command.ApproveFraudCheckCommand;
 import org.banksolution.domain.payment.command.ApproveManualReviewCommand;
 import org.banksolution.domain.payment.command.BlockPaymentCommand;
-import org.banksolution.domain.payment.command.ChargeAccountCommand;
-import org.banksolution.domain.payment.command.ConfirmAccountChargedCommand;
-import org.banksolution.domain.payment.command.FailAccountChargeCommand;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.command.OverrideDecisionCommand;
 import org.banksolution.domain.payment.command.RejectManualReviewCommand;
 import org.banksolution.domain.payment.command.RequestManualReviewCommand;
-import org.banksolution.domain.payment.event.AccountChargeFailedEvent;
-import org.banksolution.domain.payment.event.AccountChargeInitiatedEvent;
-import org.banksolution.domain.payment.event.AccountChargedEvent;
 import org.banksolution.domain.payment.event.FraudCheckApprovedEvent;
 import org.banksolution.domain.payment.event.ManualReviewRequestedEvent;
 import org.banksolution.domain.payment.event.PaymentBlockedEvent;
@@ -41,6 +37,8 @@ public final class PaymentFixtures {
     public static final String TO_CURRENCY = "GBP";
     public static final String PAYMENT_TYPE = "TRANSFER_OUT";
     public static final String DESCRIPTION = "Test payment";
+    public static final UUID AUTHORISATION_TRANSFER_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
+    public static final UUID SETTLEMENT_TRANSFER_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
 
     private PaymentFixtures() {
     }
@@ -106,41 +104,12 @@ public final class PaymentFixtures {
         return new OverrideDecisionCommand(createPaymentId(), "officer-1", "False positive", true);
     }
 
-    public static ChargeAccountCommand createChargeAccountCommand() {
-        return new ChargeAccountCommand(
-                createPaymentId(),
-                CUSTOMER_ID,
-                SOURCE_ACCOUNT_ID,
-                DESTINATION_ACCOUNT_ID,
-                AMOUNT,
-                FROM_CURRENCY,
-                TO_CURRENCY,
-                CONVERTED_AMOUNT,
-                EXCHANGE_RATE,
-                PAYMENT_TYPE,
-                DESCRIPTION
-        );
-    }
 
     public static OverrideDecisionCommand createOverrideDecisionCommand(boolean approvePayment) {
         return new OverrideDecisionCommand(createPaymentId(), "officer-1", "False positive", approvePayment);
     }
 
-    public static ConfirmAccountChargedCommand createConfirmAccountChargedCommand() {
-        return new ConfirmAccountChargedCommand(
-                createPaymentId(),
-                SOURCE_ACCOUNT_ID,
-                DESTINATION_ACCOUNT_ID,
-                AMOUNT,
-                FROM_CURRENCY,
-                TO_CURRENCY,
-                PAYMENT_TYPE
-        );
-    }
 
-    public static FailAccountChargeCommand createFailAccountChargeCommand(String reason) {
-        return new FailAccountChargeCommand(createPaymentId(), reason);
-    }
 
     public static PaymentInitiatedEvent createPaymentInitiatedEvent() {
         return new PaymentInitiatedEvent(
@@ -191,8 +160,18 @@ public final class PaymentFixtures {
         return new PaymentBlockedEvent(createPaymentId(), reason, riskAssessment.riskScore(), null, riskAssessment);
     }
 
-    public static AccountChargeInitiatedEvent createAccountChargeInitiatedEvent() {
-        return new AccountChargeInitiatedEvent(
+
+    public static PaymentCompletedEvent createPaymentCompletedEvent(PaymentStatus finalStatus, String reason) {
+        return new PaymentCompletedEvent(createPaymentId(), finalStatus, reason);
+    }
+
+
+    public static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEventWithoutAssessment() {
+        return new RiskAssessmentCompletedEvent(createPaymentId(), null);
+    }
+
+    public static LedgerAuthorisationInitiatedEvent createLedgerAuthorisationInitiatedEvent() {
+        return new LedgerAuthorisationInitiatedEvent(
                 createPaymentId(),
                 CUSTOMER_ID,
                 SOURCE_ACCOUNT_ID,
@@ -200,34 +179,64 @@ public final class PaymentFixtures {
                 AMOUNT,
                 FROM_CURRENCY,
                 TO_CURRENCY,
-                CONVERTED_AMOUNT,
-                EXCHANGE_RATE,
                 PAYMENT_TYPE,
                 DESCRIPTION
         );
     }
 
-    public static AccountChargedEvent createAccountChargedEvent() {
-        return new AccountChargedEvent(
-                createPaymentId(),
-                SOURCE_ACCOUNT_ID,
-                DESTINATION_ACCOUNT_ID,
-                AMOUNT,
-                FROM_CURRENCY,
-                TO_CURRENCY,
-                PAYMENT_TYPE
-        );
+    public static ConfirmLedgerAuthorisationCommand createConfirmLedgerAuthorisationCommand() {
+        return new ConfirmLedgerAuthorisationCommand(createPaymentId(), AUTHORISATION_TRANSFER_ID);
     }
 
-    public static PaymentCompletedEvent createPaymentCompletedEvent(PaymentStatus finalStatus, String reason) {
-        return new PaymentCompletedEvent(createPaymentId(), finalStatus, reason);
+    public static DeclineLedgerAuthorisationCommand createDeclineLedgerAuthorisationCommand(String reason) {
+        return new DeclineLedgerAuthorisationCommand(createPaymentId(), reason);
     }
 
-    public static AccountChargeFailedEvent createAccountChargeFailedEvent(String reason) {
-        return new AccountChargeFailedEvent(createPaymentId(), reason);
+    public static LedgerAuthorisedEvent createLedgerAuthorisedEvent() {
+        return new LedgerAuthorisedEvent(createPaymentId(), AUTHORISATION_TRANSFER_ID);
     }
 
-    public static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEventWithoutAssessment() {
-        return new RiskAssessmentCompletedEvent(createPaymentId(), null);
+    public static ConfirmLedgerSettlementCommand createConfirmLedgerSettlementCommand() {
+        return new ConfirmLedgerSettlementCommand(createPaymentId(), SETTLEMENT_TRANSFER_ID);
+    }
+
+    public static FailLedgerSettlementCommand createFailLedgerSettlementCommand(String reason) {
+        return new FailLedgerSettlementCommand(createPaymentId(), reason);
+    }
+
+    public static ConfirmLedgerReleaseCommand createConfirmLedgerReleaseCommand() {
+        return new ConfirmLedgerReleaseCommand(createPaymentId());
+    }
+
+    public static LedgerSettlementInitiatedEvent createLedgerSettlementInitiatedEvent() {
+        return new LedgerSettlementInitiatedEvent(createPaymentId());
+    }
+
+    public static LedgerReleaseInitiatedEvent createLedgerReleaseInitiatedEvent() {
+        return new LedgerReleaseInitiatedEvent(createPaymentId());
+    }
+
+    public static LedgerSettledEvent createLedgerSettledEvent() {
+        return new LedgerSettledEvent(createPaymentId(), SETTLEMENT_TRANSFER_ID);
+    }
+
+    public static LedgerSettlementFailedEvent createLedgerSettlementFailedEvent(String reason) {
+        return new LedgerSettlementFailedEvent(createPaymentId(), reason);
+    }
+
+    public static LedgerAuthorisationDeclinedEvent createLedgerAuthorisationDeclinedEvent(String reason) {
+        return new LedgerAuthorisationDeclinedEvent(createPaymentId(), reason);
+    }
+
+    public static LedgerReleasedEvent createLedgerReleasedEvent() {
+        return new LedgerReleasedEvent(createPaymentId());
+    }
+
+    public static ManualReviewApprovedEvent createManualReviewApprovedEvent() {
+        return new ManualReviewApprovedEvent(createPaymentId(), "officer-1", "Looks legitimate");
+    }
+
+    public static ManualReviewRejectedEvent createManualReviewRejectedEvent() {
+        return new ManualReviewRejectedEvent(createPaymentId(), "officer-1", "Confirmed fraud");
     }
 }
