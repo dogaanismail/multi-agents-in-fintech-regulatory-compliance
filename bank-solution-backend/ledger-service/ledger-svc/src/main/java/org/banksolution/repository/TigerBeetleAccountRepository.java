@@ -4,6 +4,8 @@ import com.tigerbeetle.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.domain.LedgerAccount;
+import org.banksolution.enums.Currency;
+import org.banksolution.enums.LedgerAccountType;
 import org.banksolution.exception.LedgerAccountPersistenceException;
 import org.banksolution.exception.LedgerUnavailableException;
 import org.banksolution.mapper.LedgerAccountMapper;
@@ -21,6 +23,9 @@ public class TigerBeetleAccountRepository {
 
     private static final int WALLET_FLAGS =
             AccountFlags.HISTORY | AccountFlags.DEBITS_MUST_NOT_EXCEED_CREDITS;
+
+    // TigerBeetle's maximum result batch; enough for this deployment's wallet count
+    private static final int QUERY_ACCOUNTS_LIMIT = 8189;
 
     private final Client tigerBeetleClient;
 
@@ -67,6 +72,30 @@ public class TigerBeetleAccountRepository {
 
     public LedgerAccount persistLedgerAccount(LedgerAccount ledgerAccount) {
         return persistLedgerAccounts(List.of(ledgerAccount)).getFirst();
+    }
+
+    public List<LedgerAccount> findWalletAccountsByCurrency(Currency currency) {
+        QueryFilter queryFilter = new QueryFilter();
+        queryFilter.setLedger(currency.getNumericCode());
+        queryFilter.setCode(LedgerAccountType.WALLET.getCode());
+        queryFilter.setLimit(QUERY_ACCOUNTS_LIMIT);
+
+        AccountBatch accounts = queryAccountsInTigerBeetle(queryFilter);
+        List<LedgerAccount> walletAccounts = new ArrayList<>();
+        while (accounts.next()) {
+            walletAccounts.add(LedgerAccountMapper.toLedgerAccount(accounts));
+        }
+
+        return walletAccounts;
+    }
+
+    private AccountBatch queryAccountsInTigerBeetle(QueryFilter queryFilter) {
+        try {
+            return tigerBeetleClient.queryAccounts(queryFilter);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new LedgerUnavailableException(e);
+        }
     }
 
     private AccountBatch lookupAccountsInTigerBeetle(IdBatch ids) {

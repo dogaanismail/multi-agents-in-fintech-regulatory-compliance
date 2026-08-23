@@ -32,9 +32,12 @@ export interface PaymentHistoryResponse {
   manualReviewRequestedAt: string | null;
   manualReviewApprovedAt: string | null;
   manualReviewRejectedAt: string | null;
-  accountChargeInitiatedAt: string | null;
-  accountChargedAt: string | null;
-  accountChargeFailedAt: string | null;
+    ledgerAuthorisationInitiatedAt: string | null;
+    ledgerAuthorisedAt: string | null;
+    ledgerSettlementInitiatedAt: string | null;
+    ledgerSettledAt: string | null;
+    ledgerReleaseInitiatedAt: string | null;
+    ledgerReleasedAt: string | null;
   completedAt: string | null;
   blockedAt: string | null;
   // Decision Metadata
@@ -108,17 +111,19 @@ export interface AccountResponse {
   accountStatus: string;
   openingDate: string;
   closingDate: string | null;
-  balances: BalanceResponse[];
+    wallets: AccountWalletResponse[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface BalanceResponse {
+export interface AccountWalletResponse {
   id: string;
+    ledgerAccountId: string;
   currency: string;
+    walletStatus: string;
+    balance: number;
   availableBalance: number;
-  pendingBalance: number;
-  totalBalance: number;
+    primary: boolean;
 }
 
 export interface Page<T> {
@@ -331,6 +336,7 @@ export interface OpenAccountRequest {
 // ─── Payment Creation ─────────────────────────────────────────────────────────
 
 export type PaymentType = 'TRANSFER_IN' | 'TRANSFER_OUT' | 'DEPOSIT' | 'WITHDRAWAL';
+export type FixedSide = 'SELL' | 'BUY';
 
 export interface CreatePaymentRequest {
   customerId: string;
@@ -340,6 +346,7 @@ export interface CreatePaymentRequest {
   fromCurrency: Currency;
   toCurrency: Currency;
   paymentType: PaymentType;
+    fixedSide?: FixedSide;
   description?: string;
 }
 
@@ -357,6 +364,75 @@ export interface CreatePaymentResponse {
   appliedExchangeRate: number | null;
   createdAt: string;
   message: string;
+}
+
+// ─── Ledger ───────────────────────────────────────────────────────────────────
+
+export type LedgerInternalAccountType =
+    | 'INBOUND_CLEARING'
+    | 'OUTBOUND_CLEARING'
+    | 'FEES_INCOME'
+    | 'SUSPENSE'
+    | 'FX_POSITION';
+
+export interface LedgerInternalAccountResponse {
+    ledgerAccountId: string;
+    accountType: LedgerInternalAccountType;
+    currency: Currency;
+    creditsPosted: number;
+    creditsPending: number;
+    debitsPosted: number;
+    debitsPending: number;
+    netBalance: number;
+    createdAt: string;
+}
+
+export interface TrialBalanceResponse {
+    currency: Currency;
+    internalAccountsNet: number;
+    customerWalletsNet: number;
+    net: number;
+    balanced: boolean;
+    internalAccounts: LedgerInternalAccountResponse[];
+}
+
+export interface CreateLedgerInternalAccountRequest {
+    accountType: LedgerInternalAccountType;
+    currency: Currency;
+}
+
+export interface LedgerWalletResponse {
+    ledgerAccountId: string;
+    accountId: string;
+    accountType: string;
+    currency: Currency;
+    creditsPosted: number;
+    creditsPending: number;
+    debitsPosted: number;
+    debitsPending: number;
+    availableBalance: number;
+    createdAt: string;
+}
+
+export interface LedgerPostingResponse {
+    transferId: string;
+    clientTransactionId: string;
+    postingInstructionType: string;
+    debitAccountId: string | null;
+    creditAccountId: string | null;
+    amount: number | null;
+    currency: string | null;
+    pendingTransferId: string | null;
+    createdAt: string | null;
+}
+
+export interface FundWalletRequest {
+    clientTransactionId: string;
+    inboundHardSettlement: {
+        amount: number;
+        currency: Currency;
+        customerAccountId: string;
+    };
 }
 
 // ─── Exchange Rates ───────────────────────────────────────────────────────────

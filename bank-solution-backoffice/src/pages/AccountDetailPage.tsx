@@ -1,23 +1,69 @@
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { accountService } from '@/api';
-import { AccountResponse } from '@/types';
+import {accountService, ledgerService} from '@/api';
+import {AccountResponse, AccountWalletResponse, Currency, LedgerWalletResponse} from '@/types';
 import { useApi } from '@/hooks/useApi';
-import { Card, LoadingSpinner, Badge, Button } from '@/components/common';
+import {Card, LoadingSpinner, Badge, Button, Input} from '@/components/common';
 import { formatDate, formatCurrency } from '@/utils/formatters';
-
-const LEDGER_ID = '00000000-0000-0000-0000-000000000000';
 
 export const AccountDetailPage: React.FC = () => {
   const { accountId } = useParams<{ accountId: string }>();
   const navigate = useNavigate();
   const { data: account, loading, error, execute } = useApi<AccountResponse>();
+    const [ledgerWallets, setLedgerWallets] = useState<LedgerWalletResponse[]>([]);
+    const [fundingWallet, setFundingWallet] = useState<AccountWalletResponse | null>(null);
+    const [fundAmount, setFundAmount] = useState('');
+    const [fundLoading, setFundLoading] = useState(false);
+    const [fundError, setFundError] = useState<string | null>(null);
+    const [fundSuccess, setFundSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (accountId) {
-      execute(() => accountService.getAccountById(accountId));
-    }
+    const loadAccount = () => {
+        if (!accountId) return;
+        execute(() => accountService.getAccountById(accountId));
+        ledgerService
+            .getWalletsByAccountId(accountId)
+            .then(setLedgerWallets)
+            .catch(() => setLedgerWallets([]));
+    };
+
+    useEffect(() => {
+        loadAccount();
   }, [accountId]);
+
+    const handleFund = async () => {
+        if (!accountId || !fundingWallet) return;
+        const amountNum = parseFloat(fundAmount);
+        if (isNaN(amountNum) || amountNum <= 0) {
+            setFundError('Amount must be greater than 0');
+            return;
+        }
+
+        setFundLoading(true);
+        setFundError(null);
+        try {
+            await ledgerService.fundWallet({
+                clientTransactionId: crypto.randomUUID(),
+                inboundHardSettlement: {
+                    amount: amountNum,
+                    currency: fundingWallet.currency as Currency,
+                    customerAccountId: accountId,
+                },
+            });
+            setFundSuccess(
+                `Funded ${formatCurrency(amountNum, fundingWallet.currency)} into the ${fundingWallet.currency} wallet`
+            );
+            setFundingWallet(null);
+            setFundAmount('');
+            setTimeout(loadAccount, 1200);
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err instanceof Error ? err.message : 'Failed to fund wallet');
+            setFundError(msg);
+        } finally {
+            setFundLoading(false);
+        }
+    };
 
   if (loading) {
     return (
@@ -39,19 +85,13 @@ export const AccountDetailPage: React.FC = () => {
     return <div className="text-gray-500">Account not found</div>;
   }
 
-  const isLedger = account.accountType === 'LEDGER' || account.id === LEDGER_ID;
+    const ledgerWalletFor = (wallet: AccountWalletResponse) =>
+        ledgerWallets.find((lw) => lw.ledgerAccountId === wallet.ledgerAccountId);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
           <h1 className="text-3xl font-bold text-gray-900">Account Details</h1>
-          {isLedger && (
-            <span className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
-              🏛️ SYSTEM LEDGER ACCOUNT
-            </span>
-          )}
-        </div>
         <div className="flex items-center gap-2">
           <Link
             to={`/payments?accountId=${account.id}`}
@@ -65,26 +105,27 @@ export const AccountDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {isLedger && (
-        <div className="flex items-start gap-3 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <span className="text-xl mt-0.5">🏛️</span>
-          <div className="text-sm text-indigo-800">
-            <p className="font-semibold">System Clearing / Ledger Account</p>
-            <p className="mt-0.5 text-indigo-700">
-              This account is used as the counterparty for all <strong>DEPOSIT</strong> (source) and
-              <strong> WITHDRAWAL</strong> (destination) transactions.
-              Balances here represent the net clearing position.
-            </p>
-          </div>
+        {fundSuccess && (
+            <div
+                className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex justify-between items-center">
+                <span>✓ {fundSuccess}. The projected balance refreshes as soon as the ledger event lands.</span>
+                <button className="text-green-500 hover:text-green-700" onClick={() => setFundSuccess(null)}>✕</button>
         </div>
       )}
 
-      {/* Account Information */}
       <Card title="Account Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoRow label="Account ID" value={account.id} />
           <InfoRow label="Account Number" value={account.accountNumber} />
-          <InfoRow label="Customer ID" value={account.customerId} />
+            <InfoRow
+                label="Customer ID"
+                value={
+                    <Link to={`/customers/${account.customerId}`}
+                          className="text-blue-600 hover:underline font-mono text-sm">
+                        {account.customerId}
+                    </Link>
+                }
+            />
           <InfoRow
             label="Account Type"
             value={<Badge className="bg-blue-100 text-blue-800">{account.accountType}</Badge>}
@@ -111,89 +152,123 @@ export const AccountDetailPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Account Balances */}
-      <Card title="Account Balances">
-        {account.balances && account.balances.length > 0 ? (
+        <Card title="Wallets">
+            {account.wallets && account.wallets.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {account.balances.map((balance) => (
-              <div
-                key={balance.id}
-                className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{balance.currency}</h3>
-                  <Badge className="bg-blue-100 text-blue-800">{balance.currency}</Badge>
-                </div>
-                <div className="space-y-2">
-                  <div>
-                    <div className="text-xs text-gray-600">Available Balance</div>
-                    <div className="text-xl font-bold text-green-600">
-                      {formatCurrency(balance.availableBalance, balance.currency)}
+              {account.wallets.map((wallet) => {
+                  const live = ledgerWalletFor(wallet);
+                  return (
+                      <div
+                          key={wallet.id}
+                          className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white"
+                      >
+                          <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                  <h3 className="text-lg font-semibold text-gray-900">{wallet.currency}</h3>
+                                  {wallet.primary && (
+                                      <Badge className="bg-indigo-100 text-indigo-800">PRIMARY</Badge>
+                                  )}
+                              </div>
+                              <Badge
+                                  className={
+                                      wallet.walletStatus === 'ACTIVE'
+                                          ? 'bg-green-100 text-green-800'
+                                          : 'bg-gray-100 text-gray-800'
+                                  }
+                              >
+                                  {wallet.walletStatus}
+                              </Badge>
+                          </div>
+                          <div className="space-y-2">
+                              <div>
+                                  <div className="text-xs text-gray-600">Available Balance</div>
+                                  <div className="text-xl font-bold text-green-600">
+                                      {formatCurrency(wallet.availableBalance, wallet.currency)}
+                                  </div>
+                              </div>
+                              <div>
+                                  <div className="text-xs text-gray-600">Posted Balance</div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                      {formatCurrency(wallet.balance, wallet.currency)}
+                                  </div>
+                              </div>
+                              {live && (
+                                  <div className="pt-2 border-t border-gray-200 text-xs text-gray-600 space-y-1">
+                                      <div className="flex justify-between">
+                                          <span>Held (pending debits)</span>
+                                          <span className="text-orange-600 font-medium tabular-nums">
+                            {formatCurrency(live.debitsPending, wallet.currency)}
+                          </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                          <span>Incoming (pending credits)</span>
+                                          <span className="text-blue-600 font-medium tabular-nums">
+                            {formatCurrency(live.creditsPending, wallet.currency)}
+                          </span>
+                                      </div>
+                                      <div className="text-[10px] text-gray-400 mt-1">Live from TigerBeetle</div>
+                                  </div>
+                              )}
+                              <div className="pt-2">
+                                  <Button
+                                      variant="success"
+                                      className="w-full text-sm"
+                                      onClick={() => {
+                                          setFundingWallet(wallet);
+                                          setFundError(null);
+                                          setFundAmount('');
+                                      }}
+                                  >
+                                      💰 Fund Wallet
+                                  </Button>
                     </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600">Pending Balance</div>
-                    <div className="text-sm font-medium text-orange-600">
-                      {formatCurrency(balance.pendingBalance, balance.currency)}
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-gray-200">
-                    <div className="text-xs text-gray-600">Total Balance</div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(balance.totalBalance, balance.currency)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                              <div className="text-[10px] text-gray-400 font-mono truncate"
+                                   title={wallet.ledgerAccountId}>
+                                  ledger: {wallet.ledgerAccountId}
+                              </div>
+                          </div>
+                      </div>
+                  );
+              })}
           </div>
         ) : (
-          <div className="text-gray-500">No balances available</div>
+                <div className="text-gray-500">No wallets for this account</div>
         )}
       </Card>
 
-      {/* Balance Summary */}
-      {account.balances && account.balances.length > 0 && (
-        <Card title="Balance Summary">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Currency
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Available Balance
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pending Balance
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total Balance
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {account.balances.map((balance) => (
-                  <tr key={balance.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {balance.currency}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">
-                      {formatCurrency(balance.availableBalance, balance.currency)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-orange-600">
-                      {formatCurrency(balance.pendingBalance, balance.currency)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                      {formatCurrency(balance.totalBalance, balance.currency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        {fundingWallet && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 className="text-xl font-semibold mb-1">Fund {fundingWallet.currency} Wallet</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                        Applies an inbound hard settlement on the ledger: inbound clearing is debited and this wallet is
+                        credited immediately, with no authorisation hold.
+                    </p>
+                    <Input
+                        label={`Amount (${fundingWallet.currency})`}
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="e.g. 1000.00"
+                        value={fundAmount}
+                        onChange={(e) => setFundAmount(e.target.value)}
+                        required
+                    />
+                    {fundError && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm mb-4">
+                            {fundError}
+                        </div>
+                    )}
+                    <div className="flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setFundingWallet(null)} disabled={fundLoading}>
+                            Cancel
+                        </Button>
+                        <Button variant="success" onClick={handleFund} disabled={fundLoading}>
+                            {fundLoading ? 'Funding…' : 'Fund'}
+                        </Button>
+                    </div>
+                </div>
+            </div>
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { paymentService } from '@/api';
-import { PaymentHistoryResponse } from '@/types';
+import {paymentService, ledgerService} from '@/api';
+import {LedgerPostingResponse, PaymentHistoryResponse} from '@/types';
 import { useApi } from '@/hooks/useApi';
 import { Card, LoadingSpinner, Badge, Button, Input, CopyButton } from '@/components/common';
 import { formatDate, formatCurrency, getStatusColor, getRiskLevelColor, getRiskActionColor } from '@/utils/formatters';
@@ -23,9 +23,15 @@ export const PaymentDetailPage: React.FC = () => {
   const [overriddenBy, setOverriddenBy] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
 
+  const [ledgerPostings, setLedgerPostings] = useState<LedgerPostingResponse[]>([]);
+
   useEffect(() => {
     if (paymentId) {
       execute(() => paymentService.getPaymentById(paymentId));
+      ledgerService
+          .getPostingsByClientTransactionId(paymentId)
+          .then(setLedgerPostings)
+          .catch(() => setLedgerPostings([]));
     }
   }, [paymentId]);
 
@@ -386,18 +392,55 @@ export const PaymentDetailPage: React.FC = () => {
             icon: string;
             variant: 'default' | 'success' | 'warning' | 'error';
           }[] = [
-            { label: 'Initiated',               timestamp: payment.initiatedAt,              icon: '🚀', variant: 'default'  },
-            { label: 'Risk Check Requested',     timestamp: payment.riskCheckRequestedAt,     icon: '🔍', variant: 'default'  },
-            { label: 'Risk Check Completed',     timestamp: payment.riskCheckCompletedAt,     icon: '📊', variant: 'default'  },
-            { label: 'Fraud Check Approved',     timestamp: payment.fraudCheckApprovedAt,     icon: '🤖', variant: 'success'  },
-            { label: 'Manual Review Requested',  timestamp: payment.manualReviewRequestedAt,  icon: '👁️', variant: 'warning'  },
-            { label: 'Manual Review Approved',   timestamp: payment.manualReviewApprovedAt,   icon: '✅', variant: 'success'  },
-            { label: 'Manual Review Rejected',   timestamp: payment.manualReviewRejectedAt,   icon: '❌', variant: 'error'    },
-            { label: 'Account Charge Initiated', timestamp: payment.accountChargeInitiatedAt, icon: '💳', variant: 'default'  },
-            { label: 'Account Charged',          timestamp: payment.accountChargedAt,         icon: '💰', variant: 'success'  },
-            { label: 'Account Charge Failed',    timestamp: payment.accountChargeFailedAt,    icon: '⚠️', variant: 'error'    },
-            { label: 'Completed',                timestamp: payment.completedAt,              icon: '🎉', variant: 'success'  },
-            { label: 'Blocked',                  timestamp: payment.blockedAt,                icon: '🚫', variant: 'error'    },
+            {label: 'Initiated', timestamp: payment.initiatedAt, icon: '🚀', variant: 'default'},
+            {
+              label: 'Ledger Authorisation Requested',
+              timestamp: payment.ledgerAuthorisationInitiatedAt,
+              icon: '🔐',
+              variant: 'default'
+            },
+            {label: 'Funds Held on Ledger', timestamp: payment.ledgerAuthorisedAt, icon: '💼', variant: 'default'},
+            {label: 'Risk Check Requested', timestamp: payment.riskCheckRequestedAt, icon: '🔍', variant: 'default'},
+            {label: 'Risk Check Completed', timestamp: payment.riskCheckCompletedAt, icon: '📊', variant: 'default'},
+            {label: 'Fraud Check Approved', timestamp: payment.fraudCheckApprovedAt, icon: '🤖', variant: 'success'},
+            {
+              label: 'Manual Review Requested',
+              timestamp: payment.manualReviewRequestedAt,
+              icon: '👁️',
+              variant: 'warning'
+            },
+            {label: 'Manual Review Approved', timestamp: payment.manualReviewApprovedAt, icon: '✅', variant: 'success'},
+            {label: 'Manual Review Rejected', timestamp: payment.manualReviewRejectedAt, icon: '❌', variant: 'error'},
+            {
+              label: 'Settlement Requested',
+              timestamp: payment.ledgerSettlementInitiatedAt,
+              icon: '💳',
+              variant: 'default'
+            },
+            {label: 'Settled on Ledger', timestamp: payment.ledgerSettledAt, icon: '💰', variant: 'success'},
+            {label: 'Blocked', timestamp: payment.blockedAt, icon: '🚫', variant: 'error'},
+            {label: 'Release Requested', timestamp: payment.ledgerReleaseInitiatedAt, icon: '↩️', variant: 'warning'},
+            {label: 'Held Funds Released', timestamp: payment.ledgerReleasedAt, icon: '🔓', variant: 'warning'},
+            {
+              label: 'Authorisation Declined',
+              timestamp: payment.status === 'AUTHORISATION_DECLINED' ? payment.completedAt : null,
+              icon: '⛔',
+              variant: 'error',
+            },
+            {
+              label: 'Payment Failed',
+              timestamp: payment.status === 'FAILED' ? payment.completedAt : null,
+              icon: '⚠️',
+              variant: 'error',
+            },
+            {
+              label: 'Completed',
+              timestamp: payment.status !== 'AUTHORISATION_DECLINED' && payment.status !== 'FAILED'
+                  ? payment.completedAt
+                  : null,
+              icon: '🎉',
+              variant: 'success',
+            },
           ];
           const steps = ALL_STEPS.filter((s) => s.timestamp !== null);
           if (steps.length === 0)
@@ -457,6 +500,64 @@ export const PaymentDetailPage: React.FC = () => {
           );
         })()}
       </Card>
+
+      {ledgerPostings.length > 0 && (
+          <Card title="📒 Ledger Postings">
+            <p className="text-sm text-gray-500 mb-4">
+              Every double-entry transfer TigerBeetle recorded for this payment.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instruction</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debit
+                    Account
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credit
+                    Account
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recorded</th>
+                </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                {ledgerPostings.map((posting) => (
+                    <tr key={posting.transferId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <Badge
+                            className={
+                              posting.postingInstructionType.includes('AUTHORISATION')
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : posting.postingInstructionType === 'RELEASE'
+                                      ? 'bg-orange-100 text-orange-800'
+                                      : 'bg-green-100 text-green-800'
+                            }
+                        >
+                          {posting.postingInstructionType}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-right tabular-nums">
+                        {posting.amount != null && posting.currency
+                            ? formatCurrency(posting.amount, posting.currency)
+                            : '—'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs font-mono text-gray-500">
+                        {posting.debitAccountId ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs font-mono text-gray-500">
+                        {posting.creditAccountId ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(posting.createdAt)}
+                      </td>
+                    </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+      )}
 
       {/* Decision Metadata */}
       {(payment.manualReviewedBy || payment.blockReason || payment.failureReason || payment.decisionOverriddenBy) && (

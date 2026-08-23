@@ -17,6 +17,7 @@ import { CreateCustomerPage } from './pages/CreateCustomerPage';
 import { CreateAccountPage } from './pages/CreateAccountPage';
 import { CreatePaymentPage } from './pages/CreatePaymentPage';
 import { ExchangeRatePage } from './pages/ExchangeRatePage';
+import {LedgerPage} from './pages/LedgerPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="accounts" element={<AccountListPage />} />
           <Route path="accounts/open" element={<CreateAccountPage />} />
           <Route path="accounts/:accountId" element={<AccountDetailPage />} />
+            <Route path="ledger" element={<LedgerPage/>}/>
           <Route path="configurations" element={<ConfigurationListPage />} />
           <Route path="configurations/:configId" element={<ConfigurationDetailPage />} />
           <Route path="marl-training" element={<MarlTrainingPage />} />

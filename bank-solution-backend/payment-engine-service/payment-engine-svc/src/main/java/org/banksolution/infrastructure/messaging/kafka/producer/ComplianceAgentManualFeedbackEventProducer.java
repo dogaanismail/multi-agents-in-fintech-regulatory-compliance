@@ -18,7 +18,6 @@ public class ComplianceAgentManualFeedbackEventProducer {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull ComplianceAgentManualFeedbackEvent> agentManualFeedbackEventKafkaTemplate;
 
-    @Async
     public void publish(
             String paymentId,
             String feedbackType,

@@ -99,11 +99,6 @@ def _start_training_scheduler() -> None:
     """Start the APScheduler background retraining job."""
     try:
         offline_trainer_service.start()
-        logger.info(
-            f"✅ Training scheduler started "
-            f"(every {settings.training_interval_seconds}s, "
-            f"min {settings.min_experiences_for_training} experiences)"
-        )
     except Exception as exc:
         logger.error(f"❌ Failed to start training scheduler: {exc}")
 

@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.kagkarlsson.scheduler.Scheduler;
 import jakarta.persistence.EntityManager;
-import org.axonframework.common.caching.Cache;
-import org.axonframework.common.caching.WeakReferenceCache;
 import org.axonframework.common.jpa.EntityManagerProvider;
 import org.axonframework.common.jpa.SimpleEntityManagerProvider;
 import org.axonframework.common.transaction.TransactionManager;
@@ -60,7 +58,6 @@ import java.util.concurrent.Executors;
  * - Uses Axon's native snapshot mechanism instead of custom implementation
  * <p>
  * 2. Caching:
- * - WeakReferenceCache for in-memory aggregate caching
  * - Prevents expensive event store reads for active aggregates
  * - Weak references allow GC when memory is needed
  * <p>
@@ -187,11 +184,6 @@ public class AxonConfig {
     }
 
     @Bean
-    public Cache paymentCache() {
-        return new WeakReferenceCache();
-    }
-
-    @Bean
     public TokenStore tokenStore(
             Serializer serializer,
             EntityManagerProvider entityManagerProvider) {
@@ -235,13 +227,11 @@ public class AxonConfig {
     @Bean
     public EventSourcingRepository<PaymentAggregate> paymentRepository(
             EventStore eventStore,
-            SnapshotTriggerDefinition snapshotTriggerDefinition,
-            Cache paymentCache) {
-        
+            SnapshotTriggerDefinition snapshotTriggerDefinition) {
+
         return EventSourcingRepository.builder(PaymentAggregate.class)
                 .eventStore(eventStore)
                 .snapshotTriggerDefinition(snapshotTriggerDefinition)
-                .cache(paymentCache)
                 .build();
     }
 

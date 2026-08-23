@@ -273,6 +273,21 @@ class LedgerPostingServiceTest extends BaseIntegrationTest {
         assertThat(walletDelta.add(clearingDelta)).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
+    @Test
+    void shouldKeepTheTrialBalanceAtZeroAcrossFundingAndSettlement() {
+        UUID customerAccountId = givenFundedWallet();
+        UUID clientTransactionId = UUID.randomUUID();
+
+        ledgerPostingService.applyPostingInstruction(
+                outboundAuthorisation(clientTransactionId, customerAccountId, AUTHORISED_AMOUNT));
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.settlement(clientTransactionId));
+
+        BigDecimal internalAccountsNet = ledgerInternalAccountService.netBalance(CURRENCY);
+        BigDecimal customerWalletsNet = ledgerAccountService.netBalanceOfCustomerWallets(CURRENCY);
+
+        assertThat(internalAccountsNet.add(customerWalletsNet)).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
     private UUID givenFundedWallet() {
         UUID customerAccountId = UUID.randomUUID();
         ledgerAccountService.createLedgerAccount(customerAccountId, CURRENCY);
