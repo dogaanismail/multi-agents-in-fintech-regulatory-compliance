@@ -41,7 +41,7 @@ public class AccountService {
         return Optional.of(new PaymentAccounts(source, destination));
     }
 
-    public boolean isCrossOrderPayment(PaymentAccounts accounts) {
+    public boolean isCrossBorderPayment(PaymentAccounts accounts) {
         String sourceLocation = accounts.source().getBankLocation();
         String destinationLocation = accounts.destination().getBankLocation();
 

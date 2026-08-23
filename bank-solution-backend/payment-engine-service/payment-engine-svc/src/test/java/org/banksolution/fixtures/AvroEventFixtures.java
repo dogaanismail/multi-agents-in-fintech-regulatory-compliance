@@ -1,6 +1,5 @@
 package org.banksolution.fixtures;
 
-import com.aml.account.AccountChargeCompletedEvent;
 import com.aml.payment.PaymentCreatedEvent;
 import com.aml.risk.RiskAction;
 import com.aml.risk.RiskAssessmentCompletedEvent;
@@ -70,22 +69,6 @@ public final class AvroEventFixtures {
                 .setMlModelVersion("model-v1")
                 .setProcessingTimeMs(12L)
                 .setTimestamp(TIMESTAMP)
-                .build();
-    }
-
-    public static AccountChargeCompletedEvent createAccountChargeCompletedEvent(boolean success, String failureReason) {
-        return AccountChargeCompletedEvent.newBuilder()
-                .setEventId(UUID.randomUUID().toString())
-                .setPaymentId(PaymentFixtures.PAYMENT_UUID.toString())
-                .setTimestamp(TIMESTAMP)
-                .setSourceAccountId(PaymentFixtures.SOURCE_ACCOUNT_ID.toString())
-                .setDestinationAccountId(PaymentFixtures.DESTINATION_ACCOUNT_ID.toString())
-                .setAmount(PaymentFixtures.AMOUNT.toPlainString())
-                .setFromCurrency(PaymentFixtures.FROM_CURRENCY)
-                .setToCurrency(PaymentFixtures.TO_CURRENCY)
-                .setPaymentType(com.aml.account.PaymentType.TRANSFER_OUT)
-                .setSuccess(success)
-                .setFailureReason(failureReason)
                 .build();
     }
 

@@ -152,12 +152,6 @@ register_schema "$SCHEMAS_DIR/payment/PaymentBlockedEvent.avsc" "payment-blocked
 register_schema "$SCHEMAS_DIR/payment/PaymentReviewRequiredEvent.avsc" "payment-review-required-event-value"
 echo ""
 
-# Register account charge schemas
-echo "Account Charge Schemas:"
-register_schema "$SCHEMAS_DIR/account/AccountChargeRequestedEvent.avsc" "account.charge.requested-value"
-register_schema "$SCHEMAS_DIR/account/AccountChargeCompletedEvent.avsc" "account.charge.completed-value"
-echo ""
-
 # Register ledger schemas
 echo "Ledger Schemas:"
 register_schema "$SCHEMAS_DIR/ledger/LedgerPostingRequestedEvent.avsc" "ledger.posting.requested-value"
