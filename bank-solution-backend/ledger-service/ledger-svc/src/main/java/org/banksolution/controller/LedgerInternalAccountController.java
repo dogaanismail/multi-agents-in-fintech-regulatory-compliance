@@ -12,6 +12,7 @@ import org.banksolution.mapper.LedgerAccountMapper;
 import org.banksolution.model.request.CreateLedgerInternalAccountRequest;
 import org.banksolution.model.response.LedgerInternalAccountResponse;
 import org.banksolution.model.response.TrialBalanceResponse;
+import org.banksolution.service.LedgerAccountService;
 import org.banksolution.service.LedgerInternalAccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class LedgerInternalAccountController {
 
     private final LedgerInternalAccountService ledgerInternalAccountService;
+    private final LedgerAccountService ledgerAccountService;
 
     @PostMapping
     @Operation(summary = "Create an internal ledger account", description = "Creates an internal ledger account for a type and currency")
@@ -67,15 +69,20 @@ public class LedgerInternalAccountController {
     }
 
     @GetMapping("/trial-balance/{currency}")
-    @Operation(summary = "Trial balance", description = "Nets the internal ledger accounts for a currency")
+    @Operation(summary = "Trial balance",
+            description = "Nets the internal accounts against the customer wallets for a currency; a balanced book sums to zero")
     public ResponseEntity<@NonNull TrialBalanceResponse> getTrialBalance(@PathVariable Currency currency) {
         log.info("GET /api/v1/ledger/internal-accounts/trial-balance/{}", currency);
 
         List<LedgerInternalAccount> internalAccounts = ledgerInternalAccountService.getInternalAccounts(currency);
-        BigDecimal net = ledgerInternalAccountService.netBalance(currency);
+        BigDecimal internalAccountsNet = ledgerInternalAccountService.netBalance(currency);
+        BigDecimal customerWalletsNet = ledgerAccountService.netBalanceOfCustomerWallets(currency);
+        BigDecimal net = internalAccountsNet.add(customerWalletsNet);
 
         return ResponseEntity.ok(TrialBalanceResponse.builder()
                 .currency(currency)
+                .internalAccountsNet(internalAccountsNet)
+                .customerWalletsNet(customerWalletsNet)
                 .net(net)
                 .balanced(net.signum() == 0)
                 .internalAccounts(internalAccounts.stream().map(LedgerAccountMapper::toLedgerInternalAccountResponse).toList())

@@ -9,6 +9,7 @@ import org.banksolution.exception.LedgerAccountNotFoundException;
 import org.banksolution.repository.TigerBeetleAccountRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,5 +46,11 @@ public class LedgerAccountService {
                 .toList();
 
         return tigerBeetleAccountRepository.findLedgerAccountsByIds(candidateIds);
+    }
+
+    public BigDecimal netBalanceOfCustomerWallets(Currency currency) {
+        return tigerBeetleAccountRepository.findWalletAccountsByCurrency(currency).stream()
+                .map(LedgerAccount::netBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

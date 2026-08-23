@@ -24,6 +24,10 @@ public record LedgerAccount(
         return creditsPosted.subtract(debitsPosted).subtract(debitsPending);
     }
 
+    public BigDecimal netBalance() {
+        return creditsPosted.subtract(debitsPosted);
+    }
+
     public static LedgerAccount newWallet(
             UUID accountId,
             Currency currency) {

@@ -1,8 +1,7 @@
 import { apiClient } from './client';
-import { AccountResponse, BalanceResponse, OpenAccountRequest } from '@/types';
+import {AccountResponse, AccountWalletResponse, OpenAccountRequest} from '@/types';
 
 export const accountService = {
-  // Get account by ID
   getAccountById: async (accountId: string): Promise<AccountResponse> => {
     const response = await apiClient.get<AccountResponse>(
       `/accounts/${accountId}`
@@ -10,7 +9,6 @@ export const accountService = {
     return response.data;
   },
 
-  // Get accounts by customer ID
   getAccountsByCustomerId: async (
     customerId: string
   ): Promise<AccountResponse[]> => {
@@ -20,28 +18,15 @@ export const accountService = {
     return response.data;
   },
 
-  // Get balances for an account
-  getBalancesByAccountId: async (
+    getWalletsByAccountId: async (
     accountId: string
-  ): Promise<BalanceResponse[]> => {
-    const response = await apiClient.get<BalanceResponse[]>(
-      `/accounts/${accountId}/balances`
+    ): Promise<AccountWalletResponse[]> => {
+        const response = await apiClient.get<AccountWalletResponse[]>(
+            `/accounts/${accountId}/wallets`
     );
     return response.data;
   },
 
-  // Get balance by currency
-  getBalanceByCurrency: async (
-    accountId: string,
-    currency: string
-  ): Promise<BalanceResponse> => {
-    const response = await apiClient.get<BalanceResponse>(
-      `/accounts/${accountId}/balances/${currency}`
-    );
-    return response.data;
-  },
-
-  // Open a new account
   openAccount: async (request: OpenAccountRequest): Promise<AccountResponse> => {
     const response = await apiClient.post<AccountResponse>('/accounts/open-account', request);
     return response.data;

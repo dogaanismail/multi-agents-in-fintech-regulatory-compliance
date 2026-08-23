@@ -23,10 +23,7 @@ import java.util.UUID;
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
 @Getter
-@Aggregate(
-        snapshotTriggerDefinition = "snapshotTriggerDefinition",
-        cache = "paymentCache"
-)
+@Aggregate(snapshotTriggerDefinition = "snapshotTriggerDefinition")
 @NoArgsConstructor
 @Slf4j
 public class PaymentAggregate {

@@ -22,7 +22,6 @@ public class PaymentCompletedEventProducer {
     private final KafkaTemplate<@NonNull String, @NonNull PaymentCompletedEvent> paymentCompletedEventKafkaTemplate;
     private final PaymentQueryService paymentQueryService;
 
-    @Async
     public void publish(PaymentId paymentId) {
         try {
             log.debug("Publishing payment completed event for paymentId: {}", paymentId);

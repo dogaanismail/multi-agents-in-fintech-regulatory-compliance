@@ -126,6 +126,8 @@ public class KafkaConsumerConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigurationProperties.getBootstrapServers());
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                kafkaConfigurationProperties.getSchemaRegistry().getUrl());
 
         return new DefaultKafkaProducerFactory<>(props, new StringSerializer(), valueSerializer);
     }

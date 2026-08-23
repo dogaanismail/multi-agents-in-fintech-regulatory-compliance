@@ -14,6 +14,8 @@ import java.util.List;
 public class TrialBalanceResponse {
 
     private Currency currency;
+    private BigDecimal internalAccountsNet;
+    private BigDecimal customerWalletsNet;
     private BigDecimal net;
     private boolean balanced;
     private List<LedgerInternalAccountResponse> internalAccounts;

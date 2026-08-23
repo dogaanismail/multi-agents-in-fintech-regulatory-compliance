@@ -7,12 +7,13 @@ import { currencyConversionService } from '@/api/currencyConversionService';
 import {
   CreatePaymentRequest,
   PaymentType,
+  FixedSide,
   Currency,
   CustomerResponse,
   AccountResponse,
   ExchangeRateResponse,
 } from '@/types';
-import { Card, Button, LoadingSpinner } from '@/components/common';
+import {Card, Button, Badge, LoadingSpinner} from '@/components/common';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ const PAYMENT_TYPES: {
     value: 'DEPOSIT',
     icon: '💰',
     label: 'Deposit',
-    desc: 'Deposit into own account',
+    desc: 'Money arriving from outside the bank',
     needsCounterparty: false,
     counterpartyIsDestination: false,
   },
@@ -52,11 +53,30 @@ const PAYMENT_TYPES: {
     value: 'WITHDRAWAL',
     icon: '🏧',
     label: 'Withdrawal',
-    desc: 'Withdraw from own account',
+    desc: 'Money leaving the bank',
     needsCounterparty: false,
     counterpartyIsDestination: false,
   },
 ];
+
+const PAYMENT_SCHEMES: Record<PaymentType, { scheme: string; desc: string }> = {
+  TRANSFER_OUT: {
+    scheme: 'INTERNAL_TRANSFER',
+    desc: 'Wallet-to-wallet on the ledger: payer authorised, payee credited on settlement',
+  },
+  TRANSFER_IN: {
+    scheme: 'INTERNAL_TRANSFER',
+    desc: 'Wallet-to-wallet on the ledger: payer authorised, payee credited on settlement',
+  },
+  DEPOSIT: {
+    scheme: 'EXTERNAL_INBOUND',
+    desc: 'Inbound clearing is debited and the wallet credited once compliance settles',
+  },
+  WITHDRAWAL: {
+    scheme: 'EXTERNAL_OUTBOUND',
+    desc: 'The wallet is debited into outbound clearing once compliance settles',
+  },
+};
 
 const ALL_CURRENCIES: { value: Currency; label: string }[] = [
   { value: 'AED', label: 'AED — UAE Dirham' },
@@ -74,10 +94,6 @@ const ALL_CURRENCIES: { value: Currency; label: string }[] = [
   { value: 'USD', label: 'USD — US Dollar' },
 ];
 
-// Sentinel UUID of the main ledger account (AccountType.LEDGER).
-// Used as the implicit counterparty for DEPOSIT (source) and WITHDRAWAL (destination).
-const LEDGER_ACCOUNT_ID = '00000000-0000-0000-0000-000000000000';
-
 const inputCls =
   'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm';
 const selectCls =
@@ -86,14 +102,14 @@ const selectCls =
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const accountLabel = (a: AccountResponse) => {
-  const balStr =
-    a.balances && a.balances.length > 0
+  const walletStr =
+      a.wallets && a.wallets.length > 0
       ? ' — ' +
-        a.balances
-          .map((b) => `${b.availableBalance.toLocaleString()} ${b.currency}`)
+          a.wallets
+              .map((w) => `${w.availableBalance.toLocaleString()} ${w.currency}`)
           .join(' | ')
       : '';
-  return `${a.accountNumber} (${a.accountType}, ${a.bankLocation})${balStr}`;
+  return `${a.accountNumber} (${a.accountType}, ${a.bankLocation})${walletStr}`;
 };
 
 const Field: React.FC<{
@@ -185,6 +201,7 @@ export const CreatePaymentPage: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [fromCurrency, setFromCurrency] = useState<Currency>('USD');
   const [toCurrency, setToCurrency] = useState<Currency>('USD');
+  const [fixedSide, setFixedSide] = useState<FixedSide>('SELL');
   const [description, setDescription] = useState('');
 
   // ── Submit state ──
@@ -270,7 +287,6 @@ export const CreatePaymentPage: React.FC = () => {
       return;
     }
 
-    // Map own / counterparty accounts → sourceAccountId / destinationAccountId
     let sourceAccountId: string | undefined;
     let destinationAccountId: string | undefined;
     if (paymentType === 'TRANSFER_OUT') {
@@ -280,13 +296,9 @@ export const CreatePaymentPage: React.FC = () => {
       sourceAccountId = counterpartyAccountId || undefined;
       destinationAccountId = ownAccountId || undefined;
     } else if (paymentType === 'DEPOSIT') {
-      // Money flows FROM ledger → customer account
-      sourceAccountId      = LEDGER_ACCOUNT_ID;
       destinationAccountId = ownAccountId || undefined;
     } else {
-      // WITHDRAWAL: money flows FROM customer account → ledger
-      sourceAccountId      = ownAccountId || undefined;
-      destinationAccountId = LEDGER_ACCOUNT_ID;
+      sourceAccountId = ownAccountId || undefined;
     }
 
     const request: CreatePaymentRequest = {
@@ -295,6 +307,7 @@ export const CreatePaymentPage: React.FC = () => {
       amount: amountNum,
       fromCurrency,
       toCurrency,
+      fixedSide,
       description: description.trim() || undefined,
       sourceAccountId,
       destinationAccountId,
@@ -352,6 +365,11 @@ export const CreatePaymentPage: React.FC = () => {
                 <span className="mt-0.5 text-xs text-gray-500 leading-tight">{t.desc}</span>
               </button>
             ))}
+          </div>
+          <div
+              className="mt-3 bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-600 flex items-center gap-2">
+            <Badge className="bg-indigo-100 text-indigo-800">{PAYMENT_SCHEMES[paymentType].scheme}</Badge>
+            <span>{PAYMENT_SCHEMES[paymentType].desc}</span>
           </div>
         </Card>
 
@@ -456,8 +474,11 @@ export const CreatePaymentPage: React.FC = () => {
 
                 {conversionRate && (() => {
                   const amtNum = parseFloat(amount);
-                  const preview = !isNaN(amtNum) && amtNum > 0
-                    ? (amtNum * conversionRate.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+                  const hasAmount = !isNaN(amtNum) && amtNum > 0;
+                  const derived = hasAmount
+                      ? fixedSide === 'SELL'
+                          ? amtNum * conversionRate.rate
+                          : amtNum / conversionRate.rate
                     : null;
                   return (
                     <div className="bg-amber-50 border border-amber-200 rounded-md p-3 flex flex-col gap-1">
@@ -465,9 +486,15 @@ export const CreatePaymentPage: React.FC = () => {
                       <p className="text-sm text-amber-700">
                         1 <strong>{fromCurrency}</strong> = <strong>{conversionRate.rate.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}</strong> {toCurrency}
                       </p>
-                      {preview && (
+                      {derived !== null && (
                         <p className="text-sm text-amber-600">
-                          {amtNum.toLocaleString()} {fromCurrency} ≈ <strong>{preview}</strong> {toCurrency}
+                          {fixedSide === 'SELL'
+                              ? `Payer gives exactly ${amtNum.toLocaleString()} ${fromCurrency}; payee receives ≈ `
+                              : `Payee receives exactly ${amtNum.toLocaleString()} ${toCurrency}; payer gives ≈ `}
+                          <strong>
+                            {derived.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                          </strong>{' '}
+                          {fixedSide === 'SELL' ? toCurrency : fromCurrency}
                         </p>
                       )}
                       <p className="text-xs text-amber-500 mt-0.5">Rate refreshed every hour via scheduled job</p>
@@ -526,6 +553,47 @@ export const CreatePaymentPage: React.FC = () => {
                 ))}
               </select>
             </Field>
+
+            {fromCurrency !== toCurrency && (
+                <div className="sm:col-span-2">
+                  <Field
+                      label="Fixed Side"
+                      required
+                      hint="Which amount is exact: SELL fixes what the payer gives, BUY fixes what the payee receives"
+                  >
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                          type="button"
+                          onClick={() => setFixedSide('SELL')}
+                          className={`flex flex-col items-start p-3 rounded-lg border-2 transition-all text-left ${
+                              fixedSide === 'SELL'
+                                  ? 'border-blue-500 bg-blue-50 text-blue-900'
+                                  : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <span className="text-sm font-semibold">SELL — amount is in {fromCurrency}</span>
+                        <span className="mt-0.5 text-xs text-gray-500">
+                        The payer gives exactly this amount; the {toCurrency} amount is derived from the rate
+                      </span>
+                      </button>
+                      <button
+                          type="button"
+                          onClick={() => setFixedSide('BUY')}
+                          className={`flex flex-col items-start p-3 rounded-lg border-2 transition-all text-left ${
+                              fixedSide === 'BUY'
+                                  ? 'border-blue-500 bg-blue-50 text-blue-900'
+                                  : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <span className="text-sm font-semibold">BUY — amount is in {toCurrency}</span>
+                        <span className="mt-0.5 text-xs text-gray-500">
+                        The payee receives exactly this amount; the {fromCurrency} amount is derived from the rate
+                      </span>
+                      </button>
+                    </div>
+                  </Field>
+                </div>
+            )}
 
             <div className="sm:col-span-2">
               <Field label="Description" hint="Optional — max 500 characters">

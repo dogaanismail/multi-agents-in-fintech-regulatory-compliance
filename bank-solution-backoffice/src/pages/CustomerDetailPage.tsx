@@ -153,11 +153,11 @@ export const CustomerDetailPage: React.FC = () => {
                       <span>Opened: {account.openingDate}</span>
                     </div>
                     <div className="flex flex-wrap gap-3 mt-2">
-                      {account.balances.map((balance) => (
-                        <div key={balance.id} className="text-sm">
-                          <span className="font-medium">{balance.currency}:</span>{' '}
+                        {(account.wallets ?? []).map((wallet) => (
+                            <div key={wallet.id} className="text-sm">
+                                <span className="font-medium">{wallet.currency}:</span>{' '}
                           <span className="text-green-600">
-                            {formatCurrency(balance.availableBalance, balance.currency)}
+                            {formatCurrency(wallet.availableBalance, wallet.currency)}
                           </span>
                         </div>
                       ))}

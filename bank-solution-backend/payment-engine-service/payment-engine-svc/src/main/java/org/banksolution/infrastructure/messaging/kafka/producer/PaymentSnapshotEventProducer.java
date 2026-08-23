@@ -11,7 +11,6 @@ import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.enums.PaymentEventTrigger;
 import org.banksolution.infrastructure.messaging.kafka.mapper.PaymentAggregateSnapshotMapper;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,7 +22,6 @@ public class PaymentSnapshotEventProducer {
     private final KafkaTemplate<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotEventKafkaTemplate;
     private final PaymentQueryService paymentQueryService;
 
-    @Async
     public void publish(PaymentId paymentId, PaymentEventTrigger eventTrigger) {
         try {
             log.debug("Publishing payment snapshot for paymentId: {}, trigger: {}", paymentId, eventTrigger);

@@ -1,6 +1,7 @@
 package org.banksolution.config;
 
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import org.axonframework.modelling.command.AggregateNotFoundException;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -95,7 +96,8 @@ public class KafkaConsumerConfig {
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(deadLetterRecoverer(), backOff);
         errorHandler.addNotRetryableExceptions(
                 IllegalArgumentException.class,
-                IllegalStateException.class
+                IllegalStateException.class,
+                AggregateNotFoundException.class
         );
 
         return errorHandler;
@@ -130,6 +132,8 @@ public class KafkaConsumerConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigurationProperties.getBootstrapServers());
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                kafkaConfigurationProperties.getSchemaRegistry().getUrl());
 
         return new DefaultKafkaProducerFactory<>(props, new StringSerializer(), valueSerializer);
     }

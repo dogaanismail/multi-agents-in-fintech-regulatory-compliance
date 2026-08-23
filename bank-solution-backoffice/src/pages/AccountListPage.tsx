@@ -76,8 +76,6 @@ export const AccountListPage = () => {
     );
   }
 
-  const LEDGER_ID = '00000000-0000-0000-0000-000000000000';
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -90,22 +88,21 @@ export const AccountListPage = () => {
         </Link>
       </div>
 
-      {/* Ledger Account Shortcut */}
       <Link
-        to={`/accounts/${LEDGER_ID}`}
+          to="/ledger"
         className="group flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl hover:shadow-md transition-all hover:border-indigo-300"
       >
         <div className="flex items-center gap-3">
           <span className="text-2xl">🏛️</span>
           <div>
-            <p className="font-semibold text-gray-900">Ledger Account</p>
+              <p className="font-semibold text-gray-900">Ledger Internal Accounts</p>
             <p className="text-xs text-gray-500 mt-0.5">
-              System clearing account — used as source/destination for deposits &amp; withdrawals
+                Clearing, fees, suspense and FX position accounts — the counterparties of every customer payment
             </p>
           </div>
         </div>
         <span className="text-indigo-600 font-semibold text-sm flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-          View balances &amp; payments →
+          View trial balance &amp; internal accounts →
         </span>
       </Link>
 
@@ -172,6 +169,9 @@ export const AccountListPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Bank Location
                   </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Wallets
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created
                   </th>
@@ -201,6 +201,15 @@ export const AccountListPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {account.bankLocation}
+                    </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                              {(account.wallets ?? []).map((wallet) => (
+                                  <Badge key={wallet.id} className="bg-blue-50 text-blue-700 border border-blue-100">
+                                      {wallet.currency} {wallet.availableBalance.toLocaleString()}
+                                  </Badge>
+                              ))}
+                          </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(account.createdAt).toLocaleDateString()}

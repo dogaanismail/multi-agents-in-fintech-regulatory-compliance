@@ -234,10 +234,13 @@ class OfflineTrainerService:
 
         # ── Pre-flight check ──────────────────────────────────────────────────
         unused_count = await experience_buffer_service.count_unused_experiences()
-        if unused_count < settings.min_experiences_for_training:
+        min_experiences = dynamic_config.get_int(
+            "MIN_EXPERIENCES_FOR_TRAINING", settings.min_experiences_for_training
+        )
+        if unused_count < min_experiences:
             logger.info(
                 f"⏭️  Training skipped: {unused_count} / "
-                f"{settings.min_experiences_for_training} experiences available"
+                f"{min_experiences} experiences available"
             )
             return
 
@@ -246,7 +249,9 @@ class OfflineTrainerService:
         run = AgentTrainingRun(
             id=run_id,
             status="running",
-            batch_size=settings.training_batch_size,
+            batch_size=dynamic_config.get_int(
+                "TRAINING_BATCH_SIZE", settings.training_batch_size
+            ),
             started_at=datetime.now(timezone.utc),
         )
         await training_run_repository.create(run)
