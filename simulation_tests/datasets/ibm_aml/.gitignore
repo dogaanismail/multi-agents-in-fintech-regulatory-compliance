@@ -1,0 +1,6 @@
+data/
+.venv/
+.venv-tpa/
+results/*
+!results/*.json
+catboost_info/
