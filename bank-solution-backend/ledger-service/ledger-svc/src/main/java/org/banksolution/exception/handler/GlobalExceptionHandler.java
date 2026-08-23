@@ -46,6 +46,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LedgerAccountNotFoundException.class)
     protected ResponseEntity<@NonNull CustomError> handleLedgerAccountNotFound(LedgerAccountNotFoundException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)
                 .header(CustomError.Header.NOT_FOUND.getName())
@@ -57,6 +58,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     protected ResponseEntity<@NonNull CustomError> handleIllegalArgument(IllegalArgumentException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.BAD_REQUEST)
                 .header(CustomError.Header.VALIDATION_ERROR.getName())
@@ -68,6 +70,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LedgerAccountPersistenceException.class)
     protected ResponseEntity<@NonNull CustomError> handleLedgerAccountPersistence(LedgerAccountPersistenceException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.CONFLICT)
                 .header(CustomError.Header.PROCESS_ERROR.getName())
@@ -78,8 +81,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PendingAuthorisationNotFoundException.class)
-    protected ResponseEntity<@NonNull CustomError> handlePendingAuthorisationNotFound(
-            PendingAuthorisationNotFoundException ex) {
+    protected ResponseEntity<@NonNull CustomError> handlePendingAuthorisationNotFound(PendingAuthorisationNotFoundException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)
                 .header(CustomError.Header.NOT_FOUND.getName())
@@ -90,8 +93,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InsufficientLedgerFundsException.class)
-    protected ResponseEntity<@NonNull CustomError> handleInsufficientLedgerFunds(
-            InsufficientLedgerFundsException ex) {
+    protected ResponseEntity<@NonNull CustomError> handleInsufficientLedgerFunds(InsufficientLedgerFundsException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.UNPROCESSABLE_ENTITY)
                 .header(CustomError.Header.PROCESS_ERROR.getName())
@@ -103,6 +106,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LedgerPostingException.class)
     protected ResponseEntity<@NonNull CustomError> handleLedgerPosting(LedgerPostingException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.CONFLICT)
                 .header(CustomError.Header.PROCESS_ERROR.getName())
@@ -114,6 +118,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LedgerUnavailableException.class)
     protected ResponseEntity<@NonNull CustomError> handleLedgerUnavailable(LedgerUnavailableException ex) {
+
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.SERVICE_UNAVAILABLE)
                 .header(CustomError.Header.PROCESS_ERROR.getName())

@@ -58,7 +58,10 @@ class PostingInstructionTypeTest {
         assertThat(values())
                 .filteredOn(PostingInstructionType::isAuthorisation)
                 .containsExactlyInAnyOrder(
-                        INBOUND_AUTHORISATION, OUTBOUND_AUTHORISATION, INTERNAL_TRANSFER_AUTHORISATION);
+                        INBOUND_AUTHORISATION,
+                        OUTBOUND_AUTHORISATION,
+                        INTERNAL_TRANSFER_AUTHORISATION,
+                        CROSS_CURRENCY_TRANSFER_AUTHORISATION);
     }
 
     @Test
@@ -78,5 +81,12 @@ class PostingInstructionTypeTest {
         assertThat(values())
                 .filteredOn(PostingInstructionType::isInbound)
                 .containsExactlyInAnyOrder(INBOUND_AUTHORISATION, INBOUND_HARD_SETTLEMENT);
+    }
+
+    @Test
+    void shouldFlagOnlyCrossCurrencyTransferAsCrossingCurrencies() {
+        assertThat(values())
+                .filteredOn(PostingInstructionType::crossesCurrencies)
+                .containsExactly(CROSS_CURRENCY_TRANSFER_AUTHORISATION);
     }
 }

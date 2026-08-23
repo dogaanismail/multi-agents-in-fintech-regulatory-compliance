@@ -27,8 +27,8 @@ class LedgerPostingControllerTest extends BaseIntegrationTest {
     private static final BigDecimal OPENING_BALANCE = new BigDecimal("1000.00");
     private static final BigDecimal AUTHORISED_AMOUNT = new BigDecimal("250.00");
 
-    private static final String POSTING_INSTRUCTION_TYPE = "$.postingInstructionType";
-    private static final String CLIENT_TRANSACTION_ID = "$.clientTransactionId";
+    private static final String POSTING_INSTRUCTION_TYPE = "$[0].postingInstructionType";
+    private static final String CLIENT_TRANSACTION_ID = "$[0].clientTransactionId";
     private static final String HEADER = "$.header";
     private static final String VALIDATION_ERROR = "VALIDATION ERROR";
 
@@ -47,10 +47,10 @@ class LedgerPostingControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(POSTING_INSTRUCTION_TYPE).value(OUTBOUND_AUTHORISATION.name()))
                 .andExpect(jsonPath(CLIENT_TRANSACTION_ID).value(clientTransactionId.toString()))
-                .andExpect(jsonPath("$.transferId")
+                .andExpect(jsonPath("$[0].transferId")
                         .value(LedgerTransferIds.deriveTransferId(clientTransactionId, OUTBOUND_AUTHORISATION)
                                 .toString()))
-                .andExpect(jsonPath("$.amount").value(250.00));
+                .andExpect(jsonPath("$[0].amount").value(250.00));
     }
 
     @Test
@@ -66,7 +66,7 @@ class LedgerPostingControllerTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(createSettlement(clientTransactionId))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(POSTING_INSTRUCTION_TYPE).value("SETTLEMENT"))
-                .andExpect(jsonPath("$.pendingTransferId")
+                .andExpect(jsonPath("$[0].pendingTransferId")
                         .value(LedgerTransferIds.deriveTransferId(clientTransactionId, OUTBOUND_AUTHORISATION)
                                 .toString()));
     }

@@ -27,11 +27,20 @@ public class TigerBeetleTransferRepository {
     private final Client tigerBeetleClient;
 
     public LedgerTransfer persistLedgerTransfer(LedgerTransfer ledgerTransfer) {
-        TransferBatch transferBatch = newTransferBatch(ledgerTransfer);
+        return persistLinkedLedgerTransfers(List.of(ledgerTransfer)).getFirst();
+    }
 
-        createTransfersInTigerBeetle(transferBatch, ledgerTransfer);
+    public List<LedgerTransfer> persistLinkedLedgerTransfers(List<LedgerTransfer> ledgerTransfers) {
+        TransferBatch transferBatch = new TransferBatch(ledgerTransfers.size());
 
-        return findLedgerTransferById(ledgerTransfer.id()).orElse(ledgerTransfer);
+        for (int index = 0; index < ledgerTransfers.size(); index++) {
+            boolean isLastLeg = index == ledgerTransfers.size() - 1;
+            appendTransfer(transferBatch, ledgerTransfers.get(index), isLastLeg);
+        }
+
+        createTransfersInTigerBeetle(transferBatch, ledgerTransfers.getFirst());
+
+        return findLedgerTransfersByIds(ledgerTransfers.stream().map(LedgerTransfer::id).toList());
     }
 
     public Optional<LedgerTransfer> findLedgerTransferById(UUID transferId) {
@@ -66,8 +75,11 @@ public class TigerBeetleTransferRepository {
         }
     }
 
-    private static TransferBatch newTransferBatch(LedgerTransfer ledgerTransfer) {
-        TransferBatch transferBatch = new TransferBatch(1);
+    private static void appendTransfer(
+            TransferBatch transferBatch,
+            LedgerTransfer ledgerTransfer,
+            boolean isLastLeg) {
+
         transferBatch.add();
         transferBatch.setId(UInt128.asBytes(ledgerTransfer.id()));
         transferBatch.setUserData128(UInt128.asBytes(ledgerTransfer.clientTransactionId()));
@@ -95,7 +107,9 @@ public class TigerBeetleTransferRepository {
             }
         }
 
-        return transferBatch;
+        if (!isLastLeg) {
+            transferBatch.setFlags(transferBatch.getFlags() | TransferFlags.LINKED);
+        }
     }
 
     private static void applyDoubleEntryAccountsAndAmount(TransferBatch transferBatch, LedgerTransfer ledgerTransfer) {

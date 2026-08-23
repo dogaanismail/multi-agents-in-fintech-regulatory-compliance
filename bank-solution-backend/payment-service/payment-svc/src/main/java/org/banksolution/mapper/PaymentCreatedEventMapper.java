@@ -29,6 +29,10 @@ public class PaymentCreatedEventMapper {
                 .setConvertedAmount(paymentRequestEntity.getConvertedAmount().toString())
                 .setAppliedExchangeRate(paymentRequestEntity.getAppliedExchangeRate() != null ? paymentRequestEntity.getAppliedExchangeRate().toString() : null)
                 .setPaymentType(com.aml.payment.PaymentType.valueOf(paymentRequestEntity.getPaymentType().name()))
+                .setPaymentScheme(com.aml.payment.PaymentScheme.valueOf(
+                        paymentRequestEntity.getPaymentScheme().name()))
+                .setFixedSide(com.aml.payment.FixedSide.valueOf(
+                        paymentRequestEntity.getFixedSide().name()))
                 .setIsCrossBorderPayment(isCrossOrderPayment)
                 .setDescription(paymentRequestEntity.getDescription())
                 .build();

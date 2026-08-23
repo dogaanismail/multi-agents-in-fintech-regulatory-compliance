@@ -35,6 +35,24 @@
       "doc": "Type of payment (e.g., TRANSFER_OUT, TRANSFER_IN, DEPOSIT, WITHDRAWAL)"
     },
     {
+      "name": "paymentScheme",
+      "type": [
+        "null",
+        {
+          "type": "enum",
+          "name": "PaymentScheme",
+          "doc": "How the payment is routed",
+          "symbols": [
+            "INTERNAL_TRANSFER",
+            "EXTERNAL_OUTBOUND",
+            "EXTERNAL_INBOUND"
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "How the payment was routed"
+    },
+    {
       "name": "amount",
       "type": "string",
       "doc": "Payment amount as string to preserve precision"

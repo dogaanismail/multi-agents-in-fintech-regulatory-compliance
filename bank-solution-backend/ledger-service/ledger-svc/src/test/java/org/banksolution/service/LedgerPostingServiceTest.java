@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -123,8 +124,8 @@ class LedgerPostingServiceTest extends BaseIntegrationTest {
         LedgerPostingInstruction instruction =
                 outboundAuthorisation(clientTransactionId, customerAccountId, AUTHORISED_AMOUNT);
 
-        LedgerTransfer first = ledgerPostingService.applyPostingInstruction(instruction);
-        LedgerTransfer redelivered = ledgerPostingService.applyPostingInstruction(instruction);
+        LedgerTransfer first = ledgerPostingService.applyPostingInstruction(instruction).getFirst();
+        LedgerTransfer redelivered = ledgerPostingService.applyPostingInstruction(instruction).getFirst();
 
         assertThat(redelivered.id())
                 .isEqualTo(first.id())
@@ -245,7 +246,7 @@ class LedgerPostingServiceTest extends BaseIntegrationTest {
         ledgerPostingService.applyPostingInstruction(
                 outboundAuthorisation(clientTransactionId, customerAccountId, AUTHORISED_AMOUNT));
         LedgerTransfer settlement = ledgerPostingService.applyPostingInstruction(
-                LedgerPostingInstruction.settlement(clientTransactionId));
+                LedgerPostingInstruction.settlement(clientTransactionId)).getFirst();
 
         assertThat(settlement.amount()).isEqualByComparingTo(AUTHORISED_AMOUNT);
         assertThat(settlement.pendingTransferId())
@@ -297,5 +298,91 @@ class LedgerPostingServiceTest extends BaseIntegrationTest {
                                                                   BigDecimal amount) {
         return LedgerPostingInstruction.outboundAuthorisation(
                 clientTransactionId, amount, CURRENCY, customerAccountId, null);
+    }
+
+    @Test
+    void shouldHoldBothLegsOfACrossCurrencyTransfer() {
+        UUID payerAccountId = givenFundedWallet();
+        UUID payeeAccountId = givenWalletIn(Currency.EUR);
+        UUID clientTransactionId = UUID.randomUUID();
+
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.crossCurrencyTransferAuthorisation(
+                clientTransactionId, AUTHORISED_AMOUNT, CURRENCY,
+                new BigDecimal("290.00"), Currency.EUR, payerAccountId, payeeAccountId));
+
+        LedgerAccount payerWallet = ledgerAccountService.getWallet(payerAccountId, CURRENCY);
+        LedgerAccount payeeWallet = ledgerAccountService.getWallet(payeeAccountId, Currency.EUR);
+
+        assertThat(payerWallet.debitsPending()).isEqualByComparingTo(AUTHORISED_AMOUNT);
+        assertThat(payeeWallet.creditsPending()).isEqualByComparingTo(new BigDecimal("290.00"));
+    }
+
+    @Test
+    void shouldSettleBothLegsOfACrossCurrencyTransfer() {
+        UUID payerAccountId = givenFundedWallet();
+        UUID payeeAccountId = givenWalletIn(Currency.EUR);
+        UUID clientTransactionId = UUID.randomUUID();
+
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.crossCurrencyTransferAuthorisation(
+                clientTransactionId, AUTHORISED_AMOUNT, CURRENCY,
+                new BigDecimal("290.00"), Currency.EUR, payerAccountId, payeeAccountId));
+
+        List<LedgerTransfer> settlements = ledgerPostingService.applyPostingInstruction(
+                LedgerPostingInstruction.settlement(clientTransactionId));
+
+        assertThat(settlements).hasSize(2);
+        assertThat(ledgerAccountService.getWallet(payerAccountId, CURRENCY).debitsPosted())
+                .isEqualByComparingTo(AUTHORISED_AMOUNT);
+        assertThat(ledgerAccountService.getWallet(payeeAccountId, Currency.EUR).availableBalance())
+                .isEqualByComparingTo(new BigDecimal("290.00"));
+    }
+
+    @Test
+    void shouldLeaveTheBankExposureOnTheFxPositionAccounts() {
+        UUID payerAccountId = givenFundedWallet();
+        UUID payeeAccountId = givenWalletIn(Currency.EUR);
+        UUID clientTransactionId = UUID.randomUUID();
+
+        BigDecimal sellPositionBefore = fxPositionOf(CURRENCY);
+        BigDecimal buyPositionBefore = fxPositionOf(Currency.EUR);
+
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.crossCurrencyTransferAuthorisation(
+                clientTransactionId, AUTHORISED_AMOUNT, CURRENCY,
+                new BigDecimal("290.00"), Currency.EUR, payerAccountId, payeeAccountId));
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.settlement(clientTransactionId));
+
+        assertThat(fxPositionOf(CURRENCY).subtract(sellPositionBefore))
+                .isEqualByComparingTo(AUTHORISED_AMOUNT);
+        assertThat(fxPositionOf(Currency.EUR).subtract(buyPositionBefore))
+                .isEqualByComparingTo(new BigDecimal("-290.00"));
+    }
+
+    @Test
+    void shouldReleaseBothLegsOfACrossCurrencyTransfer() {
+        UUID payerAccountId = givenFundedWallet();
+        UUID payeeAccountId = givenWalletIn(Currency.EUR);
+        UUID clientTransactionId = UUID.randomUUID();
+
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.crossCurrencyTransferAuthorisation(
+                clientTransactionId, AUTHORISED_AMOUNT, CURRENCY,
+                new BigDecimal("290.00"), Currency.EUR, payerAccountId, payeeAccountId));
+        ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.release(clientTransactionId));
+
+        assertThat(ledgerAccountService.getWallet(payerAccountId, CURRENCY).availableBalance())
+                .isEqualByComparingTo(OPENING_BALANCE);
+        assertThat(ledgerAccountService.getWallet(payeeAccountId, Currency.EUR).creditsPending())
+                .isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    private UUID givenWalletIn(Currency currency) {
+        UUID customerAccountId = UUID.randomUUID();
+        ledgerAccountService.createLedgerAccount(customerAccountId, currency);
+        return customerAccountId;
+    }
+
+    private BigDecimal fxPositionOf(Currency currency) {
+        return ledgerInternalAccountService
+                .getInternalAccount(LedgerAccountType.FX_POSITION, currency)
+                .netBalance();
     }
 }

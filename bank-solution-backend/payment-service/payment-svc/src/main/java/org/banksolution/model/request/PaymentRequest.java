@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.banksolution.enums.Currency;
+import org.banksolution.enums.FixedSide;
 import org.banksolution.enums.PaymentType;
 
 import java.math.BigDecimal;
@@ -36,6 +37,9 @@ public class PaymentRequest {
 
     @NotNull(message = "Payment type is required")
     private PaymentType paymentType;
+
+    @Builder.Default
+    private FixedSide fixedSide = FixedSide.SELL;
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;

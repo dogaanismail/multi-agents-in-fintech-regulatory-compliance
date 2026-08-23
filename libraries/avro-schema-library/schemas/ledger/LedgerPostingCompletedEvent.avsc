@@ -19,6 +19,7 @@
       "type": {
         "type": "enum",
         "name": "PostingInstructionType",
+        "doc": "Posting instruction vocabulary of the ledger",
         "symbols": [
           "INBOUND_AUTHORISATION",
           "OUTBOUND_AUTHORISATION",
@@ -26,7 +27,8 @@
           "RELEASE",
           "INBOUND_HARD_SETTLEMENT",
           "OUTBOUND_HARD_SETTLEMENT",
-          "INTERNAL_TRANSFER_AUTHORISATION"
+          "INTERNAL_TRANSFER_AUTHORISATION",
+          "CROSS_CURRENCY_TRANSFER_AUTHORISATION"
         ]
       },
       "doc": "Posting instruction that was applied"

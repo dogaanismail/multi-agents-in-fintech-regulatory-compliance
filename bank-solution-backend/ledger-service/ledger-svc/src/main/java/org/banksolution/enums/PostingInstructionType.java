@@ -13,7 +13,8 @@ public enum PostingInstructionType {
     RELEASE(4, TransferType.VOID_PENDING, false),
     INBOUND_HARD_SETTLEMENT(5, TransferType.SINGLE_PHASE, true),
     OUTBOUND_HARD_SETTLEMENT(6, TransferType.SINGLE_PHASE, false),
-    INTERNAL_TRANSFER_AUTHORISATION(7, TransferType.PENDING, false);
+    INTERNAL_TRANSFER_AUTHORISATION(7, TransferType.PENDING, false),
+    CROSS_CURRENCY_TRANSFER_AUTHORISATION(8, TransferType.PENDING, false);
 
     private final int code;
     private final TransferType transferType;
@@ -35,5 +36,9 @@ public enum PostingInstructionType {
 
     public boolean movesBetweenCustomerWallets() {
         return this == INTERNAL_TRANSFER_AUTHORISATION;
+    }
+
+    public boolean crossesCurrencies() {
+        return this == CROSS_CURRENCY_TRANSFER_AUTHORISATION;
     }
 }

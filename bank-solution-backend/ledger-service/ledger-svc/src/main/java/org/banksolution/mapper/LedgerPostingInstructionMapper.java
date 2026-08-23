@@ -19,33 +19,52 @@ public final class LedgerPostingInstructionMapper {
 
         if (request.getInboundAuthorisation() != null) {
             CustomerAccountMovementRequest movement = request.getInboundAuthorisation();
-            return LedgerPostingInstruction.inboundAuthorisation(clientTransactionId, movement.getAmount(),
-                    movement.getCurrency(), movement.getCustomerAccountId(), movement.getInternalAccountType());
+            return LedgerPostingInstruction.inboundAuthorisation(clientTransactionId,
+                    movement.getAmount(),
+                    movement.getCurrency(),
+                    movement.getCustomerAccountId(),
+                    movement.getInternalAccountType()
+            );
         }
 
         if (request.getOutboundAuthorisation() != null) {
             CustomerAccountMovementRequest movement = request.getOutboundAuthorisation();
-            return LedgerPostingInstruction.outboundAuthorisation(clientTransactionId, movement.getAmount(),
-                    movement.getCurrency(), movement.getCustomerAccountId(), movement.getInternalAccountType());
+            return LedgerPostingInstruction.outboundAuthorisation(clientTransactionId,
+                    movement.getAmount(),
+                    movement.getCurrency(),
+                    movement.getCustomerAccountId(),
+                    movement.getInternalAccountType()
+            );
         }
 
         if (request.getInboundHardSettlement() != null) {
             CustomerAccountMovementRequest movement = request.getInboundHardSettlement();
-            return LedgerPostingInstruction.inboundHardSettlement(clientTransactionId, movement.getAmount(),
-                    movement.getCurrency(), movement.getCustomerAccountId(), movement.getInternalAccountType());
+            return LedgerPostingInstruction.inboundHardSettlement(clientTransactionId,
+                    movement.getAmount(),
+                    movement.getCurrency(),
+                    movement.getCustomerAccountId(),
+                    movement.getInternalAccountType()
+            );
         }
 
         if (request.getOutboundHardSettlement() != null) {
             CustomerAccountMovementRequest movement = request.getOutboundHardSettlement();
-            return LedgerPostingInstruction.outboundHardSettlement(clientTransactionId, movement.getAmount(),
-                    movement.getCurrency(), movement.getCustomerAccountId(), movement.getInternalAccountType());
+            return LedgerPostingInstruction.outboundHardSettlement(clientTransactionId,
+                    movement.getAmount(),
+                    movement.getCurrency(),
+                    movement.getCustomerAccountId(),
+                    movement.getInternalAccountType()
+            );
         }
 
         if (request.getInternalTransferAuthorisation() != null) {
             InternalTransferMovementRequest movement = request.getInternalTransferAuthorisation();
-            return LedgerPostingInstruction.internalTransferAuthorisation(clientTransactionId, movement.getAmount(),
-                    movement.getCurrency(), movement.getSourceCustomerAccountId(),
-                    movement.getDestinationCustomerAccountId());
+            return LedgerPostingInstruction.internalTransferAuthorisation(clientTransactionId,
+                    movement.getAmount(),
+                    movement.getCurrency(),
+                    movement.getSourceCustomerAccountId(),
+                    movement.getDestinationCustomerAccountId()
+            );
         }
 
         if (request.getSettlement() != null) {

@@ -21,13 +21,16 @@ public class LedgerPostingCompletedEventHandler {
         PaymentId paymentId = new PaymentId(UUID.fromString(event.getClientTransactionId()));
 
         switch (event.getPostingInstructionType()) {
-            case INBOUND_AUTHORISATION, OUTBOUND_AUTHORISATION, INTERNAL_TRANSFER_AUTHORISATION ->
-                    handleAuthorisation(paymentId, event);
+            case INBOUND_AUTHORISATION,
+                 OUTBOUND_AUTHORISATION,
+                 INTERNAL_TRANSFER_AUTHORISATION,
+                 CROSS_CURRENCY_TRANSFER_AUTHORISATION -> handleAuthorisation(paymentId, event);
             case SETTLEMENT -> handleSettlement(paymentId, event);
             case RELEASE -> handleRelease(paymentId, event);
-            default -> log.warn("Ignoring unexpected posting instruction type {} for payment {}",
-                    event.getPostingInstructionType(),
-                    paymentId);
+            case INBOUND_HARD_SETTLEMENT, OUTBOUND_HARD_SETTLEMENT ->
+                    log.debug("Ignoring hard settlement {} for payment {}, no saga awaits it",
+                            event.getPostingInstructionType(),
+                            paymentId);
         }
     }
 

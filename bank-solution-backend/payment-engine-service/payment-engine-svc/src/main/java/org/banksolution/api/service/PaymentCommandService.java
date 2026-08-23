@@ -15,6 +15,8 @@ import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.command.OverrideDecisionCommand;
 import org.banksolution.domain.payment.command.RejectManualReviewCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
+import org.banksolution.enums.FixedSide;
+import org.banksolution.enums.PaymentScheme;
 import org.banksolution.enums.PaymentStatus;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,8 @@ public class PaymentCommandService {
                 null,
                 null,
                 request.getPaymentType(),
+                PaymentScheme.EXTERNAL_OUTBOUND.name(),
+                FixedSide.SELL.name(),
                 request.isCrossBorderPayment(),
                 request.getDescription()
         ));
