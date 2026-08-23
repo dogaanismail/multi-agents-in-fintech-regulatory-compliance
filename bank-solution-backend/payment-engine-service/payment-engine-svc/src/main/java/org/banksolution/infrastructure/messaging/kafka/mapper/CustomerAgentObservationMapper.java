@@ -13,7 +13,9 @@ public class CustomerAgentObservationMapper {
                 observation.getProbability(),
                 observation.getRiskScore(),
                 observation.getConfidence(),
-                observation.getResponseTimeMs()
+                observation.getResponseTimeMs(),
+                observation.getFeatureContributions(),
+                observation.getShapBaseValue()
         );
     }
 

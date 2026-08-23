@@ -109,5 +109,18 @@ public class PaymentHistoryResponse {
         private Double riskScore;
         private String confidence;
         private Double responseTimeMs;
+        private java.util.List<FeatureContributionDto> featureContributions;
+        private Double shapBaseValue;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class FeatureContributionDto {
+        private String feature;
+        private String value;
+        private Double shapValue;
+        private String direction;
     }
 }

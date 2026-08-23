@@ -9,6 +9,7 @@ from typing import Optional, Dict, Any
 
 from ..core.config import settings
 from ..core.logging import logger
+from .explainability_service import explainability_service
 
 
 class ModelLoader:
@@ -59,7 +60,8 @@ class ModelLoader:
                 'training_samples': artifacts['training_samples'],
                 'test_samples': artifacts['test_samples']
             }
-            
+
+            explainability_service.initialise(self.model)
             self._is_loaded = True
             
             logger.info(f"✅ Model loaded successfully: {artifacts['model_name']}")

@@ -156,6 +156,8 @@ public class PaymentAggregateSnapshotMapper {
                 .setRiskScore(obs.riskScore())
                 .setConfidence(obs.confidence())
                 .setResponseTimeMs(obs.responseTimeMs())
+                .setFeatureContributions(mapFeatureContributions(obs.featureContributions()))
+                .setShapBaseValue(obs.shapBaseValue())
                 .build();
     }
 
@@ -171,6 +173,8 @@ public class PaymentAggregateSnapshotMapper {
                 .setRiskScore(obs.riskScore())
                 .setConfidence(obs.confidence())
                 .setResponseTimeMs(obs.responseTimeMs())
+                .setFeatureContributions(mapFeatureContributions(obs.featureContributions()))
+                .setShapBaseValue(obs.shapBaseValue())
                 .build();
     }
 
@@ -186,10 +190,29 @@ public class PaymentAggregateSnapshotMapper {
                 .setRiskScore(obs.riskScore())
                 .setConfidence(obs.confidence())
                 .setResponseTimeMs(obs.responseTimeMs())
+                .setFeatureContributions(mapFeatureContributions(obs.featureContributions()))
+                .setShapBaseValue(obs.shapBaseValue())
                 .build();
     }
 
     private static Long toEpochMillis(Instant instant) {
         return instant != null ? instant.toEpochMilli() : null;
+    }
+
+    private static java.util.List<com.aml.payment.FeatureContribution> mapFeatureContributions(
+            java.util.List<org.banksolution.domain.payment.valueobject.FeatureContribution> featureContributions) {
+
+        if (featureContributions == null) {
+            return null;
+        }
+
+        return featureContributions.stream()
+                .map(featureContribution -> com.aml.payment.FeatureContribution.newBuilder()
+                        .setFeature(featureContribution.feature())
+                        .setValue(featureContribution.value())
+                        .setShapValue(featureContribution.shapValue())
+                        .setDirection(featureContribution.direction())
+                        .build())
+                .toList();
     }
 }

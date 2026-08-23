@@ -4,6 +4,8 @@ import lombok.experimental.UtilityClass;
 import org.banksolution.dto.PaymentHistoryResponse;
 import org.banksolution.entity.PaymentHistoryEntity;
 
+import java.util.List;
+
 @UtilityClass
 public class PaymentHistoryResponseMapper {
 
@@ -96,6 +98,25 @@ public class PaymentHistoryResponseMapper {
                 .riskScore(agentObservation.getRiskScore())
                 .confidence(agentObservation.getConfidence())
                 .responseTimeMs(agentObservation.getResponseTimeMs())
+                .featureContributions(mapFeatureContributions(agentObservation.getFeatureContributions()))
+                .shapBaseValue(agentObservation.getShapBaseValue())
                 .build();
+    }
+
+    private static List<PaymentHistoryResponse.FeatureContributionDto> mapFeatureContributions(
+            List<PaymentHistoryEntity.FeatureContribution> featureContributions) {
+
+        if (featureContributions == null) {
+            return null;
+        }
+
+        return featureContributions.stream()
+                .map(featureContribution -> PaymentHistoryResponse.FeatureContributionDto.builder()
+                        .feature(featureContribution.getFeature())
+                        .value(featureContribution.getValue())
+                        .shapValue(featureContribution.getShapValue())
+                        .direction(featureContribution.getDirection())
+                        .build())
+                .toList();
     }
 }

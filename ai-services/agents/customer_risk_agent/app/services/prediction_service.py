@@ -8,9 +8,10 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple
 
-from ..models.schemas import CustomerRiskInput, CustomerRiskPrediction
+from ..models.schemas import CustomerRiskInput, CustomerRiskPrediction, FeatureContribution
 from ..services.model_loader import model_loader
 from ..core.logging import logger
+from .explainability_service import explainability_service
 
 
 class PredictionService:
@@ -98,40 +99,6 @@ class PredictionService:
         else:
             return "STANDARD MONITORING - Continue regular oversight"
     
-    def _get_contributing_factors(self, features_df: pd.DataFrame) -> List[str]:
-        """
-        Identify key contributing risk factors (simplified version)
-        In production, this could use SHAP values for more accuracy
-        
-        Args:
-            features_df: Customer features DataFrame
-        
-        Returns:
-            List of contributing factors
-        """
-        factors = []
-        
-        # Check key risk indicators
-        if features_df['cross_border_ratio'].iloc[0] > 0.5:
-            factors.append(f"High cross-border activity ({features_df['cross_border_ratio'].iloc[0]:.1%})")
-        
-        if features_df['night_transaction_ratio'].iloc[0] > 0.3:
-            factors.append(f"Unusual timing patterns ({features_df['night_transaction_ratio'].iloc[0]:.1%} at night)")
-        
-        if features_df['large_transaction_ratio'].iloc[0] > 0.3:
-            factors.append(f"High proportion of large transactions ({features_df['large_transaction_ratio'].iloc[0]:.1%})")
-        
-        if features_df['unique_receiver_countries'].iloc[0] > 10:
-            factors.append(f"High geographic diversity ({features_df['unique_receiver_countries'].iloc[0]} countries)")
-        
-        if features_df['receiver_diversity'].iloc[0] > 0.7:
-            factors.append(f"Dispersed transaction network (diversity: {features_df['receiver_diversity'].iloc[0]:.2f})")
-        
-        if features_df['transactions_per_day'].iloc[0] > 3:
-            factors.append(f"High transaction velocity ({features_df['transactions_per_day'].iloc[0]:.1f} txns/day)")
-        
-        return factors[:5]  # Return top 5 factors
-    
     def predict_single(self, customer_input: CustomerRiskInput) -> CustomerRiskPrediction:
         """
         Predict risk for a single customer
@@ -158,7 +125,12 @@ class PredictionService:
             risk_level = self._calculate_risk_level(probability)
             confidence = self._calculate_confidence(probability)
             recommendation = self._get_recommendation(probability, risk_level)
-            contributing_factors = self._get_contributing_factors(features_df) if is_high_risk else None
+            shap_base_value, contributions = explainability_service.explain(features_scaled, features_df)
+            contributing_factors = [
+                                       f"{c['feature']} = {c['value']} ({c['shap_value']:+.3f})"
+                                       for c in contributions
+                                       if c['direction'] == 'INCREASES_RISK'
+                                   ][:5] or None
             
             return CustomerRiskPrediction(
                 customer_id=customer_input.customer_id,
@@ -168,7 +140,9 @@ class PredictionService:
                 risk_level=risk_level,
                 confidence=confidence,
                 recommendation=recommendation,
-                contributing_factors=contributing_factors
+                contributing_factors=contributing_factors,
+                feature_contributions=[FeatureContribution(**c) for c in contributions] or None,
+                shap_base_value=shap_base_value
             )
             
         except Exception as e:

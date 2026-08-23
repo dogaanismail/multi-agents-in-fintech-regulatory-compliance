@@ -78,6 +78,15 @@ export interface AgentObservationDto {
   riskScore: number;
   confidence: string;
   responseTimeMs: number;
+    featureContributions: FeatureContributionDto[] | null;
+    shapBaseValue: number | null;
+}
+
+export interface FeatureContributionDto {
+    feature: string;
+    value: string;
+    shapValue: number;
+    direction: 'INCREASES_RISK' | 'DECREASES_RISK' | 'NO_IMPACT';
 }
 
 export interface CustomerResponse {

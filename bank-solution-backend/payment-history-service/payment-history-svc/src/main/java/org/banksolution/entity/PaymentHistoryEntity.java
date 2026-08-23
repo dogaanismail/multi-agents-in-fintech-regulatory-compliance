@@ -212,6 +212,18 @@ public class PaymentHistoryEntity {
         private Double riskScore;
         private String confidence;
         private Double responseTimeMs;
+        private java.util.List<FeatureContribution> featureContributions;
+        private Double shapBaseValue;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FeatureContribution {
+        private String feature;
+        private String value;
+        private Double shapValue;
+        private String direction;
     }
 
 }

@@ -12,6 +12,7 @@ All symbols are re-exported here so existing code that does
 from .inference_schemas import (
     ActionType,
     AgentObservation,
+    FeatureContribution,
     CoordinatedDecisionRequest,
     CoordinatedDecisionResponse,
     CustomerFeatures,
@@ -32,6 +33,7 @@ __all__ = [
     # Inference
     "ActionType",
     "AgentObservation",
+    "FeatureContribution",
     "CoordinatedDecisionRequest",
     "CoordinatedDecisionResponse",
     "CustomerFeatures",

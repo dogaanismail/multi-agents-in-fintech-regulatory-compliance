@@ -12,7 +12,7 @@ from typing import Dict
 
 from ..core.config import settings
 from ..core.logging import logger
-from ..models.schemas import AgentObservation
+from ..models.schemas import AgentObservation, FeatureContribution
 
 
 class NetworkAgentClient:
@@ -98,14 +98,19 @@ class NetworkAgentClient:
             data = response.json()
             
             response_time = (time.time() - start_time) * 1000
-            
+
+            contributions = data.get("feature_contributions") or None
+            if contributions:
+                contributions = [FeatureContribution(**c) for c in contributions]
             observation = AgentObservation(
                 agent_name=self.agent_name,
                 is_suspicious=data.get("is_suspicious", False),
                 probability=data.get("suspicion_probability", 0.0),
                 risk_score=data.get("risk_score", 0.0),
                 confidence=data.get("risk_level"),
-                response_time_ms=response_time
+                response_time_ms=response_time,
+                feature_contributions=contributions,
+                shap_base_value=data.get("shap_base_value")
             )
             
             logger.debug(f"{self.agent_name} agent responded in {response_time:.2f}ms")

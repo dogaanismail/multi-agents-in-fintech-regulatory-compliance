@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from ..core.config import settings
 from ..core.logging import logger
+from .explainability_service import explainability_service
 
 
 class ModelLoader:
@@ -60,7 +61,8 @@ class ModelLoader:
             
             # Extract feature names from metadata
             self.feature_names = self.metadata.get('features', {}).get('list', [])
-            
+
+            explainability_service.initialise(self.model)
             self._loaded = True
             
             logger.info("✅ Model artifacts loaded successfully")

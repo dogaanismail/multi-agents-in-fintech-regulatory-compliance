@@ -14,6 +14,7 @@ import org.banksolution.entity.RiskCheckRequestEntity;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 
 @UtilityClass
 public class RiskAssessmentCompletedEventMapper {
@@ -67,6 +68,8 @@ public class RiskAssessmentCompletedEventMapper {
                 .setRiskScore(transactionAgentObservation.getRiskScore())
                 .setConfidence(transactionAgentObservation.getConfidence())
                 .setResponseTimeMs(transactionAgentObservation.getResponseTimeMs())
+                .setFeatureContributions(toRiskFeatureContributions(transactionAgentObservation.getFeatureContributions()))
+                .setShapBaseValue(transactionAgentObservation.getShapBaseValue())
                 .build();
     }
 
@@ -81,6 +84,8 @@ public class RiskAssessmentCompletedEventMapper {
                 .setRiskScore(customerAgentObservation.getRiskScore())
                 .setConfidence(customerAgentObservation.getConfidence())
                 .setResponseTimeMs(customerAgentObservation.getResponseTimeMs())
+                .setFeatureContributions(toRiskFeatureContributions(customerAgentObservation.getFeatureContributions()))
+                .setShapBaseValue(customerAgentObservation.getShapBaseValue())
                 .build();
     }
 
@@ -95,6 +100,25 @@ public class RiskAssessmentCompletedEventMapper {
                 .setRiskScore(networkAgentObservation.getRiskScore())
                 .setConfidence(networkAgentObservation.getConfidence())
                 .setResponseTimeMs(networkAgentObservation.getResponseTimeMs())
+                .setFeatureContributions(toRiskFeatureContributions(networkAgentObservation.getFeatureContributions()))
+                .setShapBaseValue(networkAgentObservation.getShapBaseValue())
                 .build();
+    }
+
+    private static List<com.aml.risk.FeatureContribution> toRiskFeatureContributions(
+            List<com.aml.fraud.FeatureContribution> featureContributions) {
+
+        if (featureContributions == null) {
+            return null;
+        }
+
+        return featureContributions.stream()
+                .map(featureContribution -> com.aml.risk.FeatureContribution.newBuilder()
+                        .setFeature(featureContribution.getFeature())
+                        .setValue(featureContribution.getValue())
+                        .setShapValue(featureContribution.getShapValue())
+                        .setDirection(featureContribution.getDirection())
+                        .build())
+                .toList();
     }
 }
