@@ -105,6 +105,8 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
       LEDGER_SERVICE_URL: http://ledger-service:5013/api/v1/ledger/accounts
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
       SERVER_PORT: 5002
       OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs

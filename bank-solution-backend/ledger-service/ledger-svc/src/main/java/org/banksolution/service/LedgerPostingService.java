@@ -35,6 +35,7 @@ public class LedgerPostingService {
 
     private final TigerBeetleTransferRepository tigerBeetleTransferRepository;
     private final LedgerPostingProperties ledgerPostingProperties;
+    private final WalletBalancePublicationService walletBalancePublicationService;
 
     public List<LedgerTransfer> applyPostingInstruction(LedgerPostingInstruction postingInstruction) {
         log.info("Applying {} for client transaction {}",
@@ -42,7 +43,11 @@ public class LedgerPostingService {
 
         List<LedgerTransfer> ledgerTransfers = toLedgerTransfers(postingInstruction);
 
-        return tigerBeetleTransferRepository.persistLinkedLedgerTransfers(ledgerTransfers);
+        List<LedgerTransfer> appliedLedgerTransfers =
+                tigerBeetleTransferRepository.persistLinkedLedgerTransfers(ledgerTransfers);
+        walletBalancePublicationService.publishWalletBalanceChanges(appliedLedgerTransfers);
+
+        return appliedLedgerTransfers;
     }
 
     public List<LedgerTransfer> getPostingsByClientTransactionId(UUID clientTransactionId) {

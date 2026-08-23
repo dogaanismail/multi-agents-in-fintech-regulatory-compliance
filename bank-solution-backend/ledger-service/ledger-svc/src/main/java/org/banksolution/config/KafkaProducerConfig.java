@@ -1,6 +1,7 @@
 package org.banksolution.config;
 
 import com.aml.ledger.LedgerPostingCompletedEvent;
+import com.aml.ledger.WalletBalanceChangedEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.NonNull;
@@ -36,6 +37,20 @@ public class KafkaProducerConfig {
     @Bean
     public ProducerFactory<@NonNull String, @NonNull LedgerPostingCompletedEvent>
     ledgerPostingCompletedEventProducerFactory() {
+
+        return new DefaultKafkaProducerFactory<>(getProducerConfigs());
+    }
+
+    @Bean
+    public KafkaTemplate<@NonNull String, @NonNull WalletBalanceChangedEvent> walletBalanceChangedEventKafkaTemplate() {
+        var template = new KafkaTemplate<>(walletBalanceChangedEventProducerFactory());
+        template.setObservationEnabled(true);
+
+        return template;
+    }
+
+    @Bean
+    public ProducerFactory<@NonNull String, @NonNull WalletBalanceChangedEvent> walletBalanceChangedEventProducerFactory() {
 
         return new DefaultKafkaProducerFactory<>(getProducerConfigs());
     }

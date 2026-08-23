@@ -158,6 +158,13 @@ register_schema "$SCHEMAS_DIR/account/AccountChargeRequestedEvent.avsc" "account
 register_schema "$SCHEMAS_DIR/account/AccountChargeCompletedEvent.avsc" "account.charge.completed-value"
 echo ""
 
+# Register ledger schemas
+echo "Ledger Schemas:"
+register_schema "$SCHEMAS_DIR/ledger/LedgerPostingRequestedEvent.avsc" "ledger.posting.requested-value"
+register_schema "$SCHEMAS_DIR/ledger/LedgerPostingCompletedEvent.avsc" "ledger.posting.completed-value"
+register_schema "$SCHEMAS_DIR/ledger/WalletBalanceChangedEvent.avsc" "ledger.wallet.balance.changed-value"
+echo ""
+
 # Register agent observation + customer feature schemas
 echo "Agent / Customer Feature Schemas:"
 register_schema "$SCHEMAS_DIR/agents/AgentObservation.avsc" "agent.observation-value"

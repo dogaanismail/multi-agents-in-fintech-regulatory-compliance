@@ -11,6 +11,7 @@ public enum PaymentEventTrigger {
 
     RISK_ASSESSMENT_INITIATED("Risk assessment was initiated"),
     RISK_ASSESSMENT_COMPLETED("Risk assessment was completed"),
+    RISK_ASSESSMENT_TIMED_OUT("Risk assessment timed out, held funds are being released"),
 
     FRAUD_CHECK_APPROVED("Fraud check passed"),
 
@@ -26,6 +27,7 @@ public enum PaymentEventTrigger {
     LEDGER_SETTLEMENT_FAILED("Ledger settlement failed"),
     LEDGER_RELEASE_INITIATED("Ledger release was initiated"),
     LEDGER_RELEASED("Authorised funds were released on the ledger"),
+    LEDGER_RELEASE_FAILED("Ledger release failed"),
 
     DECISION_OVERRIDE_APPROVED("Compliance officer overrode the decision and approved the payment"),
     DECISION_OVERRIDE_REJECTED("Compliance officer overrode the decision and rejected the payment");

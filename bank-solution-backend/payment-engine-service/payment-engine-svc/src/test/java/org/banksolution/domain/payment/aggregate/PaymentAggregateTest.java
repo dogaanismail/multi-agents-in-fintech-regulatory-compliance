@@ -4,7 +4,6 @@ import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.banksolution.enums.PaymentStatus;
-import org.banksolution.exception.InvalidPaymentStateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -128,25 +127,71 @@ class PaymentAggregateTest {
     }
 
     @Test
-    void shouldRejectSettlementConfirmationBeforeSettlementWasInitiated() {
+    void shouldIgnoreARedeliveredSettlementOutcomeWhenNotAwaitingSettlement() {
         fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent())
                 .when(createConfirmLedgerSettlementCommand())
-                .expectException(InvalidPaymentStateException.class);
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
     }
 
     @Test
-    void shouldRejectAuthorisationConfirmationWhenNotAwaitingAuthorisation() {
+    void shouldIgnoreARedeliveredAuthorisationOutcomeWhenAlreadyAuthorised() {
         fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
                         createLedgerAuthorisedEvent())
                 .when(createConfirmLedgerAuthorisationCommand())
-                .expectException(InvalidPaymentStateException.class);
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
     }
 
     @Test
-    void shouldRejectReleaseConfirmationBeforeReleaseWasInitiated() {
+    void shouldIgnoreARedeliveredReleaseOutcomeWhenNotAwaitingRelease() {
         fixture.given(authorisedPayment())
                 .when(createConfirmLedgerReleaseCommand())
-                .expectException(InvalidPaymentStateException.class);
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
+    }
+
+    @Test
+    void shouldReleaseHeldFundsWhenTheRiskAssessmentTimesOut() {
+        fixture.given(authorisedPayment())
+                .when(createExpireRiskAssessmentCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(createRiskAssessmentTimedOutEvent(), createLedgerReleaseInitiatedEvent());
+    }
+
+    @Test
+    void shouldIgnoreRiskAssessmentExpiryWhenTheAssessmentAlreadyCompleted() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createFraudCheckApprovedEvent(createProceedAssessment()),
+                        createLedgerSettlementInitiatedEvent())
+                .when(createExpireRiskAssessmentCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
+    }
+
+    @Test
+    void shouldCompleteAsFailedWhenReleaseFollowsARiskAssessmentTimeout() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createRiskAssessmentTimedOutEvent(), createLedgerReleaseInitiatedEvent())
+                .when(createConfirmLedgerReleaseCommand())
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createLedgerReleasedEvent(),
+                        createPaymentCompletedEvent(PaymentStatus.FAILED, "Risk assessment timed out"));
+    }
+
+    @Test
+    void shouldFailThePaymentWhenTheLedgerReleaseFails() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent(),
+                        createLedgerAuthorisedEvent(), createRiskAssessmentInitiatedEvent(),
+                        createPaymentBlockedEvent(createBlockAssessment()), createLedgerReleaseInitiatedEvent())
+                .when(createFailLedgerReleaseCommand("Pending authorisation not found"))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createLedgerReleaseFailedEvent("Pending authorisation not found"),
+                        createPaymentCompletedEvent(PaymentStatus.FAILED, "Pending authorisation not found"));
     }
 
     private static Object[] authorisedPayment() {

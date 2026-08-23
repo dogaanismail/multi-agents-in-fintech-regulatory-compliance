@@ -67,7 +67,7 @@ public class LedgerPostingCompletedEventHandler {
             return;
         }
 
-        log.error("Ledger release failed for payment {}: {}", paymentId, event.getFailureReason());
+        commandGateway.sendAndWait(new FailLedgerReleaseCommand(paymentId, event.getFailureReason()));
     }
 
     private static UUID toTransferId(LedgerPostingCompletedEvent event) {

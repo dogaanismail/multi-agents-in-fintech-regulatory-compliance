@@ -15,6 +15,7 @@ import java.time.Duration;
 
 import static org.banksolution.fixtures.PaymentFixtures.createBlockAssessment;
 import static org.banksolution.fixtures.PaymentFixtures.createEscalateAssessment;
+import static org.banksolution.fixtures.PaymentFixtures.createExpireRiskAssessmentCommand;
 import static org.banksolution.fixtures.PaymentFixtures.createFraudCheckApprovedEvent;
 import static org.banksolution.fixtures.PaymentFixtures.createManualReviewRequestedEvent;
 import static org.banksolution.fixtures.PaymentFixtures.createPaymentBlockedEvent;
@@ -97,11 +98,11 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void shouldEndSagaWithoutDispatchingCommandsOnTimeout() {
+    void shouldExpireTheRiskAssessmentAndEndSagaOnTimeout() {
         fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
                 .whenTimeElapses(Duration.ofMinutes(2))
                 .expectActiveSagas(0)
-                .expectNoDispatchedCommands();
+                .expectDispatchedCommands(createExpireRiskAssessmentCommand());
     }
 
     @Test

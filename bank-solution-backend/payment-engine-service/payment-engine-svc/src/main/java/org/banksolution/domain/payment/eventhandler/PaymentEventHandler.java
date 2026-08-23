@@ -43,6 +43,12 @@ public class PaymentEventHandler {
 
     @EventHandler
     @AllowReplay
+    public void on(RiskAssessmentTimedOutEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), RISK_ASSESSMENT_TIMED_OUT);
+    }
+
+    @EventHandler
+    @AllowReplay
     public void on(FraudCheckApprovedEvent event, EventMessage<?> eventMessage) {
         publishSnapshotAfterCommit(event.paymentId(), FRAUD_CHECK_APPROVED);
     }
@@ -126,6 +132,12 @@ public class PaymentEventHandler {
     @AllowReplay
     public void on(LedgerReleasedEvent event, EventMessage<?> eventMessage) {
         publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASED);
+    }
+
+    @EventHandler
+    @AllowReplay
+    public void on(LedgerReleaseFailedEvent event, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASE_FAILED);
     }
 
     @EventHandler
