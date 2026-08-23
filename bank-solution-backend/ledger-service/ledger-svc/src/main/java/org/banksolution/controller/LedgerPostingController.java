@@ -32,7 +32,7 @@ public class LedgerPostingController {
     @PostMapping
     @Operation(summary = "Apply a posting instruction",
             description = "Applies exactly one posting instruction: authorisation, settlement, release or hard settlement")
-    public ResponseEntity<@NonNull LedgerPostingResponse> createLedgerPostingInstruction(
+    public ResponseEntity<@NonNull List<LedgerPostingResponse>> createLedgerPostingInstruction(
             @Valid @RequestBody CreateLedgerPostingInstructionRequest request) {
         LedgerPostingInstruction postingInstruction =
                 LedgerPostingInstructionMapper.toLedgerPostingInstruction(request);
@@ -40,10 +40,10 @@ public class LedgerPostingController {
         log.info("POST /api/v1/ledger/postings - {} for client transaction {}",
                 postingInstruction.postingInstructionType(), postingInstruction.clientTransactionId());
 
-        LedgerTransfer ledgerTransfer = ledgerPostingService.applyPostingInstruction(postingInstruction);
+        List<LedgerTransfer> ledgerTransfers = ledgerPostingService.applyPostingInstruction(postingInstruction);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(LedgerTransferMapper.toLedgerPostingResponse(ledgerTransfer));
+                .body(ledgerTransfers.stream().map(LedgerTransferMapper::toLedgerPostingResponse).toList());
     }
 
     @GetMapping("/{clientTransactionId}")

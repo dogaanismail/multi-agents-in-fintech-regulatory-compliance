@@ -19,6 +19,7 @@
       "type": {
         "type": "enum",
         "name": "PostingInstructionType",
+        "doc": "Posting instruction vocabulary of the ledger",
         "symbols": [
           "INBOUND_AUTHORISATION",
           "OUTBOUND_AUTHORISATION",
@@ -26,7 +27,8 @@
           "RELEASE",
           "INBOUND_HARD_SETTLEMENT",
           "OUTBOUND_HARD_SETTLEMENT",
-          "INTERNAL_TRANSFER_AUTHORISATION"
+          "INTERNAL_TRANSFER_AUTHORISATION",
+          "CROSS_CURRENCY_TRANSFER_AUTHORISATION"
         ]
       },
       "doc": "Which posting instruction to apply"
@@ -48,6 +50,24 @@
       ],
       "default": null,
       "doc": "ISO 4217 code; null for SETTLEMENT and RELEASE"
+    },
+    {
+      "name": "buyAmount",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Amount credited to the payee, when the posting crosses currencies"
+    },
+    {
+      "name": "buyCurrency",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Currency credited to the payee, when the posting crosses currencies"
     },
     {
       "name": "customerAccountId",

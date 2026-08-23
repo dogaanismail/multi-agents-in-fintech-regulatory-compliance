@@ -35,6 +35,7 @@ public class PaymentQueryHandler {
                     paymentAggregate.getConvertedAmount(),
                     paymentAggregate.getAppliedExchangeRate(),
                     PaymentType.valueOf(paymentAggregate.getPaymentType()),
+                    paymentAggregate.getPaymentScheme(),
                     paymentAggregate.getDescription(),
                     paymentAggregate.isCrossBorderPayment(),
                     paymentAggregate.getStatus(),

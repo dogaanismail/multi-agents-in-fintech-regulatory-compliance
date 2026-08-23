@@ -30,4 +30,9 @@
         <sqlFile path="changelog/rename_currency_to_from_currency.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-08-23-03-01" author="Ismail Dogan">
+        <comment>Add payment scheme and FX fixed side</comment>
+        <sqlFile path="changelog/add_payment_scheme_and_fixed_side.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -36,6 +36,8 @@ public final class PaymentFixtures {
     public static final String FROM_CURRENCY = "GBP";
     public static final String TO_CURRENCY = "GBP";
     public static final String PAYMENT_TYPE = "TRANSFER_OUT";
+    public static final String PAYMENT_SCHEME = "INTERNAL_TRANSFER";
+    public static final String FIXED_SIDE = "SELL";
     public static final String DESCRIPTION = "Test payment";
     public static final UUID AUTHORISATION_TRANSFER_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
     public static final UUID SETTLEMENT_TRANSFER_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
@@ -75,6 +77,8 @@ public final class PaymentFixtures {
                 CONVERTED_AMOUNT,
                 EXCHANGE_RATE,
                 PAYMENT_TYPE,
+                PAYMENT_SCHEME,
+                FIXED_SIDE,
                 false,
                 DESCRIPTION
         );
@@ -123,6 +127,8 @@ public final class PaymentFixtures {
                 CONVERTED_AMOUNT,
                 EXCHANGE_RATE,
                 PAYMENT_TYPE,
+                PAYMENT_SCHEME,
+                FIXED_SIDE,
                 false,
                 DESCRIPTION
         );
@@ -178,8 +184,10 @@ public final class PaymentFixtures {
                 DESTINATION_ACCOUNT_ID,
                 AMOUNT,
                 FROM_CURRENCY,
+                CONVERTED_AMOUNT,
                 TO_CURRENCY,
                 PAYMENT_TYPE,
+                PAYMENT_SCHEME,
                 DESCRIPTION
         );
     }

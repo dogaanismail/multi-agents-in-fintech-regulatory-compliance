@@ -16,6 +16,8 @@ public record PaymentInitiatedEvent(
         BigDecimal convertedAmount,
         BigDecimal appliedExchangeRate,
         String paymentType,
+        String paymentScheme,
+        String fixedSide,
         boolean isCrossBorderPayment,
         String description) {
 

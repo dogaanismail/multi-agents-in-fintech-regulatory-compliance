@@ -3,20 +3,21 @@ package org.banksolution.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.config.LedgerPostingProperties;
-import org.banksolution.domain.LedgerAccountIds;
 import org.banksolution.domain.LedgerPostingInstruction;
 import org.banksolution.domain.LedgerTransfer;
 import org.banksolution.domain.LedgerTransferIds;
-import org.banksolution.enums.Currency;
-import org.banksolution.enums.LedgerAccountType;
 import org.banksolution.enums.PostingInstructionType;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
+import org.banksolution.mapper.LedgerPostingTransferMapper;
 import org.banksolution.repository.TigerBeetleTransferRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
+import static org.banksolution.domain.LedgerTransferIds.MAX_LEGS_PER_INSTRUCTION;
+import static org.banksolution.enums.PostingInstructionType.CROSS_CURRENCY_TRANSFER_AUTHORISATION;
 import static org.banksolution.enums.PostingInstructionType.INBOUND_AUTHORISATION;
 import static org.banksolution.enums.PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION;
 import static org.banksolution.enums.PostingInstructionType.OUTBOUND_AUTHORISATION;
@@ -26,124 +27,58 @@ import static org.banksolution.enums.PostingInstructionType.OUTBOUND_AUTHORISATI
 @Slf4j
 public class LedgerPostingService {
 
-    private static final int NO_TIMEOUT = 0;
-
     private static final List<PostingInstructionType> AUTHORISATION_TYPES = List.of(
             INBOUND_AUTHORISATION,
             OUTBOUND_AUTHORISATION,
-            INTERNAL_TRANSFER_AUTHORISATION);
+            INTERNAL_TRANSFER_AUTHORISATION,
+            CROSS_CURRENCY_TRANSFER_AUTHORISATION);
 
     private final TigerBeetleTransferRepository tigerBeetleTransferRepository;
     private final LedgerPostingProperties ledgerPostingProperties;
 
-    public LedgerTransfer applyPostingInstruction(LedgerPostingInstruction postingInstruction) {
+    public List<LedgerTransfer> applyPostingInstruction(LedgerPostingInstruction postingInstruction) {
         log.info("Applying {} for client transaction {}",
                 postingInstruction.postingInstructionType(), postingInstruction.clientTransactionId());
 
-        LedgerTransfer ledgerTransfer = switch (postingInstruction.postingInstructionType().getTransferType()) {
-            case PENDING, SINGLE_PHASE -> buildMovementTransfer(postingInstruction);
-            case POST_PENDING, VOID_PENDING -> buildAuthorisationFollowUpTransfer(postingInstruction);
-        };
+        List<LedgerTransfer> ledgerTransfers = toLedgerTransfers(postingInstruction);
 
-        return tigerBeetleTransferRepository.persistLedgerTransfer(ledgerTransfer);
+        return tigerBeetleTransferRepository.persistLinkedLedgerTransfers(ledgerTransfers);
     }
 
     public List<LedgerTransfer> getPostingsByClientTransactionId(UUID clientTransactionId) {
         return tigerBeetleTransferRepository.findLedgerTransfersByClientTransactionId(clientTransactionId);
     }
 
-    private LedgerTransfer buildMovementTransfer(LedgerPostingInstruction postingInstruction) {
-        return postingInstruction.postingInstructionType().movesBetweenCustomerWallets()
-                ? buildWalletToWalletTransfer(postingInstruction)
-                : buildCustomerToInternalAccountTransfer(postingInstruction);
+    private List<LedgerTransfer> toLedgerTransfers(LedgerPostingInstruction postingInstruction) {
+        return switch (postingInstruction.postingInstructionType().getTransferType()) {
+            case PENDING, SINGLE_PHASE -> LedgerPostingTransferMapper.toMovementLedgerTransfers(
+                    postingInstruction,
+                    ledgerPostingProperties.authorisationTimeoutSeconds());
+            case POST_PENDING, VOID_PENDING -> LedgerPostingTransferMapper.toAuthorisationFollowUpLedgerTransfers(
+                    postingInstruction,
+                    findAuthorisationTransferIds(postingInstruction.clientTransactionId()));
+        };
     }
 
-    private LedgerTransfer buildWalletToWalletTransfer(LedgerPostingInstruction postingInstruction) {
-        Currency currency = postingInstruction.currency();
-
-        return newLedgerTransferBuilder(postingInstruction)
-                .debitAccountId(LedgerAccountIds.deriveWalletAccountId(
-                        postingInstruction.customerAccountId(), currency))
-                .creditAccountId(LedgerAccountIds.deriveWalletAccountId(
-                        postingInstruction.counterpartyCustomerAccountId(), currency))
-                .amount(postingInstruction.amount())
-                .currency(currency)
-                .timeoutSeconds(ledgerPostingProperties.authorisationTimeoutSeconds())
-                .build();
-    }
-
-    private LedgerTransfer buildCustomerToInternalAccountTransfer(LedgerPostingInstruction postingInstruction) {
-        PostingInstructionType postingInstructionType = postingInstruction.postingInstructionType();
-        Currency currency = postingInstruction.currency();
-
-        UUID walletAccountId =
-                LedgerAccountIds.deriveWalletAccountId(postingInstruction.customerAccountId(), currency);
-        UUID internalAccountId =
-                LedgerAccountIds.deriveInternalAccountId(resolveInternalAccountType(postingInstruction), currency);
-
-        boolean inbound = postingInstructionType.isInbound();
-
-        return newLedgerTransferBuilder(postingInstruction)
-                .debitAccountId(inbound ? internalAccountId : walletAccountId)
-                .creditAccountId(inbound ? walletAccountId : internalAccountId)
-                .amount(postingInstruction.amount())
-                .currency(currency)
-                .timeoutSeconds(authorisationTimeoutSecondsFor(postingInstructionType))
-                .build();
-    }
-
-    private LedgerTransfer buildAuthorisationFollowUpTransfer(LedgerPostingInstruction postingInstruction) {
-        UUID clientTransactionId = postingInstruction.clientTransactionId();
-
-        return newLedgerTransferBuilder(postingInstruction)
-                .pendingTransferId(findAuthorisationTransferId(clientTransactionId))
-                .build();
-    }
-
-    private UUID findAuthorisationTransferId(UUID clientTransactionId) {
+    private List<UUID> findAuthorisationTransferIds(UUID clientTransactionId) {
         List<UUID> candidateTransferIds = AUTHORISATION_TYPES.stream()
-                .map(postingInstructionType ->
-                        LedgerTransferIds.deriveTransferId(clientTransactionId, postingInstructionType))
+                .flatMap(postingInstructionType -> IntStream.range(0, MAX_LEGS_PER_INSTRUCTION)
+                        .mapToObj(legIndex -> LedgerTransferIds.deriveTransferId(
+                                clientTransactionId,
+                                postingInstructionType,
+                                legIndex)))
                 .toList();
 
-        return tigerBeetleTransferRepository.findLedgerTransfersByIds(candidateTransferIds).stream()
-                .filter(ledgerTransfer -> ledgerTransfer.postingInstructionType().isAuthorisation())
-                .map(LedgerTransfer::id)
-                .findFirst()
-                .orElseThrow(() -> new PendingAuthorisationNotFoundException(clientTransactionId));
-    }
+        List<UUID> authorisationTransferIds =
+                tigerBeetleTransferRepository.findLedgerTransfersByIds(candidateTransferIds).stream()
+                        .filter(ledgerTransfer -> ledgerTransfer.postingInstructionType().isAuthorisation())
+                        .map(LedgerTransfer::id)
+                        .toList();
 
-    private LedgerTransfer.LedgerTransferBuilder newLedgerTransferBuilder(
-            LedgerPostingInstruction postingInstruction) {
-
-        UUID clientTransactionId = postingInstruction.clientTransactionId();
-        PostingInstructionType postingInstructionType = postingInstruction.postingInstructionType();
-
-        return LedgerTransfer.builder()
-                .id(LedgerTransferIds.deriveTransferId(clientTransactionId, postingInstructionType))
-                .clientTransactionId(clientTransactionId)
-                .postingInstructionType(postingInstructionType);
-    }
-
-    private int authorisationTimeoutSecondsFor(PostingInstructionType postingInstructionType) {
-        return postingInstructionType.isAuthorisation()
-                ? ledgerPostingProperties.authorisationTimeoutSeconds()
-                : NO_TIMEOUT;
-    }
-
-    private static LedgerAccountType resolveInternalAccountType(LedgerPostingInstruction postingInstruction) {
-        LedgerAccountType requestedInternalAccountType = postingInstruction.internalAccountType();
-
-        if (requestedInternalAccountType == null) {
-            return postingInstruction.postingInstructionType().isInbound()
-                    ? LedgerAccountType.INBOUND_CLEARING
-                    : LedgerAccountType.OUTBOUND_CLEARING;
+        if (authorisationTransferIds.isEmpty()) {
+            throw new PendingAuthorisationNotFoundException(clientTransactionId);
         }
 
-        if (!requestedInternalAccountType.isInternal()) {
-            throw new IllegalArgumentException(requestedInternalAccountType + " is not an internal account type");
-        }
-
-        return requestedInternalAccountType;
+        return authorisationTransferIds;
     }
 }

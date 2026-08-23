@@ -5,7 +5,7 @@ import com.aml.ledger.PostingInstructionType;
 import lombok.experimental.UtilityClass;
 import org.banksolution.domain.payment.event.LedgerAuthorisationInitiatedEvent;
 import org.banksolution.domain.payment.valueobject.PaymentId;
-import org.banksolution.enums.PaymentType;
+import org.banksolution.enums.PaymentScheme;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -14,14 +14,14 @@ import java.util.UUID;
 public class LedgerPostingRequestedEventMapper {
 
     public static LedgerPostingRequestedEvent toAuthorisationEvent(LedgerAuthorisationInitiatedEvent event) {
-        PaymentType paymentType = PaymentType.valueOf(event.paymentType());
+        PaymentScheme paymentScheme = PaymentScheme.valueOf(event.paymentScheme());
 
-        return switch (paymentType) {
-            case DEPOSIT, TRANSFER_IN -> toInboundAuthorisation(event);
-            case WITHDRAWAL -> toOutboundAuthorisation(event);
-            case TRANSFER_OUT -> event.destinationAccountId() == null
-                    ? toOutboundAuthorisation(event)
+        return switch (paymentScheme) {
+            case INTERNAL_TRANSFER -> crossesCurrencies(event)
+                    ? toCrossCurrencyTransferAuthorisation(event)
                     : toInternalTransferAuthorisation(event);
+            case EXTERNAL_OUTBOUND -> toOutboundAuthorisation(event);
+            case EXTERNAL_INBOUND -> toInboundAuthorisation(event);
         };
     }
 
@@ -33,9 +33,13 @@ public class LedgerPostingRequestedEventMapper {
         return newBuilder(paymentId, PostingInstructionType.RELEASE).build();
     }
 
+    private static boolean crossesCurrencies(LedgerAuthorisationInitiatedEvent event) {
+        return !event.fromCurrency().equals(event.toCurrency());
+    }
+
     private static LedgerPostingRequestedEvent toInboundAuthorisation(LedgerAuthorisationInitiatedEvent event) {
         return newBuilder(event.paymentId(), PostingInstructionType.INBOUND_AUTHORISATION)
-                .setAmount(event.amount().toPlainString())
+                .setAmount(event.convertedAmount().toPlainString())
                 .setCurrency(event.toCurrency())
                 .setCustomerAccountId(event.destinationAccountId().toString())
                 .build();
@@ -55,6 +59,19 @@ public class LedgerPostingRequestedEventMapper {
         return newBuilder(event.paymentId(), PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION)
                 .setAmount(event.amount().toPlainString())
                 .setCurrency(event.fromCurrency())
+                .setCustomerAccountId(event.sourceAccountId().toString())
+                .setCounterpartyCustomerAccountId(event.destinationAccountId().toString())
+                .build();
+    }
+
+    private static LedgerPostingRequestedEvent toCrossCurrencyTransferAuthorisation(
+            LedgerAuthorisationInitiatedEvent event) {
+
+        return newBuilder(event.paymentId(), PostingInstructionType.CROSS_CURRENCY_TRANSFER_AUTHORISATION)
+                .setAmount(event.amount().toPlainString())
+                .setCurrency(event.fromCurrency())
+                .setBuyAmount(event.convertedAmount().toPlainString())
+                .setBuyCurrency(event.toCurrency())
                 .setCustomerAccountId(event.sourceAccountId().toString())
                 .setCounterpartyCustomerAccountId(event.destinationAccountId().toString())
                 .build();

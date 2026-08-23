@@ -12,8 +12,10 @@ public record LedgerAuthorisationInitiatedEvent(
         UUID destinationAccountId,
         BigDecimal amount,
         String fromCurrency,
+        BigDecimal convertedAmount,
         String toCurrency,
         String paymentType,
+        String paymentScheme,
         String description
 ) {
 }

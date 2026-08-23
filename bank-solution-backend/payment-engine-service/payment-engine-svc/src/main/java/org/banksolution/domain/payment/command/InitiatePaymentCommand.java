@@ -18,6 +18,8 @@ public record InitiatePaymentCommand(
         BigDecimal convertedAmount,
         BigDecimal appliedExchangeRate,
         String paymentType,
+        String paymentScheme,
+        String fixedSide,
         boolean isCrossBorderPayment,
         String description) {
 }

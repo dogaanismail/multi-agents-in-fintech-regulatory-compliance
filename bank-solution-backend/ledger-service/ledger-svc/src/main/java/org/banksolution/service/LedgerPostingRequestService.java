@@ -11,6 +11,8 @@ import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.banksolution.infrastructure.messaging.kafka.producer.LedgerPostingCompletedEventProducer;
 import org.banksolution.mapper.LedgerPostingEventMapper;
+
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,8 +28,8 @@ public class LedgerPostingRequestService {
                 LedgerPostingEventMapper.toLedgerPostingInstruction(event);
 
         try {
-            LedgerTransfer ledgerTransfer = ledgerPostingService.applyPostingInstruction(postingInstruction);
-            publishSuccess(ledgerTransfer);
+            List<LedgerTransfer> ledgerTransfers = ledgerPostingService.applyPostingInstruction(postingInstruction);
+            publishSuccess(ledgerTransfers.getFirst());
         } catch (InsufficientLedgerFundsException | PendingAuthorisationNotFoundException | LedgerPostingException e) {
             publishRejection(event, e.getMessage());
         }

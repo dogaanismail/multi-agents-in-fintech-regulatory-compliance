@@ -40,6 +40,33 @@
       "doc": "Type of payment operation"
     },
     {
+      "name": "paymentScheme",
+      "type": {
+        "type": "enum",
+        "name": "PaymentScheme",
+        "doc": "How the payment is routed",
+        "symbols": [
+          "INTERNAL_TRANSFER",
+          "EXTERNAL_OUTBOUND",
+          "EXTERNAL_INBOUND"
+        ]
+      },
+      "doc": "How the payment is routed"
+    },
+    {
+      "name": "fixedSide",
+      "type": {
+        "type": "enum",
+        "name": "FixedSide",
+        "doc": "Which side of the conversion is exact: SELL fixes the debited amount, BUY the credited amount",
+        "symbols": [
+          "SELL",
+          "BUY"
+        ]
+      },
+      "doc": "Which side of the conversion is exact"
+    },
+    {
       "name": "isCrossBorderPayment",
       "type": "boolean",
       "default": false,
@@ -71,12 +98,12 @@
     {
       "name": "fromCurrency",
       "type": "string",
-      "doc": "Source currency — the currency of the debit account (ISO 4217)"
+      "doc": "Source currency \u2014 the currency of the debit account (ISO 4217)"
     },
     {
       "name": "toCurrency",
       "type": "string",
-      "doc": "Destination currency — equals fromCurrency for same-currency payments (ISO 4217)"
+      "doc": "Destination currency \u2014 equals fromCurrency for same-currency payments (ISO 4217)"
     },
     {
       "name": "convertedAmount",
@@ -90,7 +117,7 @@
         "string"
       ],
       "default": null,
-      "doc": "Exchange rate applied: fromCurrency → toCurrency (null when no conversion)"
+      "doc": "Exchange rate applied: fromCurrency \u2192 toCurrency (null when no conversion)"
     },
     {
       "name": "description",

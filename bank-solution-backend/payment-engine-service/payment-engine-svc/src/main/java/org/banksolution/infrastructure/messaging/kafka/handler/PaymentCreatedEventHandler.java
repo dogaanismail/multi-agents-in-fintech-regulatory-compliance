@@ -37,6 +37,8 @@ public class PaymentCreatedEventHandler {
                 new BigDecimal(event.getConvertedAmount()),
                 event.getAppliedExchangeRate() != null ? new BigDecimal(event.getAppliedExchangeRate()) : null,
                 event.getPaymentType().toString(),
+                event.getPaymentScheme().name(),
+                event.getFixedSide().name(),
                 event.getIsCrossBorderPayment(),
                 event.getDescription()
         );

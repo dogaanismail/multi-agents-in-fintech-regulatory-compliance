@@ -21,6 +21,7 @@ public record PaymentResponse(
         BigDecimal convertedAmount,
         BigDecimal appliedExchangeRate,
         PaymentType paymentType,
+        String paymentScheme,
         String description,
         boolean isCrossBorderPayment,
         PaymentStatus status,

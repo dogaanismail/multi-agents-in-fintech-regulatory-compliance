@@ -45,6 +45,8 @@ public class PaymentAggregate {
     private BigDecimal convertedAmount;
     private BigDecimal appliedExchangeRate;
     private String paymentType;
+    private String paymentScheme;
+    private String fixedSide;
     private String description;
     private boolean isCrossBorderPayment;
 
@@ -99,6 +101,8 @@ public class PaymentAggregate {
                 command.convertedAmount(),
                 command.appliedExchangeRate(),
                 command.paymentType(),
+                command.paymentScheme(),
+                command.fixedSide(),
                 command.isCrossBorderPayment(),
                 command.description()
         ));
@@ -110,8 +114,10 @@ public class PaymentAggregate {
                 command.destinationAccountId(),
                 command.amount(),
                 command.fromCurrency(),
+                command.convertedAmount(),
                 command.toCurrency(),
                 command.paymentType(),
+                command.paymentScheme(),
                 command.description()
         ));
     }
@@ -285,6 +291,8 @@ public class PaymentAggregate {
         this.convertedAmount = event.convertedAmount();
         this.appliedExchangeRate = event.appliedExchangeRate();
         this.paymentType = event.paymentType();
+        this.paymentScheme = event.paymentScheme();
+        this.fixedSide = event.fixedSide();
         this.isCrossBorderPayment = event.isCrossBorderPayment();
         this.description = event.description();
         this.status = PaymentStatus.INITIATED;

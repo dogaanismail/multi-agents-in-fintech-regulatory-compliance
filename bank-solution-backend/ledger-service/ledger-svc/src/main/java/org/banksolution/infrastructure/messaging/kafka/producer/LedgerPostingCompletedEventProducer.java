@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component;
 public class LedgerPostingCompletedEventProducer {
 
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
-    private final KafkaTemplate<@NonNull String, @NonNull LedgerPostingCompletedEvent>
-            ledgerPostingCompletedEventKafkaTemplate;
+    private final KafkaTemplate<@NonNull String, @NonNull LedgerPostingCompletedEvent> ledgerPostingCompletedEventKafkaTemplate;
 
     public void publish(LedgerPostingCompletedEvent event) {
         String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getLedgerPostingCompleted();

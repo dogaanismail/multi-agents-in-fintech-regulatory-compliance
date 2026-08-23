@@ -26,6 +26,7 @@ public class PaymentAggregateSnapshotMapper {
                 .setToCurrency(payment.toCurrency())
                 .setConvertedAmount(payment.convertedAmount().toString())
                 .setAppliedExchangeRate(payment.appliedExchangeRate() != null ? payment.appliedExchangeRate().toString() : null)
+                .setPaymentScheme(mapPaymentScheme(payment.paymentScheme()))
                 .setPaymentType(payment.paymentType().name())
                 .setDescription(payment.description())
                 .setStatus(mapPaymentStatus(payment.status()))
@@ -64,6 +65,10 @@ public class PaymentAggregateSnapshotMapper {
                 .setDecisionOverriddenAt(toEpochMillis(payment.decisionOverriddenAt()))
 
                 .build();
+    }
+
+    private static com.aml.payment.PaymentScheme mapPaymentScheme(String paymentScheme) {
+        return paymentScheme == null ? null : com.aml.payment.PaymentScheme.valueOf(paymentScheme);
     }
 
     private static com.aml.payment.PaymentStatus mapPaymentStatus(PaymentStatus status) {

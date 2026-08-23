@@ -12,6 +12,7 @@ import org.banksolution.enums.PostingInstructionType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.function.Function;
 
 @UtilityClass
 public class LedgerPostingEventMapper {
@@ -22,11 +23,13 @@ public class LedgerPostingEventMapper {
         return new LedgerPostingInstruction(
                 clientTransactionId,
                 toPostingInstructionType(event),
-                toAmount(event.getAmount()),
-                toCurrency(event.getCurrency()),
-                toUuid(event.getCustomerAccountId()),
-                toUuid(event.getCounterpartyCustomerAccountId()),
-                toInternalAccountType(event.getInternalAccountType()));
+                parseIfPresent(event.getAmount(), BigDecimal::new),
+                parseIfPresent(event.getCurrency(), Currency::valueOf),
+                parseIfPresent(event.getBuyAmount(), BigDecimal::new),
+                parseIfPresent(event.getBuyCurrency(), Currency::valueOf),
+                parseIfPresent(event.getCustomerAccountId(), UUID::fromString),
+                parseIfPresent(event.getCounterpartyCustomerAccountId(), UUID::fromString),
+                parseIfPresent(event.getInternalAccountType(), LedgerAccountType::valueOf));
     }
 
     public static LedgerPostingCompletedEvent toSuccessfulLedgerPostingCompletedEvent(LedgerTransfer ledgerTransfer) {
@@ -36,8 +39,8 @@ public class LedgerPostingEventMapper {
                 .setPostingInstructionType(toAvroPostingInstructionType(ledgerTransfer.postingInstructionType()))
                 .setSuccess(true)
                 .setTransferId(ledgerTransfer.id().toString())
-                .setAmount(ledgerTransfer.amount() == null ? null : ledgerTransfer.amount().toPlainString())
-                .setCurrency(ledgerTransfer.currency() == null ? null : ledgerTransfer.currency().name())
+                .setAmount(formatIfPresent(ledgerTransfer.amount(), BigDecimal::toPlainString))
+                .setCurrency(formatIfPresent(ledgerTransfer.currency(), Currency::name))
                 .setTimestamp(Instant.now().toEpochMilli())
                 .build();
     }
@@ -66,19 +69,11 @@ public class LedgerPostingEventMapper {
         return com.aml.ledger.PostingInstructionType.valueOf(postingInstructionType.name());
     }
 
-    private static BigDecimal toAmount(String amount) {
-        return amount == null ? null : new BigDecimal(amount);
+    private static <T> T parseIfPresent(String value, Function<String, T> parse) {
+        return value == null ? null : parse.apply(value);
     }
 
-    private static Currency toCurrency(String currency) {
-        return currency == null ? null : Currency.valueOf(currency);
-    }
-
-    private static LedgerAccountType toInternalAccountType(String internalAccountType) {
-        return internalAccountType == null ? null : LedgerAccountType.valueOf(internalAccountType);
-    }
-
-    private static UUID toUuid(String id) {
-        return id == null ? null : UUID.fromString(id);
+    private static <T> String formatIfPresent(T value, Function<T, String> format) {
+        return value == null ? null : format.apply(value);
     }
 }

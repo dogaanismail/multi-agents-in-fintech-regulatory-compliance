@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.banksolution.enums.Currency;
+import org.banksolution.enums.FixedSide;
+import org.banksolution.enums.PaymentScheme;
 import org.banksolution.enums.PaymentType;
 
 import java.math.BigDecimal;
@@ -50,6 +52,14 @@ public class PaymentRequestEntity extends BaseEntity {
     @Column(name = "payment_type", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
+
+    @Column(name = "payment_scheme", nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    private PaymentScheme paymentScheme;
+
+    @Column(name = "fixed_side", nullable = false, length = 10)
+    @Enumerated(EnumType.STRING)
+    private FixedSide fixedSide;
 
     @Column(name = "description", length = 500)
     private String description;
