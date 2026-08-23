@@ -24,13 +24,14 @@ IDEs and Editors (VSCode, IntelliJ, etc.)
 ===================================================================
 Python (Agents & MARL Training)
 ===================================================================
-pycache/
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 env/
 venv/
+.venv/
 pip-wheel-metadata/
 .pytest_cache/
 .tox/
