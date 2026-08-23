@@ -12,15 +12,14 @@ import lombok.NoArgsConstructor;
 public class NetworkFeatureResponse {
 
     private String accountId;
-    private int inDegree;
-    private int outDegree;
-    private double degreeCentrality;
-    private double inDegreeCentrality;
-    private double outDegreeCentrality;
-    private double betweennessCentrality;
-    private double closenessCentrality;
-    private double pagerank;
-    private double eigenvectorCentrality;
-    private double clusteringCoefficient;
-    private int community;
+    private int uniqueInCounterparties;
+    private int uniqueOutCounterparties;
+    private double reciprocity;
+    private int cycle3Count;
+    private int twoHopOutReach;
+    private double inOutAmountRatio;
+    private double inConcentration;
+    private double outConcentration;
+    private double forwardingGapHours;
+    private double peakDayShare;
 }

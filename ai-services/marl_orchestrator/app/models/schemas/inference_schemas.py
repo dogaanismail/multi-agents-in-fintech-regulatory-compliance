@@ -64,18 +64,17 @@ class CustomerFeatures(BaseModel):
 
 
 class NetworkFeatures(BaseModel):
-    """Network topology features for Network Analysis Agent."""
-    in_degree: int
-    out_degree: int
-    degree_centrality: float
-    in_degree_centrality: float
-    out_degree_centrality: float
-    betweenness_centrality: float
-    closeness_centrality: float
-    pagerank: float
-    eigenvector_centrality: float
-    clustering_coefficient: float
-    community: int
+    """Local ego-net and money-flow features for Network Analysis Agent."""
+    unique_in_counterparties: int
+    unique_out_counterparties: int
+    reciprocity: float
+    cycle3_count: int
+    two_hop_out_reach: int
+    in_out_amount_ratio: float
+    in_concentration: float
+    out_concentration: float
+    forwarding_gap_hours: float
+    peak_day_share: float
 
 
 class FeatureContribution(BaseModel):

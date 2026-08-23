@@ -2,6 +2,7 @@ package org.banksolution.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.banksolution.domain.AccountNeighbourhood;
 import org.banksolution.dto.NetworkFeaturesDto;
 import org.banksolution.repository.NetworkGraphRepository;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ public class NetworkFeatureService {
 
     public NetworkFeaturesDto getNetworkFeatures(String accountId) {
         log.info("Fetching network features for accountId: {}", accountId);
-        return networkGraphRepository.getNetworkFeatures(accountId);
+        AccountNeighbourhood neighbourhood = networkGraphRepository.getAccountNeighbourhood(accountId);
+        return NetworkFeatureCalculator.toNetworkFeatures(neighbourhood);
     }
 }

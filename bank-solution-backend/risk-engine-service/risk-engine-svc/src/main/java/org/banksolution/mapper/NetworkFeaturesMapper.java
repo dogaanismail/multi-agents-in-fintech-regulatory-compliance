@@ -7,37 +7,39 @@ import org.banksolution.integration.networktopology.dto.NetworkFeatureResponse;
 @UtilityClass
 public class NetworkFeaturesMapper {
 
+    // Matches the topology service's forwarding-gap cap: an unknown account must
+    // look like one with no incoming/outgoing history, not like an instant forwarder.
+    private static final double FORWARDING_GAP_CAP_HOURS = 168.0;
+
     public NetworkFeatures toAvroNetworkFeatures(NetworkFeatureResponse response) {
         return NetworkFeatures.newBuilder()
                 .setAccountId(response.getAccountId())
-                .setInDegree(response.getInDegree())
-                .setOutDegree(response.getOutDegree())
-                .setDegreeCentrality(response.getDegreeCentrality())
-                .setInDegreeCentrality(response.getInDegreeCentrality())
-                .setOutDegreeCentrality(response.getOutDegreeCentrality())
-                .setBetweennessCentrality(response.getBetweennessCentrality())
-                .setClosenessCentrality(response.getClosenessCentrality())
-                .setPagerank(response.getPagerank())
-                .setEigenvectorCentrality(response.getEigenvectorCentrality())
-                .setClusteringCoefficient(response.getClusteringCoefficient())
-                .setCommunity(response.getCommunity())
+                .setUniqueInCounterparties(response.getUniqueInCounterparties())
+                .setUniqueOutCounterparties(response.getUniqueOutCounterparties())
+                .setReciprocity(response.getReciprocity())
+                .setCycle3Count(response.getCycle3Count())
+                .setTwoHopOutReach(response.getTwoHopOutReach())
+                .setInOutAmountRatio(response.getInOutAmountRatio())
+                .setInConcentration(response.getInConcentration())
+                .setOutConcentration(response.getOutConcentration())
+                .setForwardingGapHours(response.getForwardingGapHours())
+                .setPeakDayShare(response.getPeakDayShare())
                 .build();
     }
 
     public NetworkFeatures getDefaultNetworkFeatures(String accountId) {
         return NetworkFeatures.newBuilder()
                 .setAccountId(accountId)
-                .setInDegree(0)
-                .setOutDegree(0)
-                .setDegreeCentrality(0.0)
-                .setInDegreeCentrality(0.0)
-                .setOutDegreeCentrality(0.0)
-                .setBetweennessCentrality(0.0)
-                .setClosenessCentrality(0.0)
-                .setPagerank(0.0)
-                .setEigenvectorCentrality(0.0)
-                .setClusteringCoefficient(0.0)
-                .setCommunity(0)
+                .setUniqueInCounterparties(0)
+                .setUniqueOutCounterparties(0)
+                .setReciprocity(0.0)
+                .setCycle3Count(0)
+                .setTwoHopOutReach(0)
+                .setInOutAmountRatio(0.0)
+                .setInConcentration(0.0)
+                .setOutConcentration(0.0)
+                .setForwardingGapHours(FORWARDING_GAP_CAP_HOURS)
+                .setPeakDayShare(0.0)
                 .build();
     }
 }

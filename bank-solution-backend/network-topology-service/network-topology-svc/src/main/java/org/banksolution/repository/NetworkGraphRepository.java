@@ -2,13 +2,18 @@ package org.banksolution.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.banksolution.dto.NetworkFeaturesDto;
+import org.banksolution.domain.AccountMovement;
+import org.banksolution.domain.AccountNeighbourhood;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.stereotype.Repository;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,60 +22,80 @@ public class NetworkGraphRepository {
 
     private final Driver neo4jDriver;
 
-    public NetworkFeaturesDto getNetworkFeatures(String accountId) {
+    public AccountNeighbourhood getAccountNeighbourhood(String accountId) {
         try (Session session = neo4jDriver.session()) {
-            String query = """
-                    MATCH (a:Account {accountId: $accountId})
-                    OPTIONAL MATCH ()-[inRel:TRANSFERRED_TO]->(a)
-                    WITH a, COUNT(DISTINCT inRel) AS inDegree
-                    OPTIONAL MATCH (a)-[outRel:TRANSFERRED_TO]->()
-                    WITH a, inDegree, COUNT(DISTINCT outRel) AS outDegree
-                    OPTIONAL MATCH (total:Account)
-                    WITH a, inDegree, outDegree, COUNT(DISTINCT total) AS totalNodes
-                    RETURN
-                        a.accountId AS accountId,
-                        inDegree,
-                        outDegree,
-                        CASE WHEN totalNodes > 1
-                             THEN toFloat(inDegree + outDegree) / (totalNodes - 1)
-                             ELSE 0.0 END AS degreeCentrality,
-                        CASE WHEN totalNodes > 1
-                             THEN toFloat(inDegree) / (totalNodes - 1)
-                             ELSE 0.0 END AS inDegreeCentrality,
-                        CASE WHEN totalNodes > 1
-                             THEN toFloat(outDegree) / (totalNodes - 1)
-                             ELSE 0.0 END AS outDegreeCentrality,
-                        COALESCE(a.betweennessCentrality, 0.0) AS betweennessCentrality,
-                        COALESCE(a.closenessCentrality, 0.0) AS closenessCentrality,
-                        COALESCE(a.pagerank, 0.0) AS pagerank,
-                        COALESCE(a.eigenvectorCentrality, 0.0) AS eigenvectorCentrality,
-                        COALESCE(a.clusteringCoefficient, 0.0) AS clusteringCoefficient,
-                        COALESCE(a.community, 0) AS community
-                    """;
-
-            Result result = session.run(query, Values.parameters("accountId", accountId));
-
-            if (result.hasNext()) {
-                Record resultNext = result.next();
-                return NetworkFeaturesDto.builder()
-                        .accountId(resultNext.get("accountId").asString())
-                        .inDegree(resultNext.get("inDegree").asInt())
-                        .outDegree(resultNext.get("outDegree").asInt())
-                        .degreeCentrality(resultNext.get("degreeCentrality").asDouble())
-                        .inDegreeCentrality(resultNext.get("inDegreeCentrality").asDouble())
-                        .outDegreeCentrality(resultNext.get("outDegreeCentrality").asDouble())
-                        .betweennessCentrality(resultNext.get("betweennessCentrality").asDouble())
-                        .closenessCentrality(resultNext.get("closenessCentrality").asDouble())
-                        .pagerank(resultNext.get("pagerank").asDouble())
-                        .eigenvectorCentrality(resultNext.get("eigenvectorCentrality").asDouble())
-                        .clusteringCoefficient(resultNext.get("clusteringCoefficient").asDouble())
-                        .community(resultNext.get("community").asInt())
-                        .build();
+            Record structural = fetchStructuralCounts(session, accountId);
+            if (structural == null) {
+                log.warn("Account not found in graph: {}", accountId);
+                return AccountNeighbourhood.empty(accountId);
             }
 
-            log.warn("Account not found in graph: {}", accountId);
-            return NetworkFeaturesDto.defaultFeatures(accountId);
+            Record movements = fetchMovements(session, accountId);
+
+            return new AccountNeighbourhood(
+                    accountId,
+                    new HashSet<>(structural.get("senderAccountIds").asList(v -> v.asString())),
+                    new HashSet<>(structural.get("receiverAccountIds").asList(v -> v.asString())),
+                    structural.get("cycle3Count").asInt(),
+                    structural.get("twoHopOutReach").asInt(),
+                    toAccountMovements(movements, "incomingMovements"),
+                    toAccountMovements(movements, "outgoingMovements"));
         }
+    }
+
+    private Record fetchStructuralCounts(Session session, String accountId) {
+        String query = """
+                MATCH (a:Account {accountId: $accountId})
+                OPTIONAL MATCH (sender:Account)-[:TRANSFERRED_TO]->(a)
+                WITH a, COLLECT(DISTINCT sender.accountId) AS senderAccountIds
+                OPTIONAL MATCH (a)-[:TRANSFERRED_TO]->(receiver:Account)
+                WITH a, senderAccountIds, COLLECT(DISTINCT receiver.accountId) AS receiverAccountIds
+                OPTIONAL MATCH (a)-[:TRANSFERRED_TO]->(v:Account)-[:TRANSFERRED_TO]->(w:Account)
+                WHERE v <> a AND w <> a AND w <> v
+                WITH a, senderAccountIds, receiverAccountIds, COUNT(DISTINCT w) AS twoHopOutReach
+                OPTIONAL MATCH (a)-[:TRANSFERRED_TO]->(x:Account)-[:TRANSFERRED_TO]->(y:Account)-[:TRANSFERRED_TO]->(a)
+                WHERE x <> a AND y <> a AND x <> y
+                RETURN senderAccountIds,
+                       receiverAccountIds,
+                       twoHopOutReach,
+                       COUNT(DISTINCT y) AS cycle3Count
+                """;
+
+        Result result = session.run(query, Values.parameters("accountId", accountId));
+        return result.hasNext() ? result.next() : null;
+    }
+
+    private Record fetchMovements(Session session, String accountId) {
+        String query = """
+                MATCH (a:Account {accountId: $accountId})
+                OPTIONAL MATCH (sender:Account)-[incoming:TRANSFERRED_TO]->(a)
+                WITH a, COLLECT({
+                    counterparty: sender.accountId,
+                    amount: incoming.amount,
+                    timestamp: incoming.timestamp
+                }) AS incomingMovements
+                OPTIONAL MATCH (a)-[outgoing:TRANSFERRED_TO]->(receiver:Account)
+                RETURN incomingMovements,
+                       COLLECT({
+                           counterparty: receiver.accountId,
+                           amount: outgoing.amount,
+                           timestamp: outgoing.timestamp
+                       }) AS outgoingMovements
+                """;
+
+        return session.run(query, Values.parameters("accountId", accountId)).next();
+    }
+
+    private List<AccountMovement> toAccountMovements(Record movements, String field) {
+        return movements.get(field).asList(value -> value.get("counterparty").isNull()
+                        ? null
+                        : new AccountMovement(
+                        value.get("counterparty").asString(),
+                        value.get("amount").asDouble(),
+                        value.get("timestamp").asLong()))
+                .stream()
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public void createTransactionRelationship(

@@ -68,17 +68,16 @@ def test_coordinated_prediction():
             "unique_currencies": 3
         },
         "network": {
-            "in_degree": 12,
-            "out_degree": 8,
-            "degree_centrality": 0.0069,
-            "in_degree_centrality": 0.0041,
-            "out_degree_centrality": 0.0028,
-            "betweenness_centrality": 0.00001,
-            "closeness_centrality": 0.3234,
-            "pagerank": 0.00012,
-            "eigenvector_centrality": 0.0023,
-            "clustering_coefficient": 0.1456,
-            "community": 12
+            "unique_in_counterparties": 12,
+            "unique_out_counterparties": 8,
+            "reciprocity": 0.25,
+            "cycle3_count": 1,
+            "two_hop_out_reach": 34,
+            "in_out_amount_ratio": 0.92,
+            "in_concentration": 0.31,
+            "out_concentration": 0.44,
+            "forwarding_gap_hours": 5.5,
+            "peak_day_share": 0.4
         }
     }
     

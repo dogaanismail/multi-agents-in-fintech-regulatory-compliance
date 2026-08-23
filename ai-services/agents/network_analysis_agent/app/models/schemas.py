@@ -9,35 +9,40 @@ from datetime import datetime
 
 class AccountFeaturesInput(BaseModel):
     """
-    Input schema for account network topology features
-    These are the 11 topology features extracted from the transaction network
+    Input schema for account network features
+    These are the 10 local ego-net and money-flow features extracted from the
+    transaction graph around the account
     """
-    in_degree: int = Field(..., ge=0, description="Number of incoming connections")
-    out_degree: int = Field(..., ge=0, description="Number of outgoing connections")
-    degree_centrality: float = Field(..., ge=0, le=1, description="Degree centrality (normalized)")
-    in_degree_centrality: float = Field(..., ge=0, le=1, description="In-degree centrality")
-    out_degree_centrality: float = Field(..., ge=0, le=1, description="Out-degree centrality")
-    betweenness_centrality: float = Field(..., ge=0, le=1, description="Betweenness centrality")
-    closeness_centrality: float = Field(..., ge=0, le=1, description="Closeness centrality")
-    pagerank: float = Field(..., ge=0, description="PageRank score")
-    eigenvector_centrality: float = Field(..., ge=0, description="Eigenvector centrality")
-    clustering_coefficient: float = Field(..., ge=0, le=1, description="Clustering coefficient")
-    community: int = Field(..., ge=0, description="Community ID")
+    unique_in_counterparties: int = Field(..., ge=0, description="Distinct accounts that sent money to this account")
+    unique_out_counterparties: int = Field(..., ge=0, description="Distinct accounts this account sent money to")
+    reciprocity: float = Field(..., ge=0, le=1,
+                               description="Counterparties transacted with in both directions over all counterparties")
+    cycle3_count: int = Field(..., ge=0,
+                              description="Distinct accounts closing a directed 3-cycle through this account")
+    two_hop_out_reach: int = Field(..., ge=0, description="Distinct accounts reachable in exactly two outgoing hops")
+    in_out_amount_ratio: float = Field(..., ge=0,
+                                       description="Total outgoing amount over total incoming amount plus one")
+    in_concentration: float = Field(..., ge=0, le=1,
+                                    description="Herfindahl concentration of incoming amounts by counterparty")
+    out_concentration: float = Field(..., ge=0, le=1,
+                                     description="Herfindahl concentration of outgoing amounts by counterparty")
+    forwarding_gap_hours: float = Field(..., ge=0,
+                                        description="Median hours between an outgoing payment and the most recent incoming one, capped at 168")
+    peak_day_share: float = Field(..., ge=0, le=1, description="Busiest day's share of the account's payments")
 
     class Config:
         schema_extra = {
             "example": {
-                "in_degree": 45,
-                "out_degree": 38,
-                "degree_centrality": 0.0285,
-                "in_degree_centrality": 0.0155,
-                "out_degree_centrality": 0.0131,
-                "betweenness_centrality": 0.0012,
-                "closeness_centrality": 0.4521,
-                "pagerank": 0.00089,
-                "eigenvector_centrality": 0.0234,
-                "clustering_coefficient": 0.0156,
-                "community": 5
+                "unique_in_counterparties": 45,
+                "unique_out_counterparties": 38,
+                "reciprocity": 0.31,
+                "cycle3_count": 2,
+                "two_hop_out_reach": 140,
+                "in_out_amount_ratio": 0.95,
+                "in_concentration": 0.21,
+                "out_concentration": 0.17,
+                "forwarding_gap_hours": 3.5,
+                "peak_day_share": 0.4
             }
         }
 
@@ -55,17 +60,16 @@ class AccountRiskInput(BaseModel):
             "example": {
                 "account_id": "ACC_789012",
                 "features": {
-                    "in_degree": 45,
-                    "out_degree": 38,
-                    "degree_centrality": 0.0285,
-                    "in_degree_centrality": 0.0155,
-                    "out_degree_centrality": 0.0131,
-                    "betweenness_centrality": 0.0012,
-                    "closeness_centrality": 0.4521,
-                    "pagerank": 0.00089,
-                    "eigenvector_centrality": 0.0234,
-                    "clustering_coefficient": 0.0156,
-                    "community": 5
+                    "unique_in_counterparties": 45,
+                    "unique_out_counterparties": 38,
+                    "reciprocity": 0.31,
+                    "cycle3_count": 2,
+                    "two_hop_out_reach": 140,
+                    "in_out_amount_ratio": 0.95,
+                    "in_concentration": 0.21,
+                    "out_concentration": 0.17,
+                    "forwarding_gap_hours": 3.5,
+                    "peak_day_share": 0.4
                 }
             }
         }

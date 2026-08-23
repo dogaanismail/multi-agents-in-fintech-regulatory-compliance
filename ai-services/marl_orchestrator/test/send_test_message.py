@@ -53,17 +53,16 @@ test_data = {
     },
     "networkFeatures": {
         "accountId": "ACC-SENDER-001",
-        "inDegree": 45,
-        "outDegree": 67,
-        "degreeCentrality": 0.65,
-        "inDegreeCentrality": 0.58,
-        "outDegreeCentrality": 0.72,
-        "betweennessCentrality": 0.48,
-        "closenessCentrality": 0.55,
-        "pagerank": 0.042,
-        "eigenvectorCentrality": 0.38,
-        "clusteringCoefficient": 0.22,
-        "community": 12
+        "uniqueInCounterparties": 45,
+        "uniqueOutCounterparties": 67,
+        "reciprocity": 0.35,
+        "cycle3Count": 3,
+        "twoHopOutReach": 210,
+        "inOutAmountRatio": 0.97,
+        "inConcentration": 0.18,
+        "outConcentration": 0.12,
+        "forwardingGapHours": 2.4,
+        "peakDayShare": 0.5
     }
 }
 

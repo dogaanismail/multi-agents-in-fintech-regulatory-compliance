@@ -110,38 +110,43 @@ class PredictionService:
             Dictionary of network indicators
         """
         indicators = {
-            "centrality_metrics": {
-                "pagerank": float(features_df['pagerank'].iloc[0]),
-                "eigenvector_centrality": float(features_df['eigenvector_centrality'].iloc[0]),
-                "betweenness_centrality": float(features_df['betweenness_centrality'].iloc[0]),
-                "closeness_centrality": float(features_df['closeness_centrality'].iloc[0])
+            "ring_structure": {
+                "reciprocity": float(features_df['reciprocity'].iloc[0]),
+                "cycle3_count": int(features_df['cycle3_count'].iloc[0]),
+                "two_hop_out_reach": int(features_df['two_hop_out_reach'].iloc[0])
             },
             "connectivity": {
-                "in_degree": int(features_df['in_degree'].iloc[0]),
-                "out_degree": int(features_df['out_degree'].iloc[0]),
-                "total_degree": int(features_df['in_degree'].iloc[0]) + int(features_df['out_degree'].iloc[0])
+                "unique_in_counterparties": int(features_df['unique_in_counterparties'].iloc[0]),
+                "unique_out_counterparties": int(features_df['unique_out_counterparties'].iloc[0])
             },
-            "network_position": {
-                "clustering_coefficient": float(features_df['clustering_coefficient'].iloc[0]),
-                "community_id": int(features_df['community'].iloc[0])
+            "money_flow": {
+                "in_out_amount_ratio": float(features_df['in_out_amount_ratio'].iloc[0]),
+                "forwarding_gap_hours": float(features_df['forwarding_gap_hours'].iloc[0]),
+                "in_concentration": float(features_df['in_concentration'].iloc[0]),
+                "out_concentration": float(features_df['out_concentration'].iloc[0]),
+                "peak_day_share": float(features_df['peak_day_share'].iloc[0])
             }
         }
-        
+
         # Add risk flags
         risk_flags = []
-        if features_df['eigenvector_centrality'].iloc[0] > 0.02:
-            risk_flags.append("High eigenvector centrality - connected to important nodes")
-        if features_df['pagerank'].iloc[0] > 0.001:
-            risk_flags.append("High PageRank - influential position in network")
-        if features_df['betweenness_centrality'].iloc[0] > 0.01:
-            risk_flags.append("High betweenness - acts as bridge between network clusters")
-        if features_df['out_degree'].iloc[0] > 50:
-            risk_flags.append("High out-degree - dispersed transaction pattern")
-        if features_df['in_degree'].iloc[0] > 50:
-            risk_flags.append("High in-degree - receiving from many sources")
-        
+        if features_df['cycle3_count'].iloc[0] > 0:
+            risk_flags.append("Account sits on a directed transaction cycle - possible laundering ring")
+        if features_df['reciprocity'].iloc[0] > 0.3:
+            risk_flags.append("High reciprocity - money flows back and forth with the same counterparties")
+        if 0.7 <= features_df['in_out_amount_ratio'].iloc[0] <= 1.3 and features_df['forwarding_gap_hours'].iloc[
+            0] < 24:
+            risk_flags.append("Pass-through pattern - forwards received amounts within a day")
+        if features_df['unique_out_counterparties'].iloc[0] > 20 and features_df['out_concentration'].iloc[0] < 0.1:
+            risk_flags.append("Fan-out pattern - disperses money across many counterparties")
+        if features_df['unique_in_counterparties'].iloc[0] > 20 and features_df['in_concentration'].iloc[0] < 0.1:
+            risk_flags.append("Fan-in pattern - collects money from many sources")
+        if features_df['peak_day_share'].iloc[0] > 0.6 and features_df['unique_in_counterparties'].iloc[0] + \
+                features_df['unique_out_counterparties'].iloc[0] > 5:
+            risk_flags.append("Bursty activity - most payments concentrated in a single day")
+
         indicators["risk_flags"] = risk_flags
-        
+
         return indicators
     
     def predict_single(self, account_input: AccountRiskInput) -> AccountRiskPrediction:

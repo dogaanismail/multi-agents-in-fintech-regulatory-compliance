@@ -213,7 +213,7 @@
       "type": {
         "type": "record",
         "name": "NetworkFeatures",
-        "doc": "Network topology features from transaction graph",
+        "doc": "Local ego-net and money-flow features from the transaction graph",
         "fields": [
           {
             "name": "accountId",
@@ -221,59 +221,54 @@
             "doc": "Account identifier in the network graph"
           },
           {
-            "name": "inDegree",
+            "name": "uniqueInCounterparties",
             "type": "int",
-            "doc": "Number of incoming connections"
+            "doc": "Distinct accounts that sent money to this account"
           },
           {
-            "name": "outDegree",
+            "name": "uniqueOutCounterparties",
             "type": "int",
-            "doc": "Number of outgoing connections"
+            "doc": "Distinct accounts this account sent money to"
           },
           {
-            "name": "degreeCentrality",
+            "name": "reciprocity",
             "type": "double",
-            "doc": "Degree centrality measure"
+            "doc": "Counterparties transacted with in both directions over all counterparties (0-1)"
           },
           {
-            "name": "inDegreeCentrality",
-            "type": "double",
-            "doc": "In-degree centrality"
-          },
-          {
-            "name": "outDegreeCentrality",
-            "type": "double",
-            "doc": "Out-degree centrality"
-          },
-          {
-            "name": "betweennessCentrality",
-            "type": "double",
-            "doc": "Betweenness centrality (bridge role)"
-          },
-          {
-            "name": "closenessCentrality",
-            "type": "double",
-            "doc": "Closeness centrality (network proximity)"
-          },
-          {
-            "name": "pagerank",
-            "type": "double",
-            "doc": "PageRank score in transaction network"
-          },
-          {
-            "name": "eigenvectorCentrality",
-            "type": "double",
-            "doc": "Eigenvector centrality (influence measure)"
-          },
-          {
-            "name": "clusteringCoefficient",
-            "type": "double",
-            "doc": "Clustering coefficient (network density)"
-          },
-          {
-            "name": "community",
+            "name": "cycle3Count",
             "type": "int",
-            "doc": "Community/cluster identifier"
+            "doc": "Distinct accounts closing a directed 3-cycle through this account"
+          },
+          {
+            "name": "twoHopOutReach",
+            "type": "int",
+            "doc": "Distinct accounts reachable in exactly two outgoing hops"
+          },
+          {
+            "name": "inOutAmountRatio",
+            "type": "double",
+            "doc": "Total outgoing amount over total incoming amount plus one (pass-through signal)"
+          },
+          {
+            "name": "inConcentration",
+            "type": "double",
+            "doc": "Herfindahl concentration of incoming amounts by counterparty (0-1)"
+          },
+          {
+            "name": "outConcentration",
+            "type": "double",
+            "doc": "Herfindahl concentration of outgoing amounts by counterparty (0-1)"
+          },
+          {
+            "name": "forwardingGapHours",
+            "type": "double",
+            "doc": "Median hours between an outgoing payment and the most recent incoming one, capped at 168"
+          },
+          {
+            "name": "peakDayShare",
+            "type": "double",
+            "doc": "Busiest day's share of the account's payments (0-1)"
           }
         ]
       },
