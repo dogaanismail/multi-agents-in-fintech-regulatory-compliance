@@ -19,6 +19,7 @@ public class AccountWalletResponse {
     private Currency currency;
     private WalletStatus walletStatus;
     private BigDecimal balance;
+    private BigDecimal availableBalance;
     private boolean primary;
 
 }

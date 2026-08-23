@@ -16,4 +16,6 @@ public interface AccountWalletRepository extends JpaRepository<@NonNull AccountW
     List<AccountWalletEntity> findByAccountId(UUID accountId);
 
     Optional<AccountWalletEntity> findByAccountIdAndCurrency(UUID accountId, Currency currency);
+
+    Optional<AccountWalletEntity> findByLedgerAccountId(UUID ledgerAccountId);
 }

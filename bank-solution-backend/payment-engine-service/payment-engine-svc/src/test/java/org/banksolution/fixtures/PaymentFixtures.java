@@ -216,6 +216,22 @@ public final class PaymentFixtures {
         return new ConfirmLedgerReleaseCommand(createPaymentId());
     }
 
+    public static FailLedgerReleaseCommand createFailLedgerReleaseCommand(String reason) {
+        return new FailLedgerReleaseCommand(createPaymentId(), reason);
+    }
+
+    public static ExpireRiskAssessmentCommand createExpireRiskAssessmentCommand() {
+        return new ExpireRiskAssessmentCommand(createPaymentId());
+    }
+
+    public static RiskAssessmentTimedOutEvent createRiskAssessmentTimedOutEvent() {
+        return new RiskAssessmentTimedOutEvent(createPaymentId());
+    }
+
+    public static LedgerReleaseFailedEvent createLedgerReleaseFailedEvent(String reason) {
+        return new LedgerReleaseFailedEvent(createPaymentId(), reason);
+    }
+
     public static LedgerSettlementInitiatedEvent createLedgerSettlementInitiatedEvent() {
         return new LedgerSettlementInitiatedEvent(createPaymentId());
     }

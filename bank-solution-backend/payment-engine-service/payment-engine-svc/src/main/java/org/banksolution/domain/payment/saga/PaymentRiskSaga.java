@@ -11,6 +11,7 @@ import org.axonframework.modelling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
 import org.banksolution.domain.payment.command.ApproveFraudCheckCommand;
 import org.banksolution.domain.payment.command.BlockPaymentCommand;
+import org.banksolution.domain.payment.command.ExpireRiskAssessmentCommand;
 import org.banksolution.domain.payment.command.RequestManualReviewCommand;
 import org.banksolution.domain.payment.event.*;
 import org.banksolution.domain.payment.valueobject.PaymentId;
@@ -100,8 +101,15 @@ public class PaymentRiskSaga {
 
     @EndSaga
     @DeadlineHandler(deadlineName = RISK_ASSESSMENT_TIMEOUT_DEADLINE)
-    public void on(PaymentId paymentId) {
-        log.info("Risk check timeout for payment: {}", paymentId);
+    public void on(PaymentId paymentId, CommandGateway commandGateway) {
+        log.error("Risk check timed out for payment: {}, expiring the assessment to release the held funds",
+                paymentId);
+
+        try {
+            commandGateway.sendAndWait(new ExpireRiskAssessmentCommand(paymentId));
+        } catch (Exception e) {
+            log.error("Failed to expire the risk assessment for payment: {}", paymentId, e);
+        }
     }
 
     @EndSaga

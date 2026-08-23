@@ -39,6 +39,7 @@ public class AccountWalletMapper {
                 .currency(entity.getCurrency())
                 .walletStatus(entity.getWalletStatus())
                 .balance(entity.getBalance())
+                .availableBalance(entity.getAvailableBalance())
                 .primary(entity.isPrimary())
                 .build();
     }

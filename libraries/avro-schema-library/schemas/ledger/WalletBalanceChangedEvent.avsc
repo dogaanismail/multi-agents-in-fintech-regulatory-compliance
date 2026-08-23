@@ -1,0 +1,54 @@
+{
+  "namespace": "com.aml.ledger",
+  "type": "record",
+  "name": "WalletBalanceChangedEvent",
+  "doc": "Absolute wallet balances published by ledger-svc after a posting touches the wallet; consumers overwrite, never add",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event identifier (UUID)"
+    },
+    {
+      "name": "ledgerAccountId",
+      "type": "string",
+      "doc": "Derived TigerBeetle account id of the wallet; use as the Kafka message key so one wallet's events stay ordered"
+    },
+    {
+      "name": "customerAccountId",
+      "type": "string",
+      "doc": "Customer account the wallet belongs to"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "ISO 4217 code of the wallet"
+    },
+    {
+      "name": "postedBalance",
+      "type": "string",
+      "doc": "credits_posted minus debits_posted, as string to preserve precision"
+    },
+    {
+      "name": "availableBalance",
+      "type": "string",
+      "doc": "postedBalance minus debits_pending; what the customer can spend right now"
+    },
+    {
+      "name": "pendingDebits",
+      "type": "string",
+      "doc": "Funds held by authorisations that have not settled or released yet"
+    },
+    {
+      "name": "pendingCredits",
+      "type": "string",
+      "doc": "Incoming funds authorised but not yet settled"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp"
+    }
+  ]
+}

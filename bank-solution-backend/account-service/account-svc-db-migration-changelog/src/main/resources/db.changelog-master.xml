@@ -15,4 +15,9 @@
         <sqlFile path="changelog/add_account_wallet_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-08-23-03-01" author="Ismail Dogan">
+        <comment>Add available_balance to account_wallet</comment>
+        <sqlFile path="changelog/add_account_wallet_available_balance.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

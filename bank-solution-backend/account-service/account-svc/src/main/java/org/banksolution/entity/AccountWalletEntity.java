@@ -47,6 +47,10 @@ public class AccountWalletEntity extends BaseEntity {
     @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(name = "available_balance", nullable = false, precision = 19, scale = 2)
+    @Builder.Default
+    private BigDecimal availableBalance = BigDecimal.ZERO;
+
     @Column(name = "is_primary", nullable = false)
     @Builder.Default
     private boolean primary = false;

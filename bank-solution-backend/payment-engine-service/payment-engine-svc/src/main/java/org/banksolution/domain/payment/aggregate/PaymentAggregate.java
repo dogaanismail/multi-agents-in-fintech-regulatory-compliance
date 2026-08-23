@@ -83,6 +83,9 @@ public class PaymentAggregate {
     private String decisionOverriddenBy;
     private String decisionOverrideReason;
 
+    private PaymentStatus releaseCompletionStatus;
+    private String releaseCompletionReason;
+
     @AggregateVersion
     private Long version;
 
@@ -127,7 +130,8 @@ public class PaymentAggregate {
         log.info("Handling ConfirmLedgerAuthorisationCommand for payment: {}", command.paymentId());
 
         if (this.status != PaymentStatus.AUTHORISATION_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in AUTHORISATION_PENDING status");
+            logStaleLedgerOutcome(command);
+            return;
         }
 
         apply(new LedgerAuthorisedEvent(command.paymentId(), command.transferId()));
@@ -139,7 +143,8 @@ public class PaymentAggregate {
                 command.paymentId(), command.reason());
 
         if (this.status != PaymentStatus.AUTHORISATION_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in AUTHORISATION_PENDING status");
+            logStaleLedgerOutcome(command);
+            return;
         }
 
         apply(new LedgerAuthorisationDeclinedEvent(command.paymentId(), command.reason()));
@@ -150,7 +155,8 @@ public class PaymentAggregate {
         log.info("Handling ConfirmLedgerSettlementCommand for payment: {}", command.paymentId());
 
         if (this.status != PaymentStatus.SETTLEMENT_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in SETTLEMENT_PENDING status");
+            logStaleLedgerOutcome(command);
+            return;
         }
 
         apply(new LedgerSettledEvent(command.paymentId(), command.transferId()));
@@ -162,7 +168,8 @@ public class PaymentAggregate {
                 command.paymentId(), command.reason());
 
         if (this.status != PaymentStatus.SETTLEMENT_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in SETTLEMENT_PENDING status");
+            logStaleLedgerOutcome(command);
+            return;
         }
 
         apply(new LedgerSettlementFailedEvent(command.paymentId(), command.reason()));
@@ -173,10 +180,39 @@ public class PaymentAggregate {
         log.info("Handling ConfirmLedgerReleaseCommand for payment: {}", command.paymentId());
 
         if (this.status != PaymentStatus.RELEASE_PENDING) {
-            throw new InvalidPaymentStateException("Payment is not in RELEASE_PENDING status");
+            logStaleLedgerOutcome(command);
+            return;
         }
 
         apply(new LedgerReleasedEvent(command.paymentId()));
+    }
+
+    @CommandHandler
+    public void handle(FailLedgerReleaseCommand command) {
+        log.error("Handling FailLedgerReleaseCommand for payment: {}, reason: {}",
+                command.paymentId(),
+                command.reason());
+
+        if (this.status != PaymentStatus.RELEASE_PENDING) {
+            logStaleLedgerOutcome(command);
+            return;
+        }
+
+        apply(new LedgerReleaseFailedEvent(command.paymentId(), command.reason()));
+    }
+
+    @CommandHandler
+    public void handle(ExpireRiskAssessmentCommand command) {
+        log.error("Handling ExpireRiskAssessmentCommand for payment: {}", command.paymentId());
+
+        if (this.status != PaymentStatus.FRAUD_CHECK_PENDING) {
+            log.info("Ignoring risk assessment expiry for payment: {}, the assessment already completed, status: {}",
+                    command.paymentId(),
+                    this.status);
+            return;
+        }
+
+        apply(new RiskAssessmentTimedOutEvent(command.paymentId()));
     }
 
     @CommandHandler
@@ -441,9 +477,36 @@ public class PaymentAggregate {
 
         apply(new PaymentCompletedEvent(
                 this.paymentId,
-                PaymentStatus.BLOCKED,
-                this.blockReason
+                this.releaseCompletionStatus,
+                this.releaseCompletionReason
         ));
+    }
+
+    @EventSourcingHandler
+    public void on(LedgerReleaseFailedEvent event) {
+        this.status = PaymentStatus.FAILED;
+        this.failedAt = Instant.now();
+        this.failureReason = event.reason();
+        log.error("Ledger release failed for payment: {}, reason: {}",
+                event.paymentId(),
+                event.reason());
+
+        apply(new PaymentCompletedEvent(
+                this.paymentId,
+                PaymentStatus.FAILED,
+                event.reason()
+        ));
+    }
+
+    @EventSourcingHandler
+    public void on(RiskAssessmentTimedOutEvent event) {
+        this.failedAt = Instant.now();
+        this.failureReason = "Risk assessment timed out";
+        this.releaseCompletionStatus = PaymentStatus.FAILED;
+        this.releaseCompletionReason = this.failureReason;
+        log.error("Risk assessment timed out for payment: {}, releasing the held funds", event.paymentId());
+
+        apply(new LedgerReleaseInitiatedEvent(this.paymentId));
     }
 
     @EventSourcingHandler
@@ -454,6 +517,8 @@ public class PaymentAggregate {
         this.blockReason = event.reason();
         this.riskAssessmentCompletedAt = Instant.now();
         this.riskAssessment = event.riskAssessment();
+        this.releaseCompletionStatus = PaymentStatus.BLOCKED;
+        this.releaseCompletionReason = event.reason();
         log.info("Payment blocked: {} - Reason: {}",
                 event.paymentId(),
                 event.reason());
@@ -495,6 +560,8 @@ public class PaymentAggregate {
         this.manualReviewedBy = event.rejectedBy();
         this.manualReviewNotes = event.rejectionReason();
         this.blockReason = "Manual review rejected: " + event.rejectionReason();
+        this.releaseCompletionStatus = PaymentStatus.BLOCKED;
+        this.releaseCompletionReason = this.blockReason;
         log.info("Manual review rejected for payment: {} by: {}, reason: {}",
                 event.paymentId(),
                 event.rejectedBy(),
@@ -510,6 +577,18 @@ public class PaymentAggregate {
         log.info("Payment completed with status: {} - {}",
                 event.finalStatus(),
                 event.reason());
+    }
+
+    /**
+     * Ledger outcomes arrive over Kafka at-least-once, so an outcome can reach the aggregate
+     * after the payment has already moved past the status that awaited it — typically a
+     * redelivery. That is not an error: throwing would park a healthy message on the DLT.
+     */
+    private void logStaleLedgerOutcome(Object command) {
+        log.info("Ignoring stale {} for payment: {}, status is already {}",
+                command.getClass().getSimpleName(),
+                this.paymentId,
+                this.status);
     }
 
 }

@@ -1,6 +1,7 @@
 package org.banksolution.fixtures;
 
 import org.banksolution.domain.LedgerAccount;
+import org.banksolution.domain.LedgerAccountIds;
 import org.banksolution.domain.LedgerInternalAccount;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.LedgerAccountType;
@@ -8,6 +9,7 @@ import org.banksolution.model.request.CreateLedgerAccountRequest;
 import org.banksolution.model.request.CreateLedgerAccountsRequest;
 import org.banksolution.model.request.CreateLedgerInternalAccountRequest;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -21,6 +23,26 @@ public final class LedgerAccountFixtures {
             Currency currency) {
 
         return LedgerAccount.newWallet(accountId, currency);
+    }
+
+    public static LedgerAccount createWalletWithBalances(
+            UUID accountId,
+            Currency currency,
+            String creditsPosted,
+            String debitsPosted,
+            String debitsPending,
+            String creditsPending) {
+
+        return LedgerAccount.builder()
+                .id(LedgerAccountIds.deriveWalletAccountId(accountId, currency))
+                .accountId(accountId)
+                .accountType(LedgerAccountType.WALLET)
+                .currency(currency)
+                .creditsPosted(new BigDecimal(creditsPosted))
+                .debitsPosted(new BigDecimal(debitsPosted))
+                .debitsPending(new BigDecimal(debitsPending))
+                .creditsPending(new BigDecimal(creditsPending))
+                .build();
     }
 
     public static LedgerInternalAccount createInternalAccount(

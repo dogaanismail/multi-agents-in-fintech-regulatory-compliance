@@ -73,6 +73,7 @@ echo "📒 LEDGER TOPICS"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 create_topic "ledger.posting.requested" "LedgerPostingRequestedEvent from payment-engine-svc to ledger-svc"
 create_topic "ledger.posting.completed" "LedgerPostingCompletedEvent from ledger-svc to payment-engine-svc"
+create_topic "ledger.wallet.balance.changed" "WalletBalanceChangedEvent from ledger-svc to account-svc"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🏦 ACCOUNT SERVICE TOPICS"

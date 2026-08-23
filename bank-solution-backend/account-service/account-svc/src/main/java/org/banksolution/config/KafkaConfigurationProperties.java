@@ -27,16 +27,9 @@ public class KafkaConfigurationProperties {
     @Data
     public static class Topics {
         private Incoming incoming = new Incoming();
-        private Outgoing outgoing = new Outgoing();
 
         @Data
         public static class Incoming {
-            private String ledgerPostingRequested;
-        }
-
-        @Data
-        public static class Outgoing {
-            private String ledgerPostingCompleted;
             private String walletBalanceChanged;
         }
     }
