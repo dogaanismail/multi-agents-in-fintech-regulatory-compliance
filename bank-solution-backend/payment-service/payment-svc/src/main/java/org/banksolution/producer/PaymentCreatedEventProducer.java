@@ -21,13 +21,13 @@ public class PaymentCreatedEventProducer {
 
     public void publishPaymentCreatedEvent(
             PaymentRequestEntity paymentRequest,
-            boolean isCrossOrderPayment) {
+            boolean isCrossBorderPayment) {
 
         log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequest.getId());
 
         String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCreated();
         String messageKey = paymentRequest.getId().toString();
-        PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest, isCrossOrderPayment);
+        PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest, isCrossBorderPayment);
         paymentCreatedEventKafkaTemplate.send(topic, messageKey, event);
 
         log.info("Published PaymentCreatedEvent: eventId:{}, paymentId:{}, type:{}",

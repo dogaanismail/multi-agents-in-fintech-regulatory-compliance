@@ -12,7 +12,7 @@ public class PaymentCreatedEventMapper {
 
     public static PaymentCreatedEvent toPaymentCreatedEvent(
             PaymentRequestEntity paymentRequestEntity,
-            boolean isCrossOrderPayment) {
+            boolean isCrossBorderPayment) {
 
         return PaymentCreatedEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())
@@ -33,7 +33,7 @@ public class PaymentCreatedEventMapper {
                         paymentRequestEntity.getPaymentScheme().name()))
                 .setFixedSide(com.aml.payment.FixedSide.valueOf(
                         paymentRequestEntity.getFixedSide().name()))
-                .setIsCrossBorderPayment(isCrossOrderPayment)
+                .setIsCrossBorderPayment(isCrossBorderPayment)
                 .setDescription(paymentRequestEntity.getDescription())
                 .build();
     }

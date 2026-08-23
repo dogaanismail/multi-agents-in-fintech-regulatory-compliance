@@ -90,11 +90,15 @@ class KafkaAvroIntegrationTest {
         assertThat(captor.getValue().paymentId().getIdentifier()).isEqualTo(PaymentFixtures.PAYMENT_UUID);
     }
 
+    // Serializers configured by class, not instance: Kafka only calls configure() on the
+    // classes it instantiates itself, and KafkaAvroSerializer needs the registry URL
     private KafkaProducer<String, Object> avroProducer() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA.getBootstrapServers());
         props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
-        return new KafkaProducer<>(props, new StringSerializer(), new KafkaAvroSerializer());
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        return new KafkaProducer<>(props);
     }
 
     private SpecificRecord consumeOne(String topic) {
@@ -104,9 +108,10 @@ class KafkaAvroIntegrationTest {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
 
-        try (KafkaConsumer<String, Object> consumer =
-                     new KafkaConsumer<>(props, new StringDeserializer(), new KafkaAvroDeserializer())) {
+        try (KafkaConsumer<String, Object> consumer = new KafkaConsumer<>(props)) {
             List<TopicPartition> partitions = assignedPartitions(consumer, topic);
             consumer.assign(partitions);
             consumer.seekToBeginning(partitions);
