@@ -8,9 +8,10 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple, Dict, Any
 
-from ..models.schemas import AccountRiskInput, AccountRiskPrediction
+from ..models.schemas import AccountRiskInput, AccountRiskPrediction, FeatureContribution
 from ..services.model_loader import model_loader
 from ..core.logging import logger
+from .explainability_service import explainability_service
 
 
 class PredictionService:
@@ -170,6 +171,7 @@ class PredictionService:
             confidence = self._calculate_confidence(probability)
             recommendation = self._get_recommendation(probability, risk_level)
             network_indicators = self._get_network_indicators(features_df) if is_suspicious else None
+            shap_base_value, contributions = explainability_service.explain(features_scaled, features_df)
             
             return AccountRiskPrediction(
                 account_id=account_input.account_id,
@@ -179,7 +181,9 @@ class PredictionService:
                 risk_level=risk_level,
                 confidence=confidence,
                 recommendation=recommendation,
-                network_indicators=network_indicators
+                network_indicators=network_indicators,
+                feature_contributions=[FeatureContribution(**c) for c in contributions] or None,
+                shap_base_value=shap_base_value
             )
             
         except Exception as e:

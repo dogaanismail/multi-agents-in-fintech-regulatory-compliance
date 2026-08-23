@@ -5,6 +5,7 @@ import {LedgerPostingResponse, PaymentHistoryResponse} from '@/types';
 import { useApi } from '@/hooks/useApi';
 import { Card, LoadingSpinner, Badge, Button, Input, CopyButton } from '@/components/common';
 import { formatDate, formatCurrency, getStatusColor, getRiskLevelColor, getRiskActionColor } from '@/utils/formatters';
+import {ShapContributionChart} from '@/components/explainability';
 
 export const PaymentDetailPage: React.FC = () => {
   const { paymentId } = useParams<{ paymentId: string }>();
@@ -287,15 +288,15 @@ export const PaymentDetailPage: React.FC = () => {
         <Card title="Risk Assessment">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InfoRow label="Risk Score" value={payment.riskScore?.toFixed(4) || 'N/A'} />
-            <InfoRow 
-              label="Risk Action" 
+            <InfoRow
+                label="Risk Action"
               value={
                 payment.riskAction ? (
                   <Badge className={getRiskActionColor(payment.riskAction)}>
                     {payment.riskAction}
                   </Badge>
                 ) : 'N/A'
-              } 
+              }
             />
             {payment.fraudIndicators && payment.fraudIndicators.length > 0 && (
               <div className="col-span-2">
@@ -318,14 +319,22 @@ export const PaymentDetailPage: React.FC = () => {
       {/* MARL Assessment */}
       {payment.marlAssessment && (
         <Card title="MARL Assessment">
+          <div className="flex justify-end -mt-10 mb-4">
+            <Link
+                to={`/payments/${payment.paymentId}/explanation`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+            >
+              🔍 Full Decision Explanation
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoRow 
-              label="Action" 
+            <InfoRow
+                label="Action"
               value={
                 <Badge className={payment.marlAssessment.action === 'ALLOW' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
                   {payment.marlAssessment.action}
                 </Badge>
-              } 
+              }
             />
             <InfoRow
               label="Confidence"
@@ -724,8 +733,10 @@ const AgentCard: React.FC<{ agent: any }> = ({ agent }) => (
         </Badge>
       </div>
     </div>
+    <ShapContributionChart contributions={agent.featureContributions} maxRows={6}/>
   </div>
 );
+
 
 interface ModalProps {
   title: string;

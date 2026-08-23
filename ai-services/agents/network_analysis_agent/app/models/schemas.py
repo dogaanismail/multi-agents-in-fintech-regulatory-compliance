@@ -76,6 +76,14 @@ class BatchAccountRiskInput(BaseModel):
     accounts: List[AccountRiskInput] = Field(..., min_items=1, max_items=500)
 
 
+class FeatureContribution(BaseModel):
+    """One feature's signed SHAP contribution to the fraud-class score."""
+    feature: str
+    value: str
+    shap_value: float
+    direction: str
+
+
 class AccountRiskPrediction(BaseModel):
     """Output schema for account risk assessment"""
     account_id: str
@@ -86,6 +94,8 @@ class AccountRiskPrediction(BaseModel):
     confidence: str = Field(..., description="Confidence level: LOW, MEDIUM, HIGH")
     recommendation: str = Field(..., description="Recommended action")
     network_indicators: Optional[Dict[str, Any]] = Field(None, description="Key network topology indicators")
+    feature_contributions: Optional[List[FeatureContribution]] = None
+    shap_base_value: Optional[float] = None
 
 
 class BatchRiskPredictionResponse(BaseModel):

@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
 import { PaymentListPage } from './pages/PaymentListPage';
 import { PaymentDetailPage } from './pages/PaymentDetailPage';
+import {PaymentExplanationPage} from './pages/PaymentExplanationPage';
 import { CustomerListPage } from './pages/CustomerListPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { AccountListPage } from './pages/AccountListPage';
@@ -28,6 +29,7 @@ function App() {
           <Route path="payments" element={<PaymentListPage />} />
           <Route path="payments/create" element={<CreatePaymentPage />} />
           <Route path="payments/:paymentId" element={<PaymentDetailPage />} />
+            <Route path="payments/:paymentId/explanation" element={<PaymentExplanationPage/>}/>
           <Route path="customers" element={<CustomerListPage />} />
           <Route path="customers/create" element={<CreateCustomerPage />} />
           <Route path="customers/:customerId" element={<CustomerDetailPage />} />

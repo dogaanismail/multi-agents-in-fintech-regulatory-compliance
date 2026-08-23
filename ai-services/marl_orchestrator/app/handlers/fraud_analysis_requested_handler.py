@@ -148,7 +148,23 @@ class FraudAnalysisRequestedHandler:
             'probability': observation.probability,
             'riskScore': observation.risk_score,
             'confidence': str(observation.confidence),
-            'responseTimeMs': observation.response_time_ms
+            'responseTimeMs': observation.response_time_ms,
+            'featureContributions': self._contributions_to_avro(observation),
+            'shapBaseValue': getattr(observation, 'shap_base_value', None)
         }
+
+    def _contributions_to_avro(self, observation: Any):
+        contributions = getattr(observation, 'feature_contributions', None)
+        if not contributions:
+            return None
+        return [
+            {
+                'feature': c.feature,
+                'value': c.value,
+                'shapValue': c.shap_value,
+                'direction': c.direction,
+            }
+            for c in contributions
+        ]
 
 fraud_analysis_requested_handler = FraudAnalysisRequestedHandler()

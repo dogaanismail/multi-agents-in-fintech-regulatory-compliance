@@ -10,7 +10,6 @@ import org.banksolution.domain.payment.service.PaymentQueryService;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.infrastructure.messaging.kafka.mapper.PaymentCompletedEventMapper;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component

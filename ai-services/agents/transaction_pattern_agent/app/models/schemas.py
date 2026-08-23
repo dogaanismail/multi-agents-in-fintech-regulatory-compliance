@@ -44,6 +44,14 @@ class BatchTransactionInput(BaseModel):
     transactions: List[TransactionInput] = Field(..., min_items=1, max_items=1000)
 
 
+class FeatureContribution(BaseModel):
+    """One feature's signed SHAP contribution to the fraud-class score."""
+    feature: str
+    value: str
+    shap_value: float
+    direction: str
+
+
 class TransactionPrediction(BaseModel):
     """Output schema for a single transaction prediction"""
     payment_id: Optional[str] = None
@@ -53,6 +61,8 @@ class TransactionPrediction(BaseModel):
     confidence: str = Field(..., description="Confidence level: LOW, MEDIUM, HIGH")
     recommendation: str = Field(..., description="Recommended action")
     threshold_used: float = Field(..., description="Decision threshold used")
+    feature_contributions: Optional[List[FeatureContribution]] = None
+    shap_base_value: Optional[float] = None
 
 
 class BatchPredictionResponse(BaseModel):

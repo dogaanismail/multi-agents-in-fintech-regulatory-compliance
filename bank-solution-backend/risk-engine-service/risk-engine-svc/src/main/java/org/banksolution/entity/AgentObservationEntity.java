@@ -2,10 +2,13 @@ package org.banksolution.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.banksolution.enums.AgentType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -50,6 +53,13 @@ public class AgentObservationEntity {
     @Column(name = "contribution", precision = 5, scale = 4)
     private BigDecimal contribution;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "feature_contributions", columnDefinition = "jsonb")
+    private List<FeatureContribution> featureContributions;
+
+    @Column(name = "shap_base_value", precision = 12, scale = 6)
+    private BigDecimal shapBaseValue;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -58,5 +68,15 @@ public class AgentObservationEntity {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FeatureContribution {
+        private String feature;
+        private String value;
+        private Double shapValue;
+        private String direction;
     }
 }

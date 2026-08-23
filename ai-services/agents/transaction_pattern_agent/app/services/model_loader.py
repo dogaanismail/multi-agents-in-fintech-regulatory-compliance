@@ -9,6 +9,7 @@ from typing import Optional, Dict, Any
 
 from ..core.config import settings
 from ..core.logging import logger
+from .explainability_service import explainability_service
 
 
 class ModelLoader:
@@ -53,7 +54,8 @@ class ModelLoader:
                 with open(metadata_path, 'r') as f:
                     self.metadata = json.load(f)
                 logger.info(f"✅ Metadata loaded from: {metadata_path}")
-            
+
+            explainability_service.initialise(self.model, self.preprocessor)
             self._is_loaded = True
             logger.info("🚀 Transaction Pattern Agent models are ready!")
             

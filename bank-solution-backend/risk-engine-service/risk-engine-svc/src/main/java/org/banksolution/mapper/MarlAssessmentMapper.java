@@ -46,7 +46,9 @@ public class MarlAssessmentMapper {
                         event.getTransactionAgentObservation().getResponseTimeMs(),
                         AgentType.TRANSACTION,
                         marlAssessment,
-                        contributions.get("transaction")
+                        contributions.get("transaction"),
+                        event.getTransactionAgentObservation().getFeatureContributions(),
+                        event.getTransactionAgentObservation().getShapBaseValue()
                 ),
                 toAgentObservation(
                         event.getCustomerAgentObservation().getAgentName(),
@@ -57,7 +59,9 @@ public class MarlAssessmentMapper {
                         event.getCustomerAgentObservation().getResponseTimeMs(),
                         AgentType.CUSTOMER,
                         marlAssessment,
-                        contributions.get("customer")
+                        contributions.get("customer"),
+                        event.getCustomerAgentObservation().getFeatureContributions(),
+                        event.getCustomerAgentObservation().getShapBaseValue()
                 ),
                 toAgentObservation(
                         event.getNetworkAgentObservation().getAgentName(),
@@ -68,7 +72,9 @@ public class MarlAssessmentMapper {
                         event.getNetworkAgentObservation().getResponseTimeMs(),
                         AgentType.NETWORK,
                         marlAssessment,
-                        contributions.get("network")
+                        contributions.get("network"),
+                        event.getNetworkAgentObservation().getFeatureContributions(),
+                        event.getNetworkAgentObservation().getShapBaseValue()
                 )
         );
     }
@@ -82,7 +88,9 @@ public class MarlAssessmentMapper {
             Double responseTimeMs,
             AgentType agentType,
             MarlAssessmentEntity marlAssessment,
-            Double contribution) {
+            Double contribution,
+            java.util.List<com.aml.fraud.FeatureContribution> featureContributions,
+            Double shapBaseValue) {
 
         return AgentObservationEntity.builder()
                 .marlAssessment(marlAssessment)
@@ -94,6 +102,24 @@ public class MarlAssessmentMapper {
                 .confidence(confidence)
                 .responseTimeMs(BigDecimal.valueOf(responseTimeMs))
                 .contribution(contribution != null ? BigDecimal.valueOf(contribution) : null)
+                .featureContributions(toEntityFeatureContributions(featureContributions))
+                .shapBaseValue(shapBaseValue != null ? BigDecimal.valueOf(shapBaseValue) : null)
                 .build();
+    }
+
+    private static List<AgentObservationEntity.FeatureContribution> toEntityFeatureContributions(
+            List<com.aml.fraud.FeatureContribution> featureContributions) {
+
+        if (featureContributions == null) {
+            return null;
+        }
+
+        return featureContributions.stream()
+                .map(featureContribution -> new AgentObservationEntity.FeatureContribution(
+                        featureContribution.getFeature(),
+                        featureContribution.getValue(),
+                        featureContribution.getShapValue(),
+                        featureContribution.getDirection()))
+                .toList();
     }
 }

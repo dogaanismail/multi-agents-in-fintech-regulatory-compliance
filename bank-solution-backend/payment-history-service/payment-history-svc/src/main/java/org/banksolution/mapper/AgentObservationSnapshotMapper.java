@@ -6,6 +6,8 @@ import com.aml.payment.TransactionAgentObservationSnapshot;
 import lombok.experimental.UtilityClass;
 import org.banksolution.entity.PaymentHistoryEntity;
 
+import java.util.List;
+
 @UtilityClass
 public class AgentObservationSnapshotMapper {
 
@@ -17,7 +19,9 @@ public class AgentObservationSnapshotMapper {
                 source.getProbability(),
                 source.getRiskScore(),
                 source.getConfidence(),
-                source.getResponseTimeMs()
+                source.getResponseTimeMs(),
+                mapFeatureContributions(source.getFeatureContributions()),
+                source.getShapBaseValue()
         );
     }
 
@@ -29,7 +33,9 @@ public class AgentObservationSnapshotMapper {
                 source.getProbability(),
                 source.getRiskScore(),
                 source.getConfidence(),
-                source.getResponseTimeMs()
+                source.getResponseTimeMs(),
+                mapFeatureContributions(source.getFeatureContributions()),
+                source.getShapBaseValue()
         );
     }
 
@@ -41,7 +47,9 @@ public class AgentObservationSnapshotMapper {
                 source.getProbability(),
                 source.getRiskScore(),
                 source.getConfidence(),
-                source.getResponseTimeMs()
+                source.getResponseTimeMs(),
+                mapFeatureContributions(source.getFeatureContributions()),
+                source.getShapBaseValue()
         );
     }
 
@@ -51,7 +59,9 @@ public class AgentObservationSnapshotMapper {
             double probability,
             double riskScore,
             String confidence,
-            double responseTimeMs) {
+            double responseTimeMs,
+            java.util.List<PaymentHistoryEntity.FeatureContribution> featureContributions,
+            Double shapBaseValue) {
 
         PaymentHistoryEntity.AgentObservation observation = new PaymentHistoryEntity.AgentObservation();
         observation.setAgentName(agentName);
@@ -60,7 +70,25 @@ public class AgentObservationSnapshotMapper {
         observation.setRiskScore(riskScore);
         observation.setConfidence(confidence);
         observation.setResponseTimeMs(responseTimeMs);
+        observation.setFeatureContributions(featureContributions);
+        observation.setShapBaseValue(shapBaseValue);
 
         return observation;
+    }
+
+    private static List<PaymentHistoryEntity.FeatureContribution> mapFeatureContributions(
+            List<com.aml.payment.FeatureContribution> featureContributions) {
+
+        if (featureContributions == null) {
+            return null;
+        }
+
+        return featureContributions.stream()
+                .map(featureContribution -> new PaymentHistoryEntity.FeatureContribution(
+                        featureContribution.getFeature(),
+                        featureContribution.getValue(),
+                        featureContribution.getShapValue(),
+                        featureContribution.getDirection()))
+                .toList();
     }
 }

@@ -100,6 +100,14 @@ class BatchCustomerRiskInput(BaseModel):
     customers: List[CustomerRiskInput] = Field(..., min_items=1, max_items=500)
 
 
+class FeatureContribution(BaseModel):
+    """One feature's signed SHAP contribution to the fraud-class score."""
+    feature: str
+    value: str
+    shap_value: float
+    direction: str
+
+
 class CustomerRiskPrediction(BaseModel):
     """Output schema for customer risk assessment"""
     customer_id: str
@@ -109,7 +117,9 @@ class CustomerRiskPrediction(BaseModel):
     risk_level: str = Field(..., description="Risk level: LOW, MEDIUM, HIGH, CRITICAL")
     confidence: str = Field(..., description="Confidence level: LOW, MEDIUM, HIGH")
     recommendation: str = Field(..., description="Recommended action")
-    contributing_factors: Optional[List[str]] = Field(None, description="Key risk factors")
+    contributing_factors: Optional[List[str]] = Field(None, description="Key risk factors, derived from SHAP")
+    feature_contributions: Optional[List[FeatureContribution]] = None
+    shap_base_value: Optional[float] = None
 
 
 class BatchRiskPredictionResponse(BaseModel):

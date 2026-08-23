@@ -7,10 +7,11 @@ import numpy as np
 from typing import List, Tuple
 from datetime import datetime
 
-from ..models.schemas import TransactionInput, TransactionPrediction
+from ..models.schemas import FeatureContribution, TransactionInput, TransactionPrediction
 from ..core.config import settings
 from ..core.logging import logger
 from .model_loader import model_loader
+from .explainability_service import explainability_service
 
 
 class PredictionService:
@@ -138,7 +139,9 @@ class PredictionService:
             
             # Calculate risk score (0-100)
             risk_score = probability * 100
-            
+
+            shap_base_value, contributions = explainability_service.explain(X_transformed, df)
+
             # Generate response
             return TransactionPrediction(
                 is_suspicious=is_suspicious,
@@ -146,7 +149,9 @@ class PredictionService:
                 risk_score=float(risk_score),
                 confidence=PredictionService.calculate_confidence(probability),
                 recommendation=PredictionService.get_recommendation(is_suspicious, probability),
-                threshold_used=settings.optimal_threshold
+                threshold_used=settings.optimal_threshold,
+                feature_contributions=[FeatureContribution(**c) for c in contributions] or None,
+                shap_base_value=shap_base_value
             )
             
         except Exception as e:

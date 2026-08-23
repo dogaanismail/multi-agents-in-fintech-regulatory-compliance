@@ -78,6 +78,14 @@ class NetworkFeatures(BaseModel):
     community: int
 
 
+class FeatureContribution(BaseModel):
+    """One feature's signed SHAP contribution to an agent's fraud-class score."""
+    feature: str
+    value: str
+    shap_value: float
+    direction: str
+
+
 class AgentObservation(BaseModel):
     """Observation returned by a single detection agent."""
     agent_name: str
@@ -86,6 +94,8 @@ class AgentObservation(BaseModel):
     risk_score: float
     confidence: Optional[str] = None
     response_time_ms: Optional[float] = None
+    feature_contributions: Optional[List[FeatureContribution]] = None
+    shap_base_value: Optional[float] = None
 
 
 class EnrichedTransactionEvent(BaseModel):

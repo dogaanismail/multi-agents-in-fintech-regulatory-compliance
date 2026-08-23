@@ -33,6 +33,53 @@
       "name": "responseTimeMs",
       "type": "double",
       "doc": "Agent response time in milliseconds"
+    },
+    {
+      "name": "featureContributions",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "name": "FeatureContribution",
+            "doc": "One feature's signed SHAP contribution to the fraud-class score",
+            "fields": [
+              {
+                "name": "feature",
+                "type": "string",
+                "doc": "Input feature name, one-hot groups already summed back"
+              },
+              {
+                "name": "value",
+                "type": "string",
+                "doc": "Raw feature value as scored, for officer display"
+              },
+              {
+                "name": "shapValue",
+                "type": "double",
+                "doc": "Signed SHAP value in the model's margin space"
+              },
+              {
+                "name": "direction",
+                "type": "string",
+                "doc": "INCREASES_RISK or DECREASES_RISK"
+              }
+            ]
+          }
+        }
+      ],
+      "default": null,
+      "doc": "Top SHAP contributions for this agent's score, largest magnitude first; null when explainability is unavailable"
+    },
+    {
+      "name": "shapBaseValue",
+      "type": [
+        "null",
+        "double"
+      ],
+      "default": null,
+      "doc": "SHAP expected value the contributions are relative to"
     }
   ]
 }
