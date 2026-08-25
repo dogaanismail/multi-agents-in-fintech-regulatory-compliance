@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.UUID;
 
 @Service
@@ -25,31 +25,34 @@ import java.util.UUID;
 @Slf4j
 public class CustomerService {
 
+    private static final String SOFT_DELETED_BY_USER_REASON = "Soft deleted by user";
+
     private final CustomerRepository customerRepository;
+    private final Clock clock;
 
     @Transactional
-    public CustomerResponse createCustomer(CustomerCreateRequest request) {
-        log.info("Creating customer with email: {}", request.getEmail());
+    public CustomerResponse createCustomer(CustomerCreateRequest customerCreateRequest) {
+        log.info("Creating customer with email: {}", customerCreateRequest.getEmail());
 
-        if (customerRepository.existsCustomerEntityByEmail(request.getEmail())) {
-            throw new CustomerAlreadyExistsException(request.getEmail());
+        if (customerRepository.existsCustomerEntityByEmail(customerCreateRequest.getEmail())) {
+            throw new CustomerAlreadyExistsException(customerCreateRequest.getEmail());
         }
 
-        CustomerEntity entity = CustomerMapper.toEntity(request);
-        CustomerEntity savedEntity = customerRepository.save(entity);
+        CustomerEntity customerEntity = CustomerMapper.toCustomerEntity(customerCreateRequest);
+        CustomerEntity savedCustomerEntity = customerRepository.save(customerEntity);
 
-        log.info("Customer created successfully with id: {}", savedEntity.getId());
-        return CustomerMapper.toResponse(savedEntity);
+        log.info("Customer created successfully with id: {}", savedCustomerEntity.getId());
+        return CustomerMapper.toCustomerResponse(savedCustomerEntity);
     }
 
     @Transactional(readOnly = true)
-    public CustomerResponse getCustomerById(UUID id) {
-        log.info("Fetching customer with id: {}", id);
+    public CustomerResponse getCustomerById(UUID customerId) {
+        log.info("Fetching customer with id: {}", customerId);
 
-        CustomerEntity entity = customerRepository.findById(id)
-                .orElseThrow(() -> new CustomerNotFoundException(id));
+        CustomerEntity customerEntity = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        return CustomerMapper.toResponse(entity);
+        return CustomerMapper.toCustomerResponse(customerEntity);
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +60,7 @@ public class CustomerService {
         log.info("Fetching all customers with pagination");
 
         Page<@NonNull CustomerResponse> customerResponses = customerRepository.findAll(pageable)
-                .map(CustomerMapper::toResponse);
+                .map(CustomerMapper::toCustomerResponse);
 
         return PageResponse.<CustomerResponse>builder()
                 .content(customerResponses.getContent())
@@ -74,38 +77,36 @@ public class CustomerService {
     }
 
     @Transactional
-    public CustomerResponse updateCustomer(UUID id, CustomerUpdateRequest request) {
-        log.info("Updating customer with id: {}", id);
+    public CustomerResponse updateCustomer(UUID customerId, CustomerUpdateRequest customerUpdateRequest) {
+        log.info("Updating customer with id: {}", customerId);
 
-        CustomerEntity entity = customerRepository.findById(id)
-                .orElseThrow(() -> new CustomerNotFoundException(id));
+        CustomerEntity customerEntity = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        if (!entity.getEmail().equals(request.getEmail()) &&
-                customerRepository.existsCustomerEntityByEmail(request.getEmail())) {
-            throw new CustomerAlreadyExistsException(request.getEmail());
+        if (!customerEntity.getEmail().equals(customerUpdateRequest.getEmail()) &&
+                customerRepository.existsCustomerEntityByEmail(customerUpdateRequest.getEmail())) {
+            throw new CustomerAlreadyExistsException(customerUpdateRequest.getEmail());
         }
 
-        CustomerMapper.updateEntity(entity, request);
-        CustomerEntity updatedEntity = customerRepository.save(entity);
+        CustomerMapper.updateCustomerEntity(customerEntity, customerUpdateRequest);
+        CustomerEntity updatedCustomerEntity = customerRepository.save(customerEntity);
 
-        log.info("Customer updated successfully with id: {}", id);
-        return CustomerMapper.toResponse(updatedEntity);
+        log.info("Customer updated successfully with id: {}", customerId);
+        return CustomerMapper.toCustomerResponse(updatedCustomerEntity);
     }
 
     @Transactional
-    public void deleteCustomer(UUID id) {
-        log.info("Soft deleting customer with id: {}", id);
+    public void deleteCustomer(UUID customerId) {
+        log.info("Soft deleting customer with id: {}", customerId);
 
-        CustomerEntity entity = customerRepository.findById(id)
-                .orElseThrow(() -> new CustomerNotFoundException(id));
+        CustomerEntity customerEntity = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        entity.setDeletedAt(Instant.now());
-        entity.setDeletedReason("Soft deleted by user");
-        customerRepository.save(entity);
+        customerEntity.setDeletedAt(clock.instant());
+        customerEntity.setDeletedReason(SOFT_DELETED_BY_USER_REASON);
+        customerRepository.save(customerEntity);
 
-        log.info("Customer soft deleted successfully with id: {}", id);
+        log.info("Customer soft deleted successfully with id: {}", customerId);
     }
 
 }
-
-

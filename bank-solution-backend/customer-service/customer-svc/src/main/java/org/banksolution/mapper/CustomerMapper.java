@@ -9,50 +9,49 @@ import org.banksolution.model.response.CustomerResponse;
 @UtilityClass
 public class CustomerMapper {
 
-    public static CustomerEntity toEntity(CustomerCreateRequest request) {
+    public static CustomerEntity toCustomerEntity(CustomerCreateRequest customerCreateRequest) {
         return CustomerEntity.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .middleName(request.getMiddleName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .dateOfBirth(request.getDateOfBirth())
-                .nationality(request.getNationality())
-                .customerType(request.getCustomerType())
-                .address(AddressMapper.toEntity(request.getAddress()))
+                .firstName(customerCreateRequest.getFirstName())
+                .lastName(customerCreateRequest.getLastName())
+                .middleName(customerCreateRequest.getMiddleName())
+                .email(customerCreateRequest.getEmail())
+                .phoneNumber(customerCreateRequest.getPhoneNumber())
+                .dateOfBirth(customerCreateRequest.getDateOfBirth())
+                .nationality(customerCreateRequest.getNationality())
+                .customerType(customerCreateRequest.getCustomerType())
+                .address(AddressMapper.toCustomerAddress(customerCreateRequest.getAddress()))
                 .build();
     }
 
-    public static void updateEntity(CustomerEntity entity, CustomerUpdateRequest request) {
-        entity.setFirstName(request.getFirstName());
-        entity.setLastName(request.getLastName());
-        entity.setMiddleName(request.getMiddleName());
-        entity.setEmail(request.getEmail());
-        entity.setPhoneNumber(request.getPhoneNumber());
-        entity.setDateOfBirth(request.getDateOfBirth());
-        entity.setNationality(request.getNationality());
-        entity.setCustomerType(request.getCustomerType());
-        entity.setCustomerStatus(request.getCustomerStatus());
+    public static void updateCustomerEntity(CustomerEntity customerEntity, CustomerUpdateRequest customerUpdateRequest) {
+        customerEntity.setFirstName(customerUpdateRequest.getFirstName());
+        customerEntity.setLastName(customerUpdateRequest.getLastName());
+        customerEntity.setMiddleName(customerUpdateRequest.getMiddleName());
+        customerEntity.setEmail(customerUpdateRequest.getEmail());
+        customerEntity.setPhoneNumber(customerUpdateRequest.getPhoneNumber());
+        customerEntity.setDateOfBirth(customerUpdateRequest.getDateOfBirth());
+        customerEntity.setNationality(customerUpdateRequest.getNationality());
+        customerEntity.setCustomerType(customerUpdateRequest.getCustomerType());
+        customerEntity.setCustomerStatus(customerUpdateRequest.getCustomerStatus());
 
-        AddressMapper.updateEntity(entity.getAddress(), request.getAddress());
+        AddressMapper.updateCustomerAddress(customerEntity.getAddress(), customerUpdateRequest.getAddress());
     }
 
-    public static CustomerResponse toResponse(CustomerEntity entity) {
+    public static CustomerResponse toCustomerResponse(CustomerEntity customerEntity) {
         return CustomerResponse.builder()
-                .id(entity.getId())
-                .firstName(entity.getFirstName())
-                .lastName(entity.getLastName())
-                .middleName(entity.getMiddleName())
-                .email(entity.getEmail())
-                .phoneNumber(entity.getPhoneNumber())
-                .dateOfBirth(entity.getDateOfBirth())
-                .nationality(entity.getNationality())
-                .customerType(entity.getCustomerType())
-                .customerStatus(entity.getCustomerStatus())
-                .address(AddressMapper.toResponse(entity.getAddress()))
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
+                .id(customerEntity.getId())
+                .firstName(customerEntity.getFirstName())
+                .lastName(customerEntity.getLastName())
+                .middleName(customerEntity.getMiddleName())
+                .email(customerEntity.getEmail())
+                .phoneNumber(customerEntity.getPhoneNumber())
+                .dateOfBirth(customerEntity.getDateOfBirth())
+                .nationality(customerEntity.getNationality())
+                .customerType(customerEntity.getCustomerType())
+                .customerStatus(customerEntity.getCustomerStatus())
+                .address(AddressMapper.toAddressResponse(customerEntity.getAddress()))
+                .createdAt(customerEntity.getCreatedAt())
+                .updatedAt(customerEntity.getUpdatedAt())
                 .build();
     }
 }
-

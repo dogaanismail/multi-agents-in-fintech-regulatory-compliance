@@ -23,7 +23,8 @@ public class BaseEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @Column(name = "deleted_at", updatable = false)
+    // Must stay updatable: soft deletion writes deleted_at on an existing row
+    @Column(name = "deleted_at")
     private Instant deletedAt;
 
     @Column(name = "deleted_reason")
