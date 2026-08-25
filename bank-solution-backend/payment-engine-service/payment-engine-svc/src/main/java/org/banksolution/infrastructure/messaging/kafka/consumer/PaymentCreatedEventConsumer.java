@@ -25,24 +25,24 @@ public class PaymentCreatedEventConsumer {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(
-            @Payload PaymentCreatedEvent event,
+            @Payload PaymentCreatedEvent paymentCreatedEvent,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
         log.info("Consumed PaymentCreatedEvent: eventId:{}, paymentId:{}, partition:{}, offset:{}",
-                event.getEventId(),
-                event.getPaymentId(),
+                paymentCreatedEvent.getEventId(),
+                paymentCreatedEvent.getPaymentId(),
                 partition,
                 offset);
 
         try {
-            paymentCreatedEventHandler.handle(event);
+            paymentCreatedEventHandler.handle(paymentCreatedEvent);
             acknowledgment.acknowledge();
-            log.info("Successfully processed PaymentCreatedEvent: {}", event.getEventId());
-        } catch (Exception e) {
-            log.error("Failed to process PaymentCreatedEvent: {}", event.getEventId(), e);
-            throw new PaymentCreatedEventException("Failed to process PaymentCreatedEvent for paymentId: %s", e, event.getPaymentId());
+            log.info("Successfully processed PaymentCreatedEvent: {}", paymentCreatedEvent.getEventId());
+        } catch (Exception exception) {
+            log.error("Failed to process PaymentCreatedEvent: {}", paymentCreatedEvent.getEventId(), exception);
+            throw new PaymentCreatedEventException("Failed to process PaymentCreatedEvent for paymentId: %s", exception, paymentCreatedEvent.getPaymentId());
         }
     }
 }

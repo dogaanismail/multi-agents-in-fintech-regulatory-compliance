@@ -25,142 +25,141 @@ public class PaymentEventHandler {
 
     @EventHandler
     @AllowReplay
-    public void on(PaymentInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PAYMENT_INITIATED);
+    public void on(PaymentInitiatedEvent paymentInitiatedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(paymentInitiatedEvent.paymentId(), PAYMENT_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(RiskAssessmentInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), RISK_ASSESSMENT_INITIATED);
+    public void on(RiskAssessmentInitiatedEvent riskAssessmentInitiatedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(riskAssessmentInitiatedEvent.paymentId(), RISK_ASSESSMENT_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(RiskAssessmentCompletedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), RISK_ASSESSMENT_COMPLETED);
+    public void on(RiskAssessmentCompletedEvent riskAssessmentCompletedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(riskAssessmentCompletedEvent.paymentId(), RISK_ASSESSMENT_COMPLETED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(RiskAssessmentTimedOutEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), RISK_ASSESSMENT_TIMED_OUT);
+    public void on(RiskAssessmentTimedOutEvent riskAssessmentTimedOutEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(riskAssessmentTimedOutEvent.paymentId(), RISK_ASSESSMENT_TIMED_OUT);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(FraudCheckApprovedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), FRAUD_CHECK_APPROVED);
+    public void on(FraudCheckApprovedEvent fraudCheckApprovedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(fraudCheckApprovedEvent.paymentId(), FRAUD_CHECK_APPROVED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(PaymentBlockedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), PAYMENT_BLOCKED);
+    public void on(PaymentBlockedEvent paymentBlockedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(paymentBlockedEvent.paymentId(), PAYMENT_BLOCKED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(ManualReviewRequestedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), MANUAL_REVIEW_REQUESTED);
+    public void on(ManualReviewRequestedEvent manualReviewRequestedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(manualReviewRequestedEvent.paymentId(), MANUAL_REVIEW_REQUESTED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(ManualReviewApprovedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), MANUAL_REVIEW_APPROVED);
+    public void on(ManualReviewApprovedEvent manualReviewApprovedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(manualReviewApprovedEvent.paymentId(), MANUAL_REVIEW_APPROVED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(ManualReviewRejectedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), MANUAL_REVIEW_REJECTED);
+    public void on(ManualReviewRejectedEvent manualReviewRejectedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(manualReviewRejectedEvent.paymentId(), MANUAL_REVIEW_REJECTED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(DecisionOverriddenEvent event, EventMessage<?> eventMessage) {
-        PaymentEventTrigger trigger = event.approvePayment()
+    public void on(DecisionOverriddenEvent decisionOverriddenEvent, EventMessage<?> eventMessage) {
+        PaymentEventTrigger paymentEventTrigger = decisionOverriddenEvent.approvePayment()
                 ? DECISION_OVERRIDE_APPROVED
                 : DECISION_OVERRIDE_REJECTED;
-        publishSnapshotAfterCommit(event.paymentId(), trigger);
+        publishSnapshotAfterCommit(decisionOverriddenEvent.paymentId(), paymentEventTrigger);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerAuthorisationInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_AUTHORISATION_INITIATED);
+    public void on(LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerAuthorisationInitiatedEvent.paymentId(), LEDGER_AUTHORISATION_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerAuthorisedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_AUTHORISED);
+    public void on(LedgerAuthorisedEvent ledgerAuthorisedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerAuthorisedEvent.paymentId(), LEDGER_AUTHORISED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerAuthorisationDeclinedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_AUTHORISATION_DECLINED);
+    public void on(LedgerAuthorisationDeclinedEvent ledgerAuthorisationDeclinedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerAuthorisationDeclinedEvent.paymentId(), LEDGER_AUTHORISATION_DECLINED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerSettlementInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_SETTLEMENT_INITIATED);
+    public void on(LedgerSettlementInitiatedEvent ledgerSettlementInitiatedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerSettlementInitiatedEvent.paymentId(), LEDGER_SETTLEMENT_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerSettledEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_SETTLED);
+    public void on(LedgerSettledEvent ledgerSettledEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerSettledEvent.paymentId(), LEDGER_SETTLED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerSettlementFailedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_SETTLEMENT_FAILED);
+    public void on(LedgerSettlementFailedEvent ledgerSettlementFailedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerSettlementFailedEvent.paymentId(), LEDGER_SETTLEMENT_FAILED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerReleaseInitiatedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASE_INITIATED);
+    public void on(LedgerReleaseInitiatedEvent ledgerReleaseInitiatedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerReleaseInitiatedEvent.paymentId(), LEDGER_RELEASE_INITIATED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerReleasedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASED);
+    public void on(LedgerReleasedEvent ledgerReleasedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerReleasedEvent.paymentId(), LEDGER_RELEASED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(LedgerReleaseFailedEvent event, EventMessage<?> eventMessage) {
-        publishSnapshotAfterCommit(event.paymentId(), LEDGER_RELEASE_FAILED);
+    public void on(LedgerReleaseFailedEvent ledgerReleaseFailedEvent, EventMessage<?> eventMessage) {
+        publishSnapshotAfterCommit(ledgerReleaseFailedEvent.paymentId(), LEDGER_RELEASE_FAILED);
     }
 
     @EventHandler
     @AllowReplay
-    public void on(PaymentCompletedEvent event, EventMessage<?> eventMessage) {
-        log.info("Payment has been completed for paymentId: {}", event.paymentId());
+    public void on(PaymentCompletedEvent paymentCompletedEvent, EventMessage<?> eventMessage) {
+        log.info("Payment has been completed for paymentId: {}", paymentCompletedEvent.paymentId());
 
+        runAfterCommit(() -> {
+            paymentSnapshotEventProducer.publish(paymentCompletedEvent.paymentId(), PAYMENT_COMPLETED);
+            paymentCompletedEventProducer.publish(paymentCompletedEvent.paymentId());
+        });
+    }
+
+    private void publishSnapshotAfterCommit(PaymentId paymentId, PaymentEventTrigger paymentEventTrigger) {
+        runAfterCommit(() -> paymentSnapshotEventProducer.publish(paymentId, paymentEventTrigger));
+    }
+
+    private static void runAfterCommit(Runnable publication) {
         if (CurrentUnitOfWork.isStarted()) {
-            CurrentUnitOfWork.get().afterCommit(uow -> {
-                paymentSnapshotEventProducer.publish(event.paymentId(), PaymentEventTrigger.PAYMENT_COMPLETED);
-                paymentCompletedEventProducer.publish(event.paymentId());
-            });
+            CurrentUnitOfWork.get().afterCommit(_ -> publication.run());
         } else {
-            paymentSnapshotEventProducer.publish(event.paymentId(), PaymentEventTrigger.PAYMENT_COMPLETED);
-            paymentCompletedEventProducer.publish(event.paymentId());
-        }
-    }
-
-    private void publishSnapshotAfterCommit(PaymentId paymentId, PaymentEventTrigger eventTrigger) {
-        if (CurrentUnitOfWork.isStarted()) {
-            CurrentUnitOfWork.get().afterCommit(uow -> paymentSnapshotEventProducer.publish(paymentId, eventTrigger));
-        } else {
-            paymentSnapshotEventProducer.publish(paymentId, eventTrigger);
+            publication.run();
         }
     }
 }

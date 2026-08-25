@@ -22,28 +22,28 @@ public class PaymentCommandController {
     private final PaymentCommandService paymentCommandService;
 
     @PostMapping
-    public ResponseEntity<@NonNull InitiatePaymentResponse> initiatePayment(@RequestBody InitiatePaymentRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(paymentCommandService.initiatePayment(request));
+    public ResponseEntity<@NonNull InitiatePaymentResponse> initiatePayment(@RequestBody InitiatePaymentRequest initiatePaymentRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentCommandService.initiatePayment(initiatePaymentRequest));
     }
 
     @PostMapping("/{paymentId}/manual-review/approve")
     public ResponseEntity<@NonNull ManualReviewResponse> approveManualReview(
             @PathVariable String paymentId,
-            @RequestBody ApproveManualReviewRequest request) {
-        return ResponseEntity.ok(paymentCommandService.approveManualReview(paymentId, request));
+            @RequestBody ApproveManualReviewRequest approveManualReviewRequest) {
+        return ResponseEntity.ok(paymentCommandService.approveManualReview(paymentId, approveManualReviewRequest));
     }
 
     @PostMapping("/{paymentId}/manual-review/reject")
     public ResponseEntity<@NonNull ManualReviewResponse> rejectManualReview(
             @PathVariable String paymentId,
-            @RequestBody RejectManualReviewRequest request) {
-        return ResponseEntity.ok(paymentCommandService.rejectManualReview(paymentId, request));
+            @RequestBody RejectManualReviewRequest rejectManualReviewRequest) {
+        return ResponseEntity.ok(paymentCommandService.rejectManualReview(paymentId, rejectManualReviewRequest));
     }
 
     @PostMapping("/{paymentId}/decision/override")
     public ResponseEntity<@NonNull OverrideDecisionResponse> overrideDecision(
             @PathVariable String paymentId,
-            @RequestBody OverrideDecisionRequest request) {
-        return ResponseEntity.ok(paymentCommandService.overrideDecision(paymentId, request));
+            @RequestBody OverrideDecisionRequest overrideDecisionRequest) {
+        return ResponseEntity.ok(paymentCommandService.overrideDecision(paymentId, overrideDecisionRequest));
     }
 }

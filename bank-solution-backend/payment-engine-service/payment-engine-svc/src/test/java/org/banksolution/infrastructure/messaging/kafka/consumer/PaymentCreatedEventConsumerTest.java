@@ -2,49 +2,56 @@ package org.banksolution.infrastructure.messaging.kafka.consumer;
 
 import com.aml.payment.PaymentCreatedEvent;
 import org.banksolution.exception.PaymentCreatedEventException;
-import org.banksolution.fixtures.AvroEventFixtures;
 import org.banksolution.infrastructure.messaging.kafka.handler.PaymentCreatedEventHandler;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.support.Acknowledgment;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.banksolution.fixtures.AvroEventFixtures.createPaymentCreatedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.PAYMENT_UUID;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class PaymentCreatedEventConsumerTest {
 
-    private PaymentCreatedEventHandler handler;
-    private Acknowledgment acknowledgment;
-    private PaymentCreatedEventConsumer consumer;
+    private static final int PARTITION = 0;
+    private static final long OFFSET = 42L;
 
-    @BeforeEach
-    void setUp() {
-        handler = mock(PaymentCreatedEventHandler.class);
-        acknowledgment = mock(Acknowledgment.class);
-        consumer = new PaymentCreatedEventConsumer(handler);
-    }
+    @Mock
+    private PaymentCreatedEventHandler paymentCreatedEventHandler;
+
+    @Mock
+    private Acknowledgment acknowledgment;
+
+    @InjectMocks
+    private PaymentCreatedEventConsumer paymentCreatedEventConsumer;
 
     @Test
-    void shouldDelegateToHandlerAndAcknowledge() {
-        PaymentCreatedEvent event = AvroEventFixtures.createPaymentCreatedEvent();
+    void shouldAcknowledgeAfterInitiatingThePayment() {
+        PaymentCreatedEvent paymentCreatedEvent = createPaymentCreatedEvent();
 
-        consumer.consume(event, 0, 0L, acknowledgment);
+        paymentCreatedEventConsumer.consume(paymentCreatedEvent, PARTITION, OFFSET, acknowledgment);
 
-        verify(handler).handle(event);
+        verify(paymentCreatedEventHandler).handle(paymentCreatedEvent);
         verify(acknowledgment).acknowledge();
     }
 
     @Test
-    void shouldWrapHandlerFailureAndNotAcknowledge() {
-        PaymentCreatedEvent event = AvroEventFixtures.createPaymentCreatedEvent();
-        doThrow(new RuntimeException("boom")).when(handler).handle(any());
+    void shouldRethrowWithoutAcknowledgingWhenInitiationFails() {
+        PaymentCreatedEvent paymentCreatedEvent = createPaymentCreatedEvent();
+        IllegalStateException initiationFailure = new IllegalStateException("event store down");
+        doThrow(initiationFailure).when(paymentCreatedEventHandler).handle(paymentCreatedEvent);
 
-        assertThatThrownBy(() -> consumer.consume(event, 0, 0L, acknowledgment))
-                .isInstanceOf(PaymentCreatedEventException.class);
+        assertThatThrownBy(() -> paymentCreatedEventConsumer.consume(paymentCreatedEvent, PARTITION, OFFSET, acknowledgment))
+                .isInstanceOf(PaymentCreatedEventException.class)
+                .hasMessageContaining(PAYMENT_UUID.toString())
+                .hasCause(initiationFailure);
 
         verify(acknowledgment, never()).acknowledge();
     }

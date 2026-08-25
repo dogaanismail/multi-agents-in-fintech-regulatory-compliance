@@ -19,8 +19,8 @@ public class LedgerPostingRequestedEventProducer {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull LedgerPostingRequestedEvent> ledgerPostingRequestedEventKafkaTemplate;
 
-    public void publishAuthorisation(LedgerAuthorisationInitiatedEvent event) {
-        publish(LedgerPostingRequestedEventMapper.toAuthorisationEvent(event));
+    public void publishAuthorisation(LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
+        publish(LedgerPostingRequestedEventMapper.toAuthorisationEvent(ledgerAuthorisationInitiatedEvent));
     }
 
     public void publishSettlement(PaymentId paymentId) {
@@ -31,13 +31,13 @@ public class LedgerPostingRequestedEventProducer {
         publish(LedgerPostingRequestedEventMapper.toReleaseEvent(paymentId));
     }
 
-    private void publish(LedgerPostingRequestedEvent event) {
-        String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getLedgerPostingRequested();
+    private void publish(LedgerPostingRequestedEvent ledgerPostingRequestedEvent) {
+        String ledgerPostingRequestedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getLedgerPostingRequested();
 
-        ledgerPostingRequestedEventKafkaTemplate.send(topic, event.getClientTransactionId(), event);
+        ledgerPostingRequestedEventKafkaTemplate.send(ledgerPostingRequestedTopic, ledgerPostingRequestedEvent.getClientTransactionId(), ledgerPostingRequestedEvent);
 
         log.info("Published LedgerPostingRequestedEvent: clientTransactionId:{}, type:{}",
-                event.getClientTransactionId(),
-                event.getPostingInstructionType());
+                ledgerPostingRequestedEvent.getClientTransactionId(),
+                ledgerPostingRequestedEvent.getPostingInstructionType());
     }
 }

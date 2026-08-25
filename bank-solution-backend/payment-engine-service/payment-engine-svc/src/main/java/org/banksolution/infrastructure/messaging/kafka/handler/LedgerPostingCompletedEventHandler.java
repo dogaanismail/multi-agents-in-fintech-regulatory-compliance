@@ -17,62 +17,61 @@ public class LedgerPostingCompletedEventHandler {
 
     private final CommandGateway commandGateway;
 
-    public void handle(LedgerPostingCompletedEvent event) {
-        PaymentId paymentId = new PaymentId(UUID.fromString(event.getClientTransactionId()));
+    public void handle(LedgerPostingCompletedEvent ledgerPostingCompletedEvent) {
+        PaymentId paymentId = new PaymentId(UUID.fromString(ledgerPostingCompletedEvent.getClientTransactionId()));
 
-        switch (event.getPostingInstructionType()) {
+        switch (ledgerPostingCompletedEvent.getPostingInstructionType()) {
             case INBOUND_AUTHORISATION,
                  OUTBOUND_AUTHORISATION,
                  INTERNAL_TRANSFER_AUTHORISATION,
-                 CROSS_CURRENCY_TRANSFER_AUTHORISATION -> handleAuthorisation(paymentId, event);
-            case SETTLEMENT -> handleSettlement(paymentId, event);
-            case RELEASE -> handleRelease(paymentId, event);
-            case INBOUND_HARD_SETTLEMENT, OUTBOUND_HARD_SETTLEMENT ->
-                    log.debug("Ignoring hard settlement {} for payment {}, no saga awaits it",
-                            event.getPostingInstructionType(),
-                            paymentId);
+                 CROSS_CURRENCY_TRANSFER_AUTHORISATION -> handleAuthorisation(paymentId, ledgerPostingCompletedEvent);
+            case SETTLEMENT -> handleSettlement(paymentId, ledgerPostingCompletedEvent);
+            case RELEASE -> handleRelease(paymentId, ledgerPostingCompletedEvent);
+            default -> log.debug("Ignoring {} for payment {}, no saga awaits it",
+                    ledgerPostingCompletedEvent.getPostingInstructionType(),
+                    paymentId);
         }
     }
 
     private void handleAuthorisation(
             PaymentId paymentId,
-            LedgerPostingCompletedEvent event) {
+            LedgerPostingCompletedEvent ledgerPostingCompletedEvent) {
 
-        if (event.getSuccess()) {
-            commandGateway.sendAndWait(new ConfirmLedgerAuthorisationCommand(paymentId, toTransferId(event)));
+        if (ledgerPostingCompletedEvent.getSuccess()) {
+            commandGateway.sendAndWait(new ConfirmLedgerAuthorisationCommand(paymentId, toTransferId(ledgerPostingCompletedEvent)));
             return;
         }
 
-        commandGateway.sendAndWait(new DeclineLedgerAuthorisationCommand(paymentId, event.getFailureReason()));
+        commandGateway.sendAndWait(new DeclineLedgerAuthorisationCommand(paymentId, ledgerPostingCompletedEvent.getFailureReason()));
     }
 
     private void handleSettlement(
             PaymentId paymentId,
-            LedgerPostingCompletedEvent event) {
+            LedgerPostingCompletedEvent ledgerPostingCompletedEvent) {
 
-        if (event.getSuccess()) {
-            commandGateway.sendAndWait(new ConfirmLedgerSettlementCommand(paymentId, toTransferId(event)));
+        if (ledgerPostingCompletedEvent.getSuccess()) {
+            commandGateway.sendAndWait(new ConfirmLedgerSettlementCommand(paymentId, toTransferId(ledgerPostingCompletedEvent)));
             return;
         }
 
-        commandGateway.sendAndWait(new FailLedgerSettlementCommand(paymentId, event.getFailureReason()));
+        commandGateway.sendAndWait(new FailLedgerSettlementCommand(paymentId, ledgerPostingCompletedEvent.getFailureReason()));
     }
 
     private void handleRelease(
             PaymentId paymentId,
-            LedgerPostingCompletedEvent event) {
+            LedgerPostingCompletedEvent ledgerPostingCompletedEvent) {
 
-        if (event.getSuccess()) {
+        if (ledgerPostingCompletedEvent.getSuccess()) {
             commandGateway.sendAndWait(new ConfirmLedgerReleaseCommand(paymentId));
             return;
         }
 
-        commandGateway.sendAndWait(new FailLedgerReleaseCommand(paymentId, event.getFailureReason()));
+        commandGateway.sendAndWait(new FailLedgerReleaseCommand(paymentId, ledgerPostingCompletedEvent.getFailureReason()));
     }
 
-    private static UUID toTransferId(LedgerPostingCompletedEvent event) {
-        return event.getTransferId() == null ?
+    private static UUID toTransferId(LedgerPostingCompletedEvent ledgerPostingCompletedEvent) {
+        return ledgerPostingCompletedEvent.getTransferId() == null ?
                 null :
-                UUID.fromString(event.getTransferId());
+                UUID.fromString(ledgerPostingCompletedEvent.getTransferId());
     }
 }

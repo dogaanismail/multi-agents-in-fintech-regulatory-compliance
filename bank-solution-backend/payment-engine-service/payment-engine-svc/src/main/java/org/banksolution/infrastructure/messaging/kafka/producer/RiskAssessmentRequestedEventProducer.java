@@ -18,18 +18,18 @@ public class RiskAssessmentRequestedEventProducer {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull RiskAssessmentRequestedEvent> riskAssessmentRequestedEventKafkaTemplate;
 
-    public void publishRiskAssessmentRequestedEvent(RiskAssessmentInitiatedEvent event) {
+    public void publishRiskAssessmentRequestedEvent(RiskAssessmentInitiatedEvent riskAssessmentInitiatedEvent) {
         try {
-            String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getRiskAssessmentRequested();
-            String messageKey = event.paymentId().toString();
+            String riskAssessmentRequestedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getRiskAssessmentRequested();
+            String messageKey = riskAssessmentInitiatedEvent.paymentId().toString();
 
-            RiskAssessmentRequestedEvent request = RiskAssessmentRequestedEventMapper.toAvroRequest(event);
-            riskAssessmentRequestedEventKafkaTemplate.send(topic, messageKey, request);
+            RiskAssessmentRequestedEvent riskAssessmentRequestedEvent = RiskAssessmentRequestedEventMapper.toAvroRequest(riskAssessmentInitiatedEvent);
+            riskAssessmentRequestedEventKafkaTemplate.send(riskAssessmentRequestedTopic, messageKey, riskAssessmentRequestedEvent);
 
-            log.info("Successfully published RiskAssessmentRequestedEvent for payment: {}", event.paymentId());
-        } catch (Exception e) {
-            log.error("Error publishing RiskAssessmentRequestedEvent for payment: {}", event.paymentId(), e);
-            throw e;
+            log.info("Successfully published RiskAssessmentRequestedEvent for payment: {}", riskAssessmentInitiatedEvent.paymentId());
+        } catch (Exception exception) {
+            log.error("Error publishing RiskAssessmentRequestedEvent for payment: {}", riskAssessmentInitiatedEvent.paymentId(), exception);
+            throw exception;
         }
     }
 }

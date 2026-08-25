@@ -22,27 +22,27 @@ public class PaymentSnapshotEventProducer {
     private final KafkaTemplate<@NonNull String, @NonNull PaymentSnapshotEvent> paymentSnapshotEventKafkaTemplate;
     private final PaymentQueryService paymentQueryService;
 
-    public void publish(PaymentId paymentId, PaymentEventTrigger eventTrigger) {
+    public void publish(PaymentId paymentId, PaymentEventTrigger paymentEventTrigger) {
         try {
-            log.debug("Publishing payment snapshot for paymentId: {}, trigger: {}", paymentId, eventTrigger);
+            log.debug("Publishing payment snapshot for paymentId: {}, trigger: {}", paymentId, paymentEventTrigger);
 
             PaymentResponse paymentResponse = paymentQueryService.findPaymentById(paymentId);
-            PaymentSnapshotEvent snapshotEvent = PaymentAggregateSnapshotMapper.toSnapshot(paymentResponse, eventTrigger.name());
+            PaymentSnapshotEvent paymentSnapshotEvent = PaymentAggregateSnapshotMapper.toSnapshot(paymentResponse, paymentEventTrigger.name());
 
-            String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentSnapshotEvents();
-            String messageKey = snapshotEvent.getPaymentId();
+            String paymentSnapshotTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentSnapshotEvents();
+            String messageKey = paymentSnapshotEvent.getPaymentId();
 
-            paymentSnapshotEventKafkaTemplate.send(topic, messageKey, snapshotEvent);
+            paymentSnapshotEventKafkaTemplate.send(paymentSnapshotTopic, messageKey, paymentSnapshotEvent);
 
             log.info("Successfully published PaymentSnapshotEvent for paymentId: {}, status: {}, trigger: {}",
                     paymentId,
                     paymentResponse.status(),
-                    eventTrigger);
-        } catch (Exception e) {
+                    paymentEventTrigger);
+        } catch (Exception exception) {
             log.error("Failed to publish payment snapshot for paymentId: {}, trigger: {}",
                     paymentId,
-                    eventTrigger,
-                    e);
+                    paymentEventTrigger,
+                    exception);
         }
     }
 }

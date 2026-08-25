@@ -1,5 +1,6 @@
 package org.banksolution.exception.handler;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
@@ -51,16 +52,7 @@ public class GlobalExceptionHandler {
 
         List<CustomError.CustomSubError> subErrors = new ArrayList<>();
         constraintViolationException.getConstraintViolations()
-                .forEach(constraintViolation ->
-                        subErrors.add(
-                                CustomError.CustomSubError.builder()
-                                        .message(constraintViolation.getMessage())
-                                        .field(StringUtils.substringAfterLast(constraintViolation.getPropertyPath().toString(), "."))
-                                        .value(constraintViolation.getInvalidValue() != null ? constraintViolation.getInvalidValue().toString() : null)
-                                        .type(constraintViolation.getInvalidValue().getClass().getSimpleName())
-                                        .build()
-                        )
-                );
+                .forEach(constraintViolation -> subErrors.add(toConstraintViolationSubError(constraintViolation)));
 
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.BAD_REQUEST)
@@ -70,6 +62,17 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    private static CustomError.CustomSubError toConstraintViolationSubError(ConstraintViolation<?> constraintViolation) {
+        Object invalidValue = constraintViolation.getInvalidValue();
+
+        return CustomError.CustomSubError.builder()
+                .message(constraintViolation.getMessage())
+                .field(StringUtils.substringAfterLast(constraintViolation.getPropertyPath().toString(), "."))
+                .value(invalidValue != null ? invalidValue.toString() : null)
+                .type(invalidValue != null ? invalidValue.getClass().getSimpleName() : null)
+                .build();
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -88,7 +91,7 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<@NonNull CustomError> handleInvalidPaymentStateException(InvalidPaymentStateException ex) {
 
         CustomError customError = CustomError.builder()
-                .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .httpStatus(HttpStatus.CONFLICT)
                 .header(CustomError.Header.API_ERROR.getName())
                 .message(ex.getMessage())
                 .build();

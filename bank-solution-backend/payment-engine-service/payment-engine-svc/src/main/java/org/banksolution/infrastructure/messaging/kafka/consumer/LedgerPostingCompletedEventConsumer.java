@@ -25,26 +25,26 @@ public class LedgerPostingCompletedEventConsumer {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(
-            @Payload LedgerPostingCompletedEvent event,
+            @Payload LedgerPostingCompletedEvent ledgerPostingCompletedEvent,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
         log.info("Consumed LedgerPostingCompletedEvent: clientTransactionId:{}, type:{}, success:{}, partition:{}, offset:{}",
-                event.getClientTransactionId(),
-                event.getPostingInstructionType(),
-                event.getSuccess(),
+                ledgerPostingCompletedEvent.getClientTransactionId(),
+                ledgerPostingCompletedEvent.getPostingInstructionType(),
+                ledgerPostingCompletedEvent.getSuccess(),
                 partition,
                 offset);
 
         try {
-            ledgerPostingCompletedEventHandler.handle(event);
+            ledgerPostingCompletedEventHandler.handle(ledgerPostingCompletedEvent);
             acknowledgment.acknowledge();
-        } catch (Exception e) {
+        } catch (Exception exception) {
             throw new LedgerPostingCompletedEventException(
                     "Failed to process LedgerPostingCompletedEvent for clientTransactionId: %s",
-                    e,
-                    event.getClientTransactionId());
+                    exception,
+                    ledgerPostingCompletedEvent.getClientTransactionId());
         }
     }
 }

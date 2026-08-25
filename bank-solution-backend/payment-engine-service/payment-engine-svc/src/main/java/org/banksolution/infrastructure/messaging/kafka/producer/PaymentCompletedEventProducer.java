@@ -26,20 +26,20 @@ public class PaymentCompletedEventProducer {
             log.debug("Publishing payment completed event for paymentId: {}", paymentId);
 
             PaymentResponse paymentResponse = paymentQueryService.findPaymentById(paymentId);
-            PaymentCompletedEvent completedEvent = PaymentCompletedEventMapper.toAvroEvent(paymentResponse);
+            PaymentCompletedEvent paymentCompletedEvent = PaymentCompletedEventMapper.toAvroEvent(paymentResponse);
 
-            String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCompleted();
-            String messageKey = completedEvent.getPaymentId();
+            String paymentCompletedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCompleted();
+            String messageKey = paymentCompletedEvent.getPaymentId();
 
-            paymentCompletedEventKafkaTemplate.send(topic, messageKey, completedEvent);
+            paymentCompletedEventKafkaTemplate.send(paymentCompletedTopic, messageKey, paymentCompletedEvent);
 
             log.info("Successfully published PaymentCompletedEvent: paymentId={}, customerId={}, amount={}, currency={}",
-                    completedEvent.getPaymentId(),
-                    completedEvent.getCustomerId(),
-                    completedEvent.getAmount(),
-                    completedEvent.getFromCurrency());
-        } catch (Exception e) {
-            log.error("Failed to publish payment completed event for paymentId: {}", paymentId, e);
+                    paymentCompletedEvent.getPaymentId(),
+                    paymentCompletedEvent.getCustomerId(),
+                    paymentCompletedEvent.getAmount(),
+                    paymentCompletedEvent.getFromCurrency());
+        } catch (Exception exception) {
+            log.error("Failed to publish payment completed event for paymentId: {}", paymentId, exception);
         }
     }
 }

@@ -13,15 +13,15 @@ import java.util.UUID;
 @UtilityClass
 public class LedgerPostingRequestedEventMapper {
 
-    public static LedgerPostingRequestedEvent toAuthorisationEvent(LedgerAuthorisationInitiatedEvent event) {
-        PaymentScheme paymentScheme = PaymentScheme.valueOf(event.paymentScheme());
+    public static LedgerPostingRequestedEvent toAuthorisationEvent(LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
+        PaymentScheme paymentScheme = PaymentScheme.valueOf(ledgerAuthorisationInitiatedEvent.paymentScheme());
 
         return switch (paymentScheme) {
-            case INTERNAL_TRANSFER -> crossesCurrencies(event)
-                    ? toCrossCurrencyTransferAuthorisation(event)
-                    : toInternalTransferAuthorisation(event);
-            case EXTERNAL_OUTBOUND -> toOutboundAuthorisation(event);
-            case EXTERNAL_INBOUND -> toInboundAuthorisation(event);
+            case INTERNAL_TRANSFER -> crossesCurrencies(ledgerAuthorisationInitiatedEvent)
+                    ? toCrossCurrencyTransferAuthorisation(ledgerAuthorisationInitiatedEvent)
+                    : toInternalTransferAuthorisation(ledgerAuthorisationInitiatedEvent);
+            case EXTERNAL_OUTBOUND -> toOutboundAuthorisation(ledgerAuthorisationInitiatedEvent);
+            case EXTERNAL_INBOUND -> toInboundAuthorisation(ledgerAuthorisationInitiatedEvent);
         };
     }
 
@@ -33,47 +33,47 @@ public class LedgerPostingRequestedEventMapper {
         return newBuilder(paymentId, PostingInstructionType.RELEASE).build();
     }
 
-    private static boolean crossesCurrencies(LedgerAuthorisationInitiatedEvent event) {
-        return !event.fromCurrency().equals(event.toCurrency());
+    private static boolean crossesCurrencies(LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
+        return !ledgerAuthorisationInitiatedEvent.fromCurrency().equals(ledgerAuthorisationInitiatedEvent.toCurrency());
     }
 
-    private static LedgerPostingRequestedEvent toInboundAuthorisation(LedgerAuthorisationInitiatedEvent event) {
-        return newBuilder(event.paymentId(), PostingInstructionType.INBOUND_AUTHORISATION)
-                .setAmount(event.convertedAmount().toPlainString())
-                .setCurrency(event.toCurrency())
-                .setCustomerAccountId(event.destinationAccountId().toString())
+    private static LedgerPostingRequestedEvent toInboundAuthorisation(LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
+        return newBuilder(ledgerAuthorisationInitiatedEvent.paymentId(), PostingInstructionType.INBOUND_AUTHORISATION)
+                .setAmount(ledgerAuthorisationInitiatedEvent.convertedAmount().toPlainString())
+                .setCurrency(ledgerAuthorisationInitiatedEvent.toCurrency())
+                .setCustomerAccountId(ledgerAuthorisationInitiatedEvent.destinationAccountId().toString())
                 .build();
     }
 
-    private static LedgerPostingRequestedEvent toOutboundAuthorisation(LedgerAuthorisationInitiatedEvent event) {
-        return newBuilder(event.paymentId(), PostingInstructionType.OUTBOUND_AUTHORISATION)
-                .setAmount(event.amount().toPlainString())
-                .setCurrency(event.fromCurrency())
-                .setCustomerAccountId(event.sourceAccountId().toString())
+    private static LedgerPostingRequestedEvent toOutboundAuthorisation(LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
+        return newBuilder(ledgerAuthorisationInitiatedEvent.paymentId(), PostingInstructionType.OUTBOUND_AUTHORISATION)
+                .setAmount(ledgerAuthorisationInitiatedEvent.amount().toPlainString())
+                .setCurrency(ledgerAuthorisationInitiatedEvent.fromCurrency())
+                .setCustomerAccountId(ledgerAuthorisationInitiatedEvent.sourceAccountId().toString())
                 .build();
     }
 
     private static LedgerPostingRequestedEvent toInternalTransferAuthorisation(
-            LedgerAuthorisationInitiatedEvent event) {
+            LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
 
-        return newBuilder(event.paymentId(), PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION)
-                .setAmount(event.amount().toPlainString())
-                .setCurrency(event.fromCurrency())
-                .setCustomerAccountId(event.sourceAccountId().toString())
-                .setCounterpartyCustomerAccountId(event.destinationAccountId().toString())
+        return newBuilder(ledgerAuthorisationInitiatedEvent.paymentId(), PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION)
+                .setAmount(ledgerAuthorisationInitiatedEvent.amount().toPlainString())
+                .setCurrency(ledgerAuthorisationInitiatedEvent.fromCurrency())
+                .setCustomerAccountId(ledgerAuthorisationInitiatedEvent.sourceAccountId().toString())
+                .setCounterpartyCustomerAccountId(ledgerAuthorisationInitiatedEvent.destinationAccountId().toString())
                 .build();
     }
 
     private static LedgerPostingRequestedEvent toCrossCurrencyTransferAuthorisation(
-            LedgerAuthorisationInitiatedEvent event) {
+            LedgerAuthorisationInitiatedEvent ledgerAuthorisationInitiatedEvent) {
 
-        return newBuilder(event.paymentId(), PostingInstructionType.CROSS_CURRENCY_TRANSFER_AUTHORISATION)
-                .setAmount(event.amount().toPlainString())
-                .setCurrency(event.fromCurrency())
-                .setBuyAmount(event.convertedAmount().toPlainString())
-                .setBuyCurrency(event.toCurrency())
-                .setCustomerAccountId(event.sourceAccountId().toString())
-                .setCounterpartyCustomerAccountId(event.destinationAccountId().toString())
+        return newBuilder(ledgerAuthorisationInitiatedEvent.paymentId(), PostingInstructionType.CROSS_CURRENCY_TRANSFER_AUTHORISATION)
+                .setAmount(ledgerAuthorisationInitiatedEvent.amount().toPlainString())
+                .setCurrency(ledgerAuthorisationInitiatedEvent.fromCurrency())
+                .setBuyAmount(ledgerAuthorisationInitiatedEvent.convertedAmount().toPlainString())
+                .setBuyCurrency(ledgerAuthorisationInitiatedEvent.toCurrency())
+                .setCustomerAccountId(ledgerAuthorisationInitiatedEvent.sourceAccountId().toString())
+                .setCounterpartyCustomerAccountId(ledgerAuthorisationInitiatedEvent.destinationAccountId().toString())
                 .build();
     }
 
