@@ -2,54 +2,76 @@ package org.banksolution.infrastructure.messaging.kafka.handler;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
-import org.banksolution.fixtures.AvroEventFixtures;
-import org.banksolution.fixtures.PaymentFixtures;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.banksolution.fixtures.AvroEventFixtures.createDepositPaymentCreatedEvent;
+import static org.banksolution.fixtures.AvroEventFixtures.createPaymentCreatedEvent;
+import static org.banksolution.fixtures.PaymentFixtures.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class PaymentCreatedEventHandlerTest {
 
+    @Mock
     private CommandGateway commandGateway;
-    private PaymentCreatedEventHandler handler;
 
-    @BeforeEach
-    void setUp() {
-        commandGateway = mock(CommandGateway.class);
-        handler = new PaymentCreatedEventHandler(commandGateway);
+    @InjectMocks
+    private PaymentCreatedEventHandler paymentCreatedEventHandler;
+
+    @Test
+    void shouldInitiateThePaymentSynchronouslyFromTheAvroEvent() {
+        paymentCreatedEventHandler.handle(createPaymentCreatedEvent());
+
+        ArgumentCaptor<InitiatePaymentCommand> initiatePaymentCommandCaptor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);
+        verify(commandGateway).sendAndWait(initiatePaymentCommandCaptor.capture());
+
+        InitiatePaymentCommand initiatePaymentCommand = initiatePaymentCommandCaptor.getValue();
+        assertThat(initiatePaymentCommand.paymentId()).isEqualTo(createPaymentId());
+        assertThat(initiatePaymentCommand.customerId()).isEqualTo(CUSTOMER_ID);
+        assertThat(initiatePaymentCommand.sourceAccountId()).isEqualTo(SOURCE_ACCOUNT_ID);
+        assertThat(initiatePaymentCommand.destinationAccountId()).isEqualTo(DESTINATION_ACCOUNT_ID);
+        assertThat(initiatePaymentCommand.amount()).isEqualByComparingTo(AMOUNT);
+        assertThat(initiatePaymentCommand.convertedAmount()).isEqualByComparingTo(CONVERTED_AMOUNT);
+        assertThat(initiatePaymentCommand.appliedExchangeRate()).isEqualByComparingTo(EXCHANGE_RATE);
+        assertThat(initiatePaymentCommand.fromCurrency()).isEqualTo(FROM_CURRENCY);
+        assertThat(initiatePaymentCommand.toCurrency()).isEqualTo(TO_CURRENCY);
+        assertThat(initiatePaymentCommand.paymentType()).isEqualTo(PAYMENT_TYPE);
+        assertThat(initiatePaymentCommand.paymentScheme()).isEqualTo(PAYMENT_SCHEME);
+        assertThat(initiatePaymentCommand.fixedSide()).isEqualTo(FIXED_SIDE);
+        assertThat(initiatePaymentCommand.isCrossBorderPayment()).isFalse();
+        assertThat(initiatePaymentCommand.description()).isEqualTo(DESCRIPTION);
     }
 
     @Test
-    void shouldDispatchInitiatePaymentCommandFromAvroEvent() {
-        handler.handle(AvroEventFixtures.createPaymentCreatedEvent());
+    void shouldMapNullableAccountsAndExchangeRateForADeposit() {
+        paymentCreatedEventHandler.handle(createDepositPaymentCreatedEvent());
 
-        ArgumentCaptor<InitiatePaymentCommand> captor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);
-        verify(commandGateway).send(captor.capture());
+        ArgumentCaptor<InitiatePaymentCommand> initiatePaymentCommandCaptor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);
+        verify(commandGateway).sendAndWait(initiatePaymentCommandCaptor.capture());
 
-        InitiatePaymentCommand command = captor.getValue();
-        assertThat(command.paymentId().getIdentifier()).isEqualTo(PaymentFixtures.PAYMENT_UUID);
-        assertThat(command.customerId()).isEqualTo(PaymentFixtures.CUSTOMER_ID);
-        assertThat(command.sourceAccountId()).isEqualTo(PaymentFixtures.SOURCE_ACCOUNT_ID);
-        assertThat(command.amount()).isEqualByComparingTo(PaymentFixtures.AMOUNT);
-        assertThat(command.paymentType()).isEqualTo(PaymentFixtures.PAYMENT_TYPE);
-        assertThat(command.isCrossBorderPayment()).isFalse();
+        InitiatePaymentCommand initiatePaymentCommand = initiatePaymentCommandCaptor.getValue();
+        assertThat(initiatePaymentCommand.sourceAccountId()).isNull();
+        assertThat(initiatePaymentCommand.destinationAccountId()).isEqualTo(DESTINATION_ACCOUNT_ID);
+        assertThat(initiatePaymentCommand.appliedExchangeRate()).isNull();
+        assertThat(initiatePaymentCommand.description()).isNull();
+        assertThat(initiatePaymentCommand.paymentType()).isEqualTo("DEPOSIT");
+        assertThat(initiatePaymentCommand.paymentScheme()).isEqualTo("EXTERNAL_INBOUND");
     }
 
     @Test
-    void shouldMapNullableAccountsAndExchangeRateForDeposit() {
-        handler.handle(AvroEventFixtures.createDepositPaymentCreatedEvent());
+    void shouldLetACommandRejectionSurfaceInsteadOfSwallowingIt() {
+        IllegalStateException commandRejection = new IllegalStateException("aggregate already exists");
+        when(commandGateway.sendAndWait(any(InitiatePaymentCommand.class))).thenThrow(commandRejection);
 
-        ArgumentCaptor<InitiatePaymentCommand> captor = ArgumentCaptor.forClass(InitiatePaymentCommand.class);
-        verify(commandGateway).send(captor.capture());
-
-        InitiatePaymentCommand command = captor.getValue();
-        assertThat(command.sourceAccountId()).isNull();
-        assertThat(command.destinationAccountId()).isEqualTo(PaymentFixtures.DESTINATION_ACCOUNT_ID);
-        assertThat(command.appliedExchangeRate()).isNull();
-        assertThat(command.paymentType()).isEqualTo("DEPOSIT");
+        assertThatThrownBy(() -> paymentCreatedEventHandler.handle(createPaymentCreatedEvent())).isSameAs(commandRejection);
     }
 }

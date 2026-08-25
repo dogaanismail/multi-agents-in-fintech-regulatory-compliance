@@ -2,26 +2,20 @@ package org.banksolution.fixtures;
 
 import org.banksolution.domain.payment.command.*;
 import org.banksolution.domain.payment.event.*;
-import org.banksolution.domain.payment.command.ApproveFraudCheckCommand;
-import org.banksolution.domain.payment.command.ApproveManualReviewCommand;
-import org.banksolution.domain.payment.command.BlockPaymentCommand;
-import org.banksolution.domain.payment.command.InitiatePaymentCommand;
-import org.banksolution.domain.payment.command.OverrideDecisionCommand;
-import org.banksolution.domain.payment.command.RejectManualReviewCommand;
-import org.banksolution.domain.payment.command.RequestManualReviewCommand;
-import org.banksolution.domain.payment.event.FraudCheckApprovedEvent;
-import org.banksolution.domain.payment.event.ManualReviewRequestedEvent;
-import org.banksolution.domain.payment.event.PaymentBlockedEvent;
-import org.banksolution.domain.payment.event.PaymentCompletedEvent;
-import org.banksolution.domain.payment.event.PaymentInitiatedEvent;
-import org.banksolution.domain.payment.event.RiskAssessmentCompletedEvent;
-import org.banksolution.domain.payment.event.RiskAssessmentInitiatedEvent;
+import org.banksolution.domain.payment.query.PaymentResponse;
+import org.banksolution.domain.payment.valueobject.AgentObservation;
+import org.banksolution.domain.payment.valueobject.FeatureContribution;
+import org.banksolution.domain.payment.valueobject.MarlAssessment;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
+import org.banksolution.enums.FraudAnalysisStatus;
 import org.banksolution.enums.PaymentStatus;
+import org.banksolution.enums.PaymentType;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public final class PaymentFixtures {
@@ -41,6 +35,12 @@ public final class PaymentFixtures {
     public static final String DESCRIPTION = "Test payment";
     public static final UUID AUTHORISATION_TRANSFER_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
     public static final UUID SETTLEMENT_TRANSFER_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
+    public static final String OFFICER = "officer-1";
+    public static final String APPROVAL_NOTES = "Looks legitimate";
+    public static final String REJECTION_REASON = "Confirmed fraud";
+    public static final String OVERRIDE_REASON = "False positive";
+    public static final Instant INITIATED_AT = Instant.parse("2026-08-26T10:00:00Z");
+    public static final Instant COMPLETED_AT = Instant.parse("2026-08-26T10:00:05Z");
 
     private PaymentFixtures() {
     }
@@ -51,6 +51,37 @@ public final class PaymentFixtures {
 
     public static RiskAssessment createRiskAssessment(String action, String level, double score) {
         return new RiskAssessment("risk-req-1", score, level, action, List.of("NONE"), "model-v1", 12L, null);
+    }
+
+    public static RiskAssessment createRiskAssessmentWithMarl(String action, String level, double score) {
+        return new RiskAssessment("risk-req-1", score, level, action, List.of("VELOCITY"), "model-v1", 12L,
+                createMarlAssessment());
+    }
+
+    public static MarlAssessment createMarlAssessment() {
+        return new MarlAssessment(
+                "marl-req-1",
+                "BLOCK",
+                0.91,
+                0.42,
+                createAgentObservation("transaction-pattern-agent"),
+                createAgentObservation("customer-risk-agent"),
+                createAgentObservation("network-analysis-agent"),
+                Map.of("transaction", 0.5, "customer", 0.3, "network", 0.2),
+                34L,
+                "inference");
+    }
+
+    public static AgentObservation createAgentObservation(String agentName) {
+        return new AgentObservation(
+                agentName,
+                true,
+                0.88,
+                0.77,
+                "HIGH",
+                12.5,
+                List.of(new FeatureContribution("amount", "100.00", 0.31, "increase")),
+                0.05);
     }
 
     public static RiskAssessment createProceedAssessment() {
@@ -97,23 +128,16 @@ public final class PaymentFixtures {
     }
 
     public static ApproveManualReviewCommand createApproveManualReviewCommand() {
-        return new ApproveManualReviewCommand(createPaymentId(), "officer-1", "Looks legitimate");
+        return new ApproveManualReviewCommand(createPaymentId(), OFFICER, APPROVAL_NOTES);
     }
 
     public static RejectManualReviewCommand createRejectManualReviewCommand() {
-        return new RejectManualReviewCommand(createPaymentId(), "officer-1", "Confirmed fraud");
+        return new RejectManualReviewCommand(createPaymentId(), OFFICER, REJECTION_REASON);
     }
-
-    public static OverrideDecisionCommand createOverrideDecisionCommand() {
-        return new OverrideDecisionCommand(createPaymentId(), "officer-1", "False positive", true);
-    }
-
 
     public static OverrideDecisionCommand createOverrideDecisionCommand(boolean approvePayment) {
-        return new OverrideDecisionCommand(createPaymentId(), "officer-1", "False positive", approvePayment);
+        return new OverrideDecisionCommand(createPaymentId(), OFFICER, OVERRIDE_REASON, approvePayment);
     }
-
-
 
     public static PaymentInitiatedEvent createPaymentInitiatedEvent() {
         return new PaymentInitiatedEvent(
@@ -157,26 +181,35 @@ public final class PaymentFixtures {
     }
 
     public static ManualReviewRequestedEvent createManualReviewRequestedEvent(RiskAssessment riskAssessment) {
-        return new ManualReviewRequestedEvent(createPaymentId(), riskAssessment.riskScore(), null, riskAssessment);
+        return new ManualReviewRequestedEvent(createPaymentId(), riskAssessment.riskScore(), maddpgQValue(riskAssessment), riskAssessment);
     }
 
     public static PaymentBlockedEvent createPaymentBlockedEvent(RiskAssessment riskAssessment) {
         String reason = String.format("Risk level: %s, Risk score: %s",
                 riskAssessment.riskLevel(), riskAssessment.riskScore());
-        return new PaymentBlockedEvent(createPaymentId(), reason, riskAssessment.riskScore(), null, riskAssessment);
+        return new PaymentBlockedEvent(createPaymentId(), reason, riskAssessment.riskScore(), maddpgQValue(riskAssessment), riskAssessment);
     }
 
+    private static Double maddpgQValue(RiskAssessment riskAssessment) {
+        return riskAssessment.marlAssessment() != null ? riskAssessment.marlAssessment().maddpgQValue() : null;
+    }
 
     public static PaymentCompletedEvent createPaymentCompletedEvent(PaymentStatus finalStatus, String reason) {
         return new PaymentCompletedEvent(createPaymentId(), finalStatus, reason);
     }
-
 
     public static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEventWithoutAssessment() {
         return new RiskAssessmentCompletedEvent(createPaymentId(), null);
     }
 
     public static LedgerAuthorisationInitiatedEvent createLedgerAuthorisationInitiatedEvent() {
+        return createLedgerAuthorisationInitiatedEvent(PAYMENT_SCHEME, TO_CURRENCY);
+    }
+
+    public static LedgerAuthorisationInitiatedEvent createLedgerAuthorisationInitiatedEvent(
+            String paymentScheme,
+            String toCurrency) {
+
         return new LedgerAuthorisationInitiatedEvent(
                 createPaymentId(),
                 CUSTOMER_ID,
@@ -185,9 +218,9 @@ public final class PaymentFixtures {
                 AMOUNT,
                 FROM_CURRENCY,
                 CONVERTED_AMOUNT,
-                TO_CURRENCY,
+                toCurrency,
                 PAYMENT_TYPE,
-                PAYMENT_SCHEME,
+                paymentScheme,
                 DESCRIPTION
         );
     }
@@ -257,10 +290,62 @@ public final class PaymentFixtures {
     }
 
     public static ManualReviewApprovedEvent createManualReviewApprovedEvent() {
-        return new ManualReviewApprovedEvent(createPaymentId(), "officer-1", "Looks legitimate");
+        return new ManualReviewApprovedEvent(createPaymentId(), OFFICER, APPROVAL_NOTES);
     }
 
     public static ManualReviewRejectedEvent createManualReviewRejectedEvent() {
-        return new ManualReviewRejectedEvent(createPaymentId(), "officer-1", "Confirmed fraud");
+        return new ManualReviewRejectedEvent(createPaymentId(), OFFICER, REJECTION_REASON);
+    }
+
+    public static DecisionOverriddenEvent createDecisionOverriddenEvent(boolean approvePayment, String originalStatus) {
+        return new DecisionOverriddenEvent(createPaymentId(), OFFICER, OVERRIDE_REASON, approvePayment, originalStatus);
+    }
+
+    public static PaymentResponse createPaymentResponse(
+            PaymentStatus paymentStatus,
+            FraudAnalysisStatus fraudAnalysisStatus,
+            RiskAssessment riskAssessment) {
+
+        return new PaymentResponse(
+                PAYMENT_UUID.toString(),
+                "PAY-11111111",
+                CUSTOMER_ID.toString(),
+                SOURCE_ACCOUNT_ID.toString(),
+                DESTINATION_ACCOUNT_ID.toString(),
+                AMOUNT,
+                FROM_CURRENCY,
+                TO_CURRENCY,
+                CONVERTED_AMOUNT,
+                EXCHANGE_RATE,
+                PaymentType.TRANSFER_OUT,
+                PAYMENT_SCHEME,
+                DESCRIPTION,
+                false,
+                paymentStatus,
+                fraudAnalysisStatus,
+                riskAssessment,
+                7L,
+                INITIATED_AT,
+                INITIATED_AT.plusSeconds(1),
+                INITIATED_AT.plusSeconds(2),
+                INITIATED_AT.plusSeconds(2),
+                null,
+                null,
+                null,
+                INITIATED_AT,
+                INITIATED_AT.plusSeconds(1),
+                INITIATED_AT.plusSeconds(3),
+                INITIATED_AT.plusSeconds(4),
+                null,
+                null,
+                COMPLETED_AT,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 }

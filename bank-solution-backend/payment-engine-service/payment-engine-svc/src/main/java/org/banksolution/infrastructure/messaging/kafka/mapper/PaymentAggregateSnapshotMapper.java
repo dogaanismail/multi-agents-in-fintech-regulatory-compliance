@@ -14,55 +14,55 @@ import java.time.Instant;
 @UtilityClass
 public class PaymentAggregateSnapshotMapper {
 
-    public static PaymentSnapshotEvent toSnapshot(PaymentResponse payment, String eventTrigger) {
+    public static PaymentSnapshotEvent toSnapshot(PaymentResponse paymentResponse, String eventTrigger) {
         return PaymentSnapshotEvent.newBuilder()
-                .setPaymentId(payment.paymentId())
-                .setReferenceNumber(payment.referenceNumber())
-                .setCustomerId(payment.customerId())
-                .setSourceAccountId(payment.sourceAccountId())
-                .setDestinationAccountId(payment.destinationAccountId())
-                .setAmount(payment.amount().toString())
-                .setFromCurrency(payment.fromCurrency())
-                .setToCurrency(payment.toCurrency())
-                .setConvertedAmount(payment.convertedAmount().toString())
-                .setAppliedExchangeRate(payment.appliedExchangeRate() != null ? payment.appliedExchangeRate().toString() : null)
-                .setPaymentScheme(mapPaymentScheme(payment.paymentScheme()))
-                .setPaymentType(payment.paymentType().name())
-                .setDescription(payment.description())
-                .setStatus(mapPaymentStatus(payment.status()))
-                .setFraudStatus(mapFraudStatus(payment.fraudStatus()))
-                .setRiskAssessment(mapRiskAssessment(payment.riskAssessment()))
+                .setPaymentId(paymentResponse.paymentId())
+                .setReferenceNumber(paymentResponse.referenceNumber())
+                .setCustomerId(paymentResponse.customerId())
+                .setSourceAccountId(paymentResponse.sourceAccountId())
+                .setDestinationAccountId(paymentResponse.destinationAccountId())
+                .setAmount(paymentResponse.amount().toString())
+                .setFromCurrency(paymentResponse.fromCurrency())
+                .setToCurrency(paymentResponse.toCurrency())
+                .setConvertedAmount(paymentResponse.convertedAmount().toString())
+                .setAppliedExchangeRate(paymentResponse.appliedExchangeRate() != null ? paymentResponse.appliedExchangeRate().toString() : null)
+                .setPaymentScheme(mapPaymentScheme(paymentResponse.paymentScheme()))
+                .setPaymentType(paymentResponse.paymentType().name())
+                .setDescription(paymentResponse.description())
+                .setStatus(mapPaymentStatus(paymentResponse.status()))
+                .setFraudStatus(mapFraudStatus(paymentResponse.fraudStatus()))
+                .setRiskAssessment(mapRiskAssessment(paymentResponse.riskAssessment()))
                 .setEventTrigger(eventTrigger)
                 .setSnapshotTimestamp(Instant.now().toEpochMilli())
                 .setVersion(0) //TODO: Check version for axon
 
                 // Lifecycle timestamps
-                .setInitiatedAt(toEpochMillis(payment.initiatedAt()))
-                .setRiskCheckRequestedAt(toEpochMillis(payment.riskAssessmentRequestedAt()))
-                .setRiskCheckCompletedAt(toEpochMillis(payment.riskAssessmentCompletedAt()))
-                .setFraudCheckApprovedAt(toEpochMillis(payment.fraudCheckApprovedAt()))
-                .setManualReviewRequestedAt(toEpochMillis(payment.manualReviewRequestedAt()))
-                .setManualReviewApprovedAt(toEpochMillis(payment.manualReviewApprovedAt()))
-                .setManualReviewRejectedAt(toEpochMillis(payment.manualReviewRejectedAt()))
-                .setLedgerAuthorisationInitiatedAt(toEpochMillis(payment.ledgerAuthorisationInitiatedAt()))
-                .setLedgerAuthorisedAt(toEpochMillis(payment.ledgerAuthorisedAt()))
-                .setLedgerSettlementInitiatedAt(toEpochMillis(payment.ledgerSettlementInitiatedAt()))
-                .setLedgerSettledAt(toEpochMillis(payment.ledgerSettledAt()))
-                .setLedgerReleaseInitiatedAt(toEpochMillis(payment.ledgerReleaseInitiatedAt()))
-                .setLedgerReleasedAt(toEpochMillis(payment.ledgerReleasedAt()))
-                .setCompletedAt(toEpochMillis(payment.completedAt()))
-                .setBlockedAt(toEpochMillis(payment.blockedAt()))
+                .setInitiatedAt(toEpochMillis(paymentResponse.initiatedAt()))
+                .setRiskCheckRequestedAt(toEpochMillis(paymentResponse.riskAssessmentRequestedAt()))
+                .setRiskCheckCompletedAt(toEpochMillis(paymentResponse.riskAssessmentCompletedAt()))
+                .setFraudCheckApprovedAt(toEpochMillis(paymentResponse.fraudCheckApprovedAt()))
+                .setManualReviewRequestedAt(toEpochMillis(paymentResponse.manualReviewRequestedAt()))
+                .setManualReviewApprovedAt(toEpochMillis(paymentResponse.manualReviewApprovedAt()))
+                .setManualReviewRejectedAt(toEpochMillis(paymentResponse.manualReviewRejectedAt()))
+                .setLedgerAuthorisationInitiatedAt(toEpochMillis(paymentResponse.ledgerAuthorisationInitiatedAt()))
+                .setLedgerAuthorisedAt(toEpochMillis(paymentResponse.ledgerAuthorisedAt()))
+                .setLedgerSettlementInitiatedAt(toEpochMillis(paymentResponse.ledgerSettlementInitiatedAt()))
+                .setLedgerSettledAt(toEpochMillis(paymentResponse.ledgerSettledAt()))
+                .setLedgerReleaseInitiatedAt(toEpochMillis(paymentResponse.ledgerReleaseInitiatedAt()))
+                .setLedgerReleasedAt(toEpochMillis(paymentResponse.ledgerReleasedAt()))
+                .setCompletedAt(toEpochMillis(paymentResponse.completedAt()))
+                .setBlockedAt(toEpochMillis(paymentResponse.blockedAt()))
 
                 // Decision metadata
-                .setManualReviewedBy(payment.manualReviewedBy())
-                .setManualReviewNotes(payment.manualReviewNotes())
-                .setBlockReason(payment.blockReason())
-                .setFailureReason(payment.failureReason())
+                .setManualReviewedBy(paymentResponse.manualReviewedBy())
+                .setManualReviewNotes(paymentResponse.manualReviewNotes())
+                .setBlockReason(paymentResponse.blockReason())
+                .setFailureReason(paymentResponse.failureReason())
 
                 // Decision override metadata
-                .setDecisionOverriddenBy(payment.decisionOverriddenBy())
-                .setDecisionOverrideReason(payment.decisionOverrideReason())
-                .setDecisionOverriddenAt(toEpochMillis(payment.decisionOverriddenAt()))
+                .setDecisionOverriddenBy(paymentResponse.decisionOverriddenBy())
+                .setDecisionOverrideReason(paymentResponse.decisionOverrideReason())
+                .setDecisionOverriddenAt(toEpochMillis(paymentResponse.decisionOverriddenAt()))
 
                 .build();
     }
@@ -71,11 +71,8 @@ public class PaymentAggregateSnapshotMapper {
         return paymentScheme == null ? null : com.aml.payment.PaymentScheme.valueOf(paymentScheme);
     }
 
-    private static com.aml.payment.PaymentStatus mapPaymentStatus(PaymentStatus status) {
-        if (status == null) {
-            return null;
-        }
-        return switch (status) {
+    private static com.aml.payment.PaymentStatus mapPaymentStatus(PaymentStatus paymentStatus) {
+        return switch (paymentStatus) {
             case INITIATED -> com.aml.payment.PaymentStatus.INITIATED;
             case AUTHORISATION_PENDING -> com.aml.payment.PaymentStatus.AUTHORISATION_PENDING;
             case AUTHORISED -> com.aml.payment.PaymentStatus.AUTHORISED;
@@ -96,11 +93,8 @@ public class PaymentAggregateSnapshotMapper {
         };
     }
 
-    private static FraudCheckStatus mapFraudStatus(FraudAnalysisStatus fraudStatus) {
-        if (fraudStatus == null) {
-            return null;
-        }
-        return switch (fraudStatus) {
+    private static FraudCheckStatus mapFraudStatus(FraudAnalysisStatus fraudAnalysisStatus) {
+        return switch (fraudAnalysisStatus) {
             case PENDING -> FraudCheckStatus.PENDING;
             case APPROVED -> FraudCheckStatus.APPROVED;
             case BLOCKED -> FraudCheckStatus.BLOCKED;
@@ -109,89 +103,77 @@ public class PaymentAggregateSnapshotMapper {
         };
     }
 
-    private static RiskAssessmentSnapshot mapRiskAssessment(RiskAssessment risk) {
-        if (risk == null) {
+    private static RiskAssessmentSnapshot mapRiskAssessment(RiskAssessment riskAssessment) {
+        if (riskAssessment == null) {
             return null;
         }
 
         return RiskAssessmentSnapshot.newBuilder()
-                .setRiskScore(risk.riskScore())
-                .setRiskLevel(risk.riskLevel())
-                .setRiskAction(risk.riskAction())
-                .setFraudIndicators(risk.fraudIndicators())
-                .setMlModelVersion(risk.mlModelVersion())
-                .setProcessingTimeMs(risk.processingTimeMs())
-                .setMarlAssessment(mapMarlAssessment(risk.marlAssessment()))
+                .setRiskScore(riskAssessment.riskScore())
+                .setRiskLevel(riskAssessment.riskLevel())
+                .setRiskAction(riskAssessment.riskAction())
+                .setFraudIndicators(riskAssessment.fraudIndicators())
+                .setMlModelVersion(riskAssessment.mlModelVersion())
+                .setProcessingTimeMs(riskAssessment.processingTimeMs())
+                .setMarlAssessment(mapMarlAssessment(riskAssessment.marlAssessment()))
                 .build();
     }
 
-    private static MarlAssessmentSnapshot mapMarlAssessment(MarlAssessment marl) {
-        if (marl == null) {
+    private static MarlAssessmentSnapshot mapMarlAssessment(MarlAssessment marlAssessment) {
+        if (marlAssessment == null) {
             return null;
         }
 
         return MarlAssessmentSnapshot.newBuilder()
-                .setRequestId(marl.requestId())
-                .setAction(marl.action())
-                .setConfidence(marl.confidence())
-                .setMaddpgQValue(marl.maddpgQValue())
-                .setTransactionAgentObservation(mapTransactionAgentObservation(marl.transactionAgentObservation()))
-                .setCustomerAgentObservation(mapCustomerAgentObservation(marl.customerAgentObservation()))
-                .setNetworkAgentObservation(mapNetworkAgentObservation(marl.networkAgentObservation()))
-                .setAgentContributions(marl.agentContributions())
-                .setProcessingTimeMs(marl.processingTimeMs().doubleValue())
-                .setMode(marl.mode())
+                .setRequestId(marlAssessment.requestId())
+                .setAction(marlAssessment.action())
+                .setConfidence(marlAssessment.confidence())
+                .setMaddpgQValue(marlAssessment.maddpgQValue())
+                .setTransactionAgentObservation(mapTransactionAgentObservation(marlAssessment.transactionAgentObservation()))
+                .setCustomerAgentObservation(mapCustomerAgentObservation(marlAssessment.customerAgentObservation()))
+                .setNetworkAgentObservation(mapNetworkAgentObservation(marlAssessment.networkAgentObservation()))
+                .setAgentContributions(marlAssessment.agentContributions())
+                .setProcessingTimeMs(marlAssessment.processingTimeMs().doubleValue())
+                .setMode(marlAssessment.mode())
                 .build();
     }
 
-    private static TransactionAgentObservationSnapshot mapTransactionAgentObservation(AgentObservation obs) {
-        if (obs == null) {
-            return null;
-        }
-
+    private static TransactionAgentObservationSnapshot mapTransactionAgentObservation(AgentObservation agentObservation) {
         return TransactionAgentObservationSnapshot.newBuilder()
-                .setAgentName(obs.agentName())
-                .setIsSuspicious(obs.isSuspicious())
-                .setProbability(obs.probability())
-                .setRiskScore(obs.riskScore())
-                .setConfidence(obs.confidence())
-                .setResponseTimeMs(obs.responseTimeMs())
-                .setFeatureContributions(mapFeatureContributions(obs.featureContributions()))
-                .setShapBaseValue(obs.shapBaseValue())
+                .setAgentName(agentObservation.agentName())
+                .setIsSuspicious(agentObservation.isSuspicious())
+                .setProbability(agentObservation.probability())
+                .setRiskScore(agentObservation.riskScore())
+                .setConfidence(agentObservation.confidence())
+                .setResponseTimeMs(agentObservation.responseTimeMs())
+                .setFeatureContributions(mapFeatureContributions(agentObservation.featureContributions()))
+                .setShapBaseValue(agentObservation.shapBaseValue())
                 .build();
     }
 
-    private static CustomerAgentObservationSnapshot mapCustomerAgentObservation(AgentObservation obs) {
-        if (obs == null) {
-            return null;
-        }
-
+    private static CustomerAgentObservationSnapshot mapCustomerAgentObservation(AgentObservation agentObservation) {
         return CustomerAgentObservationSnapshot.newBuilder()
-                .setAgentName(obs.agentName())
-                .setIsSuspicious(obs.isSuspicious())
-                .setProbability(obs.probability())
-                .setRiskScore(obs.riskScore())
-                .setConfidence(obs.confidence())
-                .setResponseTimeMs(obs.responseTimeMs())
-                .setFeatureContributions(mapFeatureContributions(obs.featureContributions()))
-                .setShapBaseValue(obs.shapBaseValue())
+                .setAgentName(agentObservation.agentName())
+                .setIsSuspicious(agentObservation.isSuspicious())
+                .setProbability(agentObservation.probability())
+                .setRiskScore(agentObservation.riskScore())
+                .setConfidence(agentObservation.confidence())
+                .setResponseTimeMs(agentObservation.responseTimeMs())
+                .setFeatureContributions(mapFeatureContributions(agentObservation.featureContributions()))
+                .setShapBaseValue(agentObservation.shapBaseValue())
                 .build();
     }
 
-    private static NetworkAgentObservationSnapshot mapNetworkAgentObservation(AgentObservation obs) {
-        if (obs == null) {
-            return null;
-        }
-
+    private static NetworkAgentObservationSnapshot mapNetworkAgentObservation(AgentObservation agentObservation) {
         return NetworkAgentObservationSnapshot.newBuilder()
-                .setAgentName(obs.agentName())
-                .setIsSuspicious(obs.isSuspicious())
-                .setProbability(obs.probability())
-                .setRiskScore(obs.riskScore())
-                .setConfidence(obs.confidence())
-                .setResponseTimeMs(obs.responseTimeMs())
-                .setFeatureContributions(mapFeatureContributions(obs.featureContributions()))
-                .setShapBaseValue(obs.shapBaseValue())
+                .setAgentName(agentObservation.agentName())
+                .setIsSuspicious(agentObservation.isSuspicious())
+                .setProbability(agentObservation.probability())
+                .setRiskScore(agentObservation.riskScore())
+                .setConfidence(agentObservation.confidence())
+                .setResponseTimeMs(agentObservation.responseTimeMs())
+                .setFeatureContributions(mapFeatureContributions(agentObservation.featureContributions()))
+                .setShapBaseValue(agentObservation.shapBaseValue())
                 .build();
     }
 

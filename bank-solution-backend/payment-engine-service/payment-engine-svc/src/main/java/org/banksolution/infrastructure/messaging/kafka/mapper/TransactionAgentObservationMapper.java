@@ -6,16 +6,16 @@ import org.banksolution.domain.payment.valueobject.AgentObservation;
 @UtilityClass
 public class TransactionAgentObservationMapper {
 
-    public static AgentObservation toDomain(com.aml.risk.TransactionAgentObservation observation) {
+    public static AgentObservation toDomain(com.aml.risk.TransactionAgentObservation transactionAgentObservation) {
         return AgentObservationMapper.toAgentObservation(
-                observation.getAgentName(),
-                observation.getIsSuspicious(),
-                observation.getProbability(),
-                observation.getRiskScore(),
-                observation.getConfidence(),
-                observation.getResponseTimeMs(),
-                observation.getFeatureContributions(),
-                observation.getShapBaseValue()
+                transactionAgentObservation.getAgentName(),
+                transactionAgentObservation.getIsSuspicious(),
+                transactionAgentObservation.getProbability(),
+                transactionAgentObservation.getRiskScore(),
+                transactionAgentObservation.getConfidence(),
+                transactionAgentObservation.getResponseTimeMs(),
+                transactionAgentObservation.getFeatureContributions(),
+                transactionAgentObservation.getShapBaseValue()
         );
     }
 }

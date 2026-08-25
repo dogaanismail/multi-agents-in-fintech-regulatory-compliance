@@ -22,48 +22,54 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ComplianceFeedbackEventHandler {
 
+    private static final String APPROVE_DECISION = "APPROVE";
+    private static final String REJECT_DECISION = "REJECT";
+    private static final String UNKNOWN_MARL_ACTION = "UNKNOWN";
+
     private final ComplianceAgentManualFeedbackEventProducer complianceAgentManualFeedbackEventProducer;
     private final PaymentQueryService paymentQueryService;
 
     @EventHandler
     @AllowReplay
-    public void on(ManualReviewApprovedEvent event, EventMessage<?> eventMessage) {
-        if (CurrentUnitOfWork.isStarted()) {
-            CurrentUnitOfWork.get().afterCommit(uow ->
-                    publishManualReviewFeedback(event.paymentId().toString(), event.approvedBy(), "APPROVE", event.approvalNotes()));
-        } else {
-            publishManualReviewFeedback(event.paymentId().toString(), event.approvedBy(), "APPROVE", event.approvalNotes());
-        }
+    public void on(ManualReviewApprovedEvent manualReviewApprovedEvent, EventMessage<?> eventMessage) {
+        runAfterCommit(() -> publishManualReviewFeedback(
+                manualReviewApprovedEvent.paymentId().toString(),
+                manualReviewApprovedEvent.approvedBy(),
+                APPROVE_DECISION,
+                manualReviewApprovedEvent.approvalNotes()));
     }
 
     @EventHandler
     @AllowReplay
-    public void on(ManualReviewRejectedEvent event, EventMessage<?> eventMessage) {
-        if (CurrentUnitOfWork.isStarted()) {
-            CurrentUnitOfWork.get().afterCommit(uow ->
-                    publishManualReviewFeedback(event.paymentId().toString(), event.rejectedBy(), "REJECT", event.rejectionReason()));
-        } else {
-            publishManualReviewFeedback(event.paymentId().toString(), event.rejectedBy(), "REJECT", event.rejectionReason());
-        }
+    public void on(ManualReviewRejectedEvent manualReviewRejectedEvent, EventMessage<?> eventMessage) {
+        runAfterCommit(() -> publishManualReviewFeedback(
+                manualReviewRejectedEvent.paymentId().toString(),
+                manualReviewRejectedEvent.rejectedBy(),
+                REJECT_DECISION,
+                manualReviewRejectedEvent.rejectionReason()));
     }
 
     @EventHandler
     @AllowReplay
-    public void on(DecisionOverriddenEvent event, EventMessage<?> eventMessage) {
+    public void on(DecisionOverriddenEvent decisionOverriddenEvent, EventMessage<?> eventMessage) {
+        runAfterCommit(() -> publishOverrideFeedback(decisionOverriddenEvent));
+    }
+
+    private static void runAfterCommit(Runnable publication) {
         if (CurrentUnitOfWork.isStarted()) {
-            CurrentUnitOfWork.get().afterCommit(uow -> publishOverrideFeedback(event));
+            CurrentUnitOfWork.get().afterCommit(_ -> publication.run());
         } else {
-            publishOverrideFeedback(event);
+            publication.run();
         }
     }
 
     private void publishManualReviewFeedback(String paymentId, String reviewedBy, String officerDecision, String notes) {
         try {
-            PaymentResponse payment = paymentQueryService.findPaymentById(new PaymentId(UUID.fromString(paymentId)));
-            String originalMarlAction = payment.riskAssessment() != null
-                    && payment.riskAssessment().marlAssessment() != null
-                    ? payment.riskAssessment().marlAssessment().action()
-                    : "UNKNOWN";
+            PaymentResponse paymentResponse = paymentQueryService.findPaymentById(new PaymentId(UUID.fromString(paymentId)));
+            String originalMarlAction = paymentResponse.riskAssessment() != null
+                    && paymentResponse.riskAssessment().marlAssessment() != null
+                    ? paymentResponse.riskAssessment().marlAssessment().action()
+                    : UNKNOWN_MARL_ACTION;
             complianceAgentManualFeedbackEventProducer.publish(
                     paymentId,
                     "MANUAL_REVIEW",
@@ -72,29 +78,29 @@ public class ComplianceFeedbackEventHandler {
                     reviewedBy,
                     notes
             );
-        } catch (Exception e) {
-            log.error("Failed to publish manual review feedback for paymentId: {}", paymentId, e);
+        } catch (Exception exception) {
+            log.error("Failed to publish manual review feedback for paymentId: {}", paymentId, exception);
         }
     }
 
-    private void publishOverrideFeedback(DecisionOverriddenEvent event) {
+    private void publishOverrideFeedback(DecisionOverriddenEvent decisionOverriddenEvent) {
         try {
-            String officerDecision = event.approvePayment() ? "APPROVE" : "REJECT";
-            String originalMarlAction = switch (event.originalStatus()) {
+            String officerDecision = decisionOverriddenEvent.approvePayment() ? APPROVE_DECISION : REJECT_DECISION;
+            String originalMarlAction = switch (decisionOverriddenEvent.originalStatus()) {
                 case "COMPLETED" -> "ALLOW";
                 case "BLOCKED" -> "BLOCK";
-                default -> "UNKNOWN";
+                default -> UNKNOWN_MARL_ACTION;
             };
             complianceAgentManualFeedbackEventProducer.publish(
-                    event.paymentId().toString(),
+                    decisionOverriddenEvent.paymentId().toString(),
                     "DECISION_OVERRIDE",
                     originalMarlAction,
                     officerDecision,
-                    event.overriddenBy(),
-                    event.overrideReason()
+                    decisionOverriddenEvent.overriddenBy(),
+                    decisionOverriddenEvent.overrideReason()
             );
-        } catch (Exception e) {
-            log.error("Failed to publish override feedback for paymentId: {}", event.paymentId(), e);
+        } catch (Exception exception) {
+            log.error("Failed to publish override feedback for paymentId: {}", decisionOverriddenEvent.paymentId(), exception);
         }
     }
 }

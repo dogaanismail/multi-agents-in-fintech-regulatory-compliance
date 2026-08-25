@@ -8,18 +8,18 @@ import java.util.HashMap;
 @UtilityClass
 public class MarlAssessmentMapper {
 
-    public static MarlAssessment toDomain(com.aml.risk.MarlAssessment avroMarlAssessment) {
+    public static MarlAssessment toDomain(com.aml.risk.MarlAssessment marlAssessment) {
         return new MarlAssessment(
-                avroMarlAssessment.getRequestId(),
-                avroMarlAssessment.getAction().toString(),
-                avroMarlAssessment.getConfidence(),
-                avroMarlAssessment.getMaddpgQValue(),
-                TransactionAgentObservationMapper.toDomain(avroMarlAssessment.getTransactionAgentObservation()),
-                CustomerAgentObservationMapper.toDomain(avroMarlAssessment.getCustomerAgentObservation()),
-                NetworkAgentObservationMapper.toDomain(avroMarlAssessment.getNetworkAgentObservation()),
-                new HashMap<>(avroMarlAssessment.getAgentContributions()),
-                (long) avroMarlAssessment.getProcessingTimeMs(),
-                avroMarlAssessment.getMode()
+                marlAssessment.getRequestId(),
+                marlAssessment.getAction().toString(),
+                marlAssessment.getConfidence(),
+                marlAssessment.getMaddpgQValue(),
+                TransactionAgentObservationMapper.toDomain(marlAssessment.getTransactionAgentObservation()),
+                CustomerAgentObservationMapper.toDomain(marlAssessment.getCustomerAgentObservation()),
+                NetworkAgentObservationMapper.toDomain(marlAssessment.getNetworkAgentObservation()),
+                new HashMap<>(marlAssessment.getAgentContributions()),
+                (long) marlAssessment.getProcessingTimeMs(),
+                marlAssessment.getMode()
         );
     }
 }

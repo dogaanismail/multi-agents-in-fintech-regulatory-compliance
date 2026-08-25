@@ -25,33 +25,33 @@ public class RiskAssessmentCompletedEventConsumer {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(
-            @Payload RiskAssessmentCompletedEvent event,
+            @Payload RiskAssessmentCompletedEvent riskAssessmentCompletedEvent,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
         log.info("Consumed RiskAssessmentCompletedEvent: riskCheckRequestId:{}, paymentId:{}, action:{}, partition:{}, offset:{}",
-                event.getRiskCheckRequestId(),
-                event.getPaymentId(),
-                event.getAction(),
+                riskAssessmentCompletedEvent.getRiskCheckRequestId(),
+                riskAssessmentCompletedEvent.getPaymentId(),
+                riskAssessmentCompletedEvent.getAction(),
                 partition,
                 offset);
 
         try {
-            riskAssessmentCompletedEventHandler.handle(event);
+            riskAssessmentCompletedEventHandler.handle(riskAssessmentCompletedEvent);
             acknowledgment.acknowledge();
             log.info("Successfully processed RiskAssessmentCompletedEvent for paymentId:{} and riskCheckRequestId:{}",
-                    event.getPaymentId(),
-                    event.getRiskCheckRequestId());
-        } catch (Exception e) {
+                    riskAssessmentCompletedEvent.getPaymentId(),
+                    riskAssessmentCompletedEvent.getRiskCheckRequestId());
+        } catch (Exception exception) {
             log.error("Failed to process RiskAssessmentCompletedEvent for paymentId:{} and riskCheckRequestId:{}",
-                    event.getRiskCheckRequestId(),
-                    event.getPaymentId(),
-                    e);
+                    riskAssessmentCompletedEvent.getPaymentId(),
+                    riskAssessmentCompletedEvent.getRiskCheckRequestId(),
+                    exception);
             throw new RiskAssessmentCompletedEventException("Failed to process RiskAssessmentCompletedEvent for paymentId: %s and riskCheckRequestId: %s",
-                    e,
-                    event.getPaymentId(),
-                    event.getRiskCheckRequestId());
+                    exception,
+                    riskAssessmentCompletedEvent.getPaymentId(),
+                    riskAssessmentCompletedEvent.getRiskCheckRequestId());
         }
     }
 }

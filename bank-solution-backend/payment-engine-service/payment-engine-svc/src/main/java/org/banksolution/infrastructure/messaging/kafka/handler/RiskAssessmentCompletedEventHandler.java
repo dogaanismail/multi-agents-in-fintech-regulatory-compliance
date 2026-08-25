@@ -19,14 +19,14 @@ public class RiskAssessmentCompletedEventHandler {
 
     private final EventGateway eventGateway;
 
-    public void handle(com.aml.risk.RiskAssessmentCompletedEvent event) {
-        log.info("Received risk assessment completed event for payment: {}, riskCheckRequestId: {}. action: {}",
-                event.getPaymentId(),
-                event.getRiskCheckRequestId(),
-                event.getAction());
+    public void handle(com.aml.risk.RiskAssessmentCompletedEvent riskAssessmentCompletedAvroEvent) {
+        log.info("Received risk assessment completed riskAssessmentCompletedAvroEvent for payment: {}, riskCheckRequestId: {}. action: {}",
+                riskAssessmentCompletedAvroEvent.getPaymentId(),
+                riskAssessmentCompletedAvroEvent.getRiskCheckRequestId(),
+                riskAssessmentCompletedAvroEvent.getAction());
 
-        PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
-        RiskAssessment riskAssessment = toRiskAssessment(event);
+        PaymentId paymentId = new PaymentId(UUID.fromString(riskAssessmentCompletedAvroEvent.getPaymentId()));
+        RiskAssessment riskAssessment = toRiskAssessment(riskAssessmentCompletedAvroEvent);
 
         eventGateway.publish(new RiskAssessmentCompletedEvent(paymentId, riskAssessment));
 

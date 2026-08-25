@@ -4,7 +4,6 @@ import org.axonframework.test.saga.SagaTestFixture;
 import org.banksolution.domain.payment.command.ApproveFraudCheckCommand;
 import org.banksolution.domain.payment.command.BlockPaymentCommand;
 import org.banksolution.domain.payment.command.RequestManualReviewCommand;
-import org.banksolution.domain.payment.event.RiskAssessmentInitiatedEvent;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.banksolution.enums.PaymentStatus;
 import org.banksolution.infrastructure.messaging.kafka.producer.RiskAssessmentRequestedEventProducer;
@@ -13,24 +12,13 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
-import static org.banksolution.fixtures.PaymentFixtures.createBlockAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createEscalateAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createExpireRiskAssessmentCommand;
-import static org.banksolution.fixtures.PaymentFixtures.createFraudCheckApprovedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createManualReviewRequestedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentBlockedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentCompletedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createPaymentId;
-import static org.banksolution.fixtures.PaymentFixtures.createProceedAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentCompletedEvent;
-import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentCompletedEventWithoutAssessment;
-import static org.banksolution.fixtures.PaymentFixtures.createRiskAssessmentInitiatedEvent;
-import static org.mockito.ArgumentMatchers.any;
+import static org.banksolution.fixtures.PaymentFixtures.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class PaymentRiskSagaTest {
+
+    private static final Duration PAST_THE_RISK_TIMEOUT = Duration.ofMinutes(2);
 
     private SagaTestFixture<PaymentRiskSaga> fixture;
     private RiskAssessmentRequestedEventProducer riskAssessmentRequestedEventProducer;
@@ -43,41 +31,43 @@ class PaymentRiskSagaTest {
     }
 
     @Test
-    void shouldStartSagaAndPublishRiskAssessmentRequest() {
-        RiskAssessmentInitiatedEvent event = createRiskAssessmentInitiatedEvent();
-
+    void shouldStartSagaPublishTheRequestAndArmTheTimeout() {
         fixture.givenNoPriorActivity()
-                .whenPublishingA(event)
-                .expectActiveSagas(1);
+                .whenPublishingA(createRiskAssessmentInitiatedEvent())
+                .expectActiveSagas(1)
+                .expectScheduledDeadlineWithName(Duration.ofMinutes(1), "risk-assessment-timeout");
 
-        verify(riskAssessmentRequestedEventProducer).publishRiskAssessmentRequestedEvent(any(RiskAssessmentInitiatedEvent.class));
+        verify(riskAssessmentRequestedEventProducer).publishRiskAssessmentRequestedEvent(createRiskAssessmentInitiatedEvent());
     }
 
     @Test
-    void shouldDispatchApproveFraudCheckOnProceedAction() {
+    void shouldApproveTheFraudCheckAndCancelTheTimeoutOnProceed() {
         RiskAssessment riskAssessment = createProceedAssessment();
 
         fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
                 .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
                 .expectActiveSagas(1)
+                .expectNoScheduledDeadlines()
                 .expectDispatchedCommands(new ApproveFraudCheckCommand(createPaymentId(), riskAssessment));
     }
 
     @Test
-    void shouldDispatchRequestManualReviewOnEscalateAction() {
+    void shouldRequestManualReviewOnEscalate() {
         RiskAssessment riskAssessment = createEscalateAssessment();
 
         fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
                 .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
+                .expectNoScheduledDeadlines()
                 .expectDispatchedCommands(new RequestManualReviewCommand(createPaymentId(), riskAssessment));
     }
 
     @Test
-    void shouldDispatchBlockPaymentOnBlockAction() {
+    void shouldBlockThePaymentOnBlock() {
         RiskAssessment riskAssessment = createBlockAssessment();
 
         fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
                 .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
+                .expectNoScheduledDeadlines()
                 .expectDispatchedCommands(new BlockPaymentCommand(createPaymentId(), riskAssessment));
     }
 
@@ -98,9 +88,44 @@ class PaymentRiskSagaTest {
     }
 
     @Test
+    void shouldEndSagaWhenTheAggregateRejectsTheDecision() {
+        fixture.setCallbackBehavior((_, _) -> {
+            throw new IllegalStateException("Payment is not in FRAUD_CHECK_PENDING status");
+        });
+
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenPublishingA(createRiskAssessmentCompletedEvent(createProceedAssessment()))
+                .expectActiveSagas(0)
+                .expectDispatchedCommands(new ApproveFraudCheckCommand(createPaymentId(), createProceedAssessment()));
+    }
+
+    @Test
+    void shouldNotCancelTheTimeoutTwiceWhenTheCompletionIsRedelivered() {
+        RiskAssessment riskAssessment = createProceedAssessment();
+
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .andThenAPublished(createRiskAssessmentCompletedEvent(riskAssessment))
+                .whenPublishingA(createRiskAssessmentCompletedEvent(riskAssessment))
+                .expectActiveSagas(1)
+                .expectDispatchedCommands(new ApproveFraudCheckCommand(createPaymentId(), riskAssessment));
+    }
+
+    @Test
     void shouldExpireTheRiskAssessmentAndEndSagaOnTimeout() {
         fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
-                .whenTimeElapses(Duration.ofMinutes(2))
+                .whenTimeElapses(PAST_THE_RISK_TIMEOUT)
+                .expectActiveSagas(0)
+                .expectDispatchedCommands(createExpireRiskAssessmentCommand());
+    }
+
+    @Test
+    void shouldStillEndSagaWhenExpiringTheAssessmentIsRejected() {
+        fixture.setCallbackBehavior((_, _) -> {
+            throw new IllegalStateException("aggregate unavailable");
+        });
+
+        fixture.givenAPublished(createRiskAssessmentInitiatedEvent())
+                .whenTimeElapses(PAST_THE_RISK_TIMEOUT)
                 .expectActiveSagas(0)
                 .expectDispatchedCommands(createExpireRiskAssessmentCommand());
     }

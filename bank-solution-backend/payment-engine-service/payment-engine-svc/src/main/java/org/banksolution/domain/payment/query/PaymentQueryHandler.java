@@ -17,11 +17,12 @@ public class PaymentQueryHandler {
     private final EventSourcingRepository<PaymentAggregate> paymentRepository;
 
     @QueryHandler
-    public PaymentResponse handle(FindPaymentQuery query) {
-        log.debug("Handling FindPaymentQuery for paymentId: {}", query.paymentId());
+    public PaymentResponse handle(FindPaymentQuery findPaymentQuery) {
+        log.debug("Handling FindPaymentQuery for paymentId: {}", findPaymentQuery.paymentId());
 
         try {
-            PaymentAggregate paymentAggregate = paymentRepository.load(query.paymentId()).getWrappedAggregate().getAggregateRoot();
+            PaymentAggregate paymentAggregate =
+                    paymentRepository.load(findPaymentQuery.paymentId()).getWrappedAggregate().getAggregateRoot();
 
             return new PaymentResponse(
                     paymentAggregate.getPaymentId().toString(),
@@ -64,9 +65,9 @@ public class PaymentQueryHandler {
                     paymentAggregate.getDecisionOverriddenBy(),
                     paymentAggregate.getDecisionOverrideReason(),
                     paymentAggregate.getDecisionOverriddenAt());
-        } catch (Exception e) {
-            log.error("Failed to load payment aggregate: {}", query.paymentId(), e);
-            throw new PaymentNotFoundException("Failed to load for paymentId: %s", e, query.paymentId());
+        } catch (Exception exception) {
+            log.error("Failed to load payment aggregate: {}", findPaymentQuery.paymentId(), exception);
+            throw new PaymentNotFoundException("Failed to load for paymentId: %s", exception, findPaymentQuery.paymentId());
         }
     }
 }

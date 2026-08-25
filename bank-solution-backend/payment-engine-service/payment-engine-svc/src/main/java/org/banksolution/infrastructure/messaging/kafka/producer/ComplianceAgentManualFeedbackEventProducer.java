@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.banksolution.config.KafkaConfigurationProperties;
 import org.banksolution.infrastructure.messaging.kafka.mapper.ComplianceAgentManualFeedbackEventMapper;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,7 +28,7 @@ public class ComplianceAgentManualFeedbackEventProducer {
         try {
             log.debug("Publishing ComplianceAgentManualFeedbackEvent for paymentId: {}", paymentId);
 
-            ComplianceAgentManualFeedbackEvent event = ComplianceAgentManualFeedbackEventMapper.toAvroEvent(
+            ComplianceAgentManualFeedbackEvent complianceAgentManualFeedbackEvent = ComplianceAgentManualFeedbackEventMapper.toAvroEvent(
                     paymentId,
                     feedbackType,
                     originalMarlAction,
@@ -38,12 +37,12 @@ public class ComplianceAgentManualFeedbackEventProducer {
                     notes
             );
 
-            String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getAgentManualFeedback();
-            agentManualFeedbackEventKafkaTemplate.send(topic, paymentId, event);
+            String agentManualFeedbackTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getAgentManualFeedback();
+            agentManualFeedbackEventKafkaTemplate.send(agentManualFeedbackTopic, paymentId, complianceAgentManualFeedbackEvent);
             log.info("Successfully published ComplianceAgentManualFeedbackEvent: paymentId={}, feedbackType={}, officerDecision={}",
                     paymentId, feedbackType, officerDecision);
-        } catch (Exception e) {
-            log.error("Failed to publish ComplianceAgentManualFeedbackEvent for paymentId: {}", paymentId, e);
+        } catch (Exception exception) {
+            log.error("Failed to publish ComplianceAgentManualFeedbackEvent for paymentId: {}", paymentId, exception);
         }
     }
 }

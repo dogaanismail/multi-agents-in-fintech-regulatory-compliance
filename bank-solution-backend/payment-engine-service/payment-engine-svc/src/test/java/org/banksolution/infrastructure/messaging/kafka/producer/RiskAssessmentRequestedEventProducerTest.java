@@ -3,44 +3,62 @@ package org.banksolution.infrastructure.messaging.kafka.producer;
 import com.aml.risk.PaymentType;
 import com.aml.risk.RiskAssessmentRequestedEvent;
 import org.banksolution.config.KafkaConfigurationProperties;
-import org.banksolution.fixtures.PaymentFixtures;
+import org.banksolution.domain.payment.event.RiskAssessmentInitiatedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.banksolution.fixtures.PaymentFixtures.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class RiskAssessmentRequestedEventProducerTest {
 
-    private KafkaConfigurationProperties properties;
-    private KafkaTemplate<String, RiskAssessmentRequestedEvent> template;
-    private RiskAssessmentRequestedEventProducer producer;
+    private static final String TOPIC = "risk.assessment.requested";
+
+    private KafkaTemplate<String, RiskAssessmentRequestedEvent> riskAssessmentRequestedEventKafkaTemplate;
+    private RiskAssessmentRequestedEventProducer riskAssessmentRequestedEventProducer;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() {
-        properties = new KafkaConfigurationProperties();
-        properties.getTopics().getOutgoing().setRiskAssessmentRequested("risk.assessment.requested");
-        template = mock(KafkaTemplate.class);
-        producer = new RiskAssessmentRequestedEventProducer(properties, template);
+        KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
+        kafkaConfigurationProperties.getTopics().getOutgoing().setRiskAssessmentRequested(TOPIC);
+        riskAssessmentRequestedEventKafkaTemplate = mock(KafkaTemplate.class);
+        riskAssessmentRequestedEventProducer =
+                new RiskAssessmentRequestedEventProducer(kafkaConfigurationProperties, riskAssessmentRequestedEventKafkaTemplate);
     }
 
     @Test
-    void shouldPublishMappedAvroRequestToConfiguredTopic() {
-        producer.publishRiskAssessmentRequestedEvent(PaymentFixtures.createRiskAssessmentInitiatedEvent());
+    void shouldPublishTheMappedRequestKeyedByPaymentId() {
+        riskAssessmentRequestedEventProducer.publishRiskAssessmentRequestedEvent(createRiskAssessmentInitiatedEvent());
 
-        ArgumentCaptor<RiskAssessmentRequestedEvent> captor = ArgumentCaptor.forClass(RiskAssessmentRequestedEvent.class);
-        verify(template).send(eq("risk.assessment.requested"), eq(PaymentFixtures.PAYMENT_UUID.toString()), captor.capture());
+        ArgumentCaptor<RiskAssessmentRequestedEvent> riskAssessmentRequestedEventCaptor =
+                ArgumentCaptor.forClass(RiskAssessmentRequestedEvent.class);
+        verify(riskAssessmentRequestedEventKafkaTemplate)
+                .send(eq(TOPIC), eq(PAYMENT_UUID.toString()), riskAssessmentRequestedEventCaptor.capture());
+        RiskAssessmentRequestedEvent riskAssessmentRequestedEvent = riskAssessmentRequestedEventCaptor.getValue();
+        assertThat(riskAssessmentRequestedEvent.getPaymentId()).isEqualTo(PAYMENT_UUID.toString());
+        assertThat(riskAssessmentRequestedEvent.getCustomerId()).isEqualTo(CUSTOMER_ID.toString());
+        assertThat(riskAssessmentRequestedEvent.getAmount()).isEqualTo("100.00");
+        assertThat(riskAssessmentRequestedEvent.getPaymentType()).isEqualTo(PaymentType.TRANSFER_OUT);
+    }
 
-        RiskAssessmentRequestedEvent sent = captor.getValue();
-        assertThat(sent.getPaymentId()).isEqualTo(PaymentFixtures.PAYMENT_UUID.toString());
-        assertThat(sent.getCustomerId()).isEqualTo(PaymentFixtures.CUSTOMER_ID.toString());
-        assertThat(sent.getAmount()).isEqualTo(PaymentFixtures.AMOUNT.toString());
-        assertThat(sent.getFromCurrency()).isEqualTo(PaymentFixtures.FROM_CURRENCY);
-        assertThat(sent.getPaymentType()).isEqualTo(PaymentType.TRANSFER_OUT);
+    @Test
+    void shouldRethrowSoTheSagaKnowsTheRequestNeverLeft() {
+        RiskAssessmentInitiatedEvent riskAssessmentInitiatedEvent = createRiskAssessmentInitiatedEvent();
+        IllegalStateException brokerFailure = new IllegalStateException("broker unavailable");
+        when(riskAssessmentRequestedEventKafkaTemplate.send(eq(TOPIC), eq(PAYMENT_UUID.toString()), any()))
+                .thenThrow(brokerFailure);
+
+        assertThatThrownBy(() -> riskAssessmentRequestedEventProducer
+                .publishRiskAssessmentRequestedEvent(riskAssessmentInitiatedEvent))
+                .isSameAs(brokerFailure);
     }
 }

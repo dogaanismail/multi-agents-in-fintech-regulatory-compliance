@@ -18,32 +18,44 @@ public class PaymentCreatedEventHandler {
 
     private final CommandGateway commandGateway;
 
-    public void handle(PaymentCreatedEvent event) {
-        log.info("Handling PaymentCreatedEvent: eventId:{}, paymentId:{}", event.getEventId(), event.getPaymentId());
+    public void handle(PaymentCreatedEvent paymentCreatedEvent) {
+        log.info("Handling PaymentCreatedEvent: eventId:{}, paymentId:{}",
+                paymentCreatedEvent.getEventId(),
+                paymentCreatedEvent.getPaymentId());
 
-        PaymentId paymentId = new PaymentId(UUID.fromString(event.getPaymentId()));
-        UUID sourceAccountId = event.getSourceAccountId() != null ? UUID.fromString(event.getSourceAccountId()) : null;
-        UUID destinationAccountId = event.getDestinationAccountId() != null ? UUID.fromString(event.getDestinationAccountId()) : null;
-        UUID customerId = UUID.fromString(event.getCustomerId());
+        PaymentId paymentId = new PaymentId(UUID.fromString(paymentCreatedEvent.getPaymentId()));
+        UUID sourceAccountId = toUuid(paymentCreatedEvent.getSourceAccountId());
+        UUID destinationAccountId = toUuid(paymentCreatedEvent.getDestinationAccountId());
+        UUID customerId = UUID.fromString(paymentCreatedEvent.getCustomerId());
 
-        InitiatePaymentCommand command = new InitiatePaymentCommand(
+        InitiatePaymentCommand initiatePaymentCommand = new InitiatePaymentCommand(
                 paymentId,
                 customerId,
                 sourceAccountId,
                 destinationAccountId,
-                new BigDecimal(event.getAmount()),
-                event.getFromCurrency(),
-                event.getToCurrency(),
-                new BigDecimal(event.getConvertedAmount()),
-                event.getAppliedExchangeRate() != null ? new BigDecimal(event.getAppliedExchangeRate()) : null,
-                event.getPaymentType().toString(),
-                event.getPaymentScheme().name(),
-                event.getFixedSide().name(),
-                event.getIsCrossBorderPayment(),
-                event.getDescription()
+                new BigDecimal(paymentCreatedEvent.getAmount()),
+                paymentCreatedEvent.getFromCurrency(),
+                paymentCreatedEvent.getToCurrency(),
+                new BigDecimal(paymentCreatedEvent.getConvertedAmount()),
+                toBigDecimal(paymentCreatedEvent.getAppliedExchangeRate()),
+                paymentCreatedEvent.getPaymentType().name(),
+                paymentCreatedEvent.getPaymentScheme().name(),
+                paymentCreatedEvent.getFixedSide().name(),
+                paymentCreatedEvent.getIsCrossBorderPayment(),
+                paymentCreatedEvent.getDescription()
         );
 
-        commandGateway.send(command);
+        // sendAndWait so a rejected command fails the Kafka record (retry, then DLT)
+        // instead of being acknowledged and silently lost.
+        commandGateway.sendAndWait(initiatePaymentCommand);
         log.info("Payment initiated for paymentId:{} successfully", paymentId);
+    }
+
+    private static UUID toUuid(String identifier) {
+        return identifier != null ? UUID.fromString(identifier) : null;
+    }
+
+    private static BigDecimal toBigDecimal(String amount) {
+        return amount != null ? new BigDecimal(amount) : null;
     }
 }

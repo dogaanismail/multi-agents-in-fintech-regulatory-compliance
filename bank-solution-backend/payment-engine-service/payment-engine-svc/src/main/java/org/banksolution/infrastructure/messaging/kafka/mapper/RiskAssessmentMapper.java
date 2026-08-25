@@ -9,17 +9,17 @@ import java.util.ArrayList;
 @UtilityClass
 public class RiskAssessmentMapper {
 
-    public static RiskAssessment toRiskAssessment(RiskAssessmentCompletedEvent event) {
+    public static RiskAssessment toRiskAssessment(RiskAssessmentCompletedEvent riskAssessmentCompletedEvent) {
         return new RiskAssessment(
-                event.getRiskCheckRequestId(),
-                event.getRiskScore(),
-                event.getRiskLevel().toString(),
-                event.getAction().toString(),
-                new ArrayList<>(event.getFraudIndicators()),
-                event.getMlModelVersion(),
-                event.getProcessingTimeMs(),
-                event.getMarlAssessment() != null
-                        ? MarlAssessmentMapper.toDomain(event.getMarlAssessment())
+                riskAssessmentCompletedEvent.getRiskCheckRequestId(),
+                riskAssessmentCompletedEvent.getRiskScore(),
+                riskAssessmentCompletedEvent.getRiskLevel().toString(),
+                riskAssessmentCompletedEvent.getAction().toString(),
+                new ArrayList<>(riskAssessmentCompletedEvent.getFraudIndicators()),
+                riskAssessmentCompletedEvent.getMlModelVersion(),
+                riskAssessmentCompletedEvent.getProcessingTimeMs(),
+                riskAssessmentCompletedEvent.getMarlAssessment() != null
+                        ? MarlAssessmentMapper.toDomain(riskAssessmentCompletedEvent.getMarlAssessment())
                         : null
         );
     }

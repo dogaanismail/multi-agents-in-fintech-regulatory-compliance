@@ -20,6 +20,6 @@ public class InitiatePaymentRequest {
     private String fromCurrency;
     private String toCurrency;
     private String paymentType;
-    private boolean isCrossBorderPayment;
+    private boolean crossBorderPayment;
     private String description;
 }
