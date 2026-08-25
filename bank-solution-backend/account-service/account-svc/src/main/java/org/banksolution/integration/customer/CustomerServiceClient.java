@@ -14,6 +14,6 @@ import java.util.UUID;
 public interface CustomerServiceClient {
 
     @GetMapping("/{id}")
-    CustomerResponse getCustomerById(@PathVariable UUID id);
+    CustomerResponse getCustomerById(@PathVariable("id") UUID customerId);
 
 }

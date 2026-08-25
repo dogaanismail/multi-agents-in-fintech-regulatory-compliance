@@ -29,6 +29,7 @@ public class AccountWalletEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private AccountEntity account;
 
     @Column(name = "ledger_account_id", nullable = false, updatable = false)

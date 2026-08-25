@@ -20,8 +20,8 @@ public class CustomerClientService {
         try {
             CustomerResponse customerResponse = customerServiceClient.getCustomerById(customerId);
             return customerResponse != null;
-        } catch (FeignException e) {
-            log.error("Could not verify customer: {}, status: {}", customerId, e.status(), e);
+        } catch (FeignException feignException) {
+            log.error("Could not verify customer: {}, status: {}", customerId, feignException.status(), feignException);
             return false;
         }
     }

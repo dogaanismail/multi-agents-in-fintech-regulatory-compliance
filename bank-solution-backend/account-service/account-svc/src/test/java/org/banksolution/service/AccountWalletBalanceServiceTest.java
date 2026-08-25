@@ -15,15 +15,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.banksolution.fixtures.AccountFixtures.createPersistedAccountEntity;
+import static org.banksolution.fixtures.AccountFixtures.createPersistedAccountWalletEntity;
+import static org.banksolution.fixtures.AccountFixtures.createWalletBalanceChangedEvent;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AccountWalletBalanceServiceTest {
-
-    private static final UUID LEDGER_ACCOUNT_ID = UUID.randomUUID();
 
     @Mock
     private AccountWalletRepository accountWalletRepository;
@@ -33,62 +36,57 @@ class AccountWalletBalanceServiceTest {
 
     @Test
     void shouldOverwriteTheProjectedBalancesWithTheLedgerAbsolutes() {
-        AccountWalletEntity wallet = createWallet();
-        when(accountWalletRepository.findByLedgerAccountId(LEDGER_ACCOUNT_ID)).thenReturn(Optional.of(wallet));
+        AccountWalletEntity accountWalletEntity = createGbpAccountWalletEntity();
+        when(accountWalletRepository.findByLedgerAccountId(accountWalletEntity.getLedgerAccountId()))
+                .thenReturn(Optional.of(accountWalletEntity));
 
         accountWalletBalanceService.applyWalletBalanceChange(
-                createWalletBalanceChangedEvent("750.00", "650.00"));
+                createWalletBalanceChangedEvent(accountWalletEntity.getLedgerAccountId().toString(), "750.00", "650.00"));
 
-        assertThat(wallet.getBalance()).isEqualByComparingTo(new BigDecimal("750.00"));
-        assertThat(wallet.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("650.00"));
-        verify(accountWalletRepository).save(wallet);
+        assertThat(accountWalletEntity.getBalance()).isEqualByComparingTo(new BigDecimal("750.00"));
+        assertThat(accountWalletEntity.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("650.00"));
+        verify(accountWalletRepository).save(accountWalletEntity);
     }
 
     @Test
     void shouldLandOnTheSameBalanceWhenTheSameEventIsRedelivered() {
-        AccountWalletEntity wallet = createWallet();
-        when(accountWalletRepository.findByLedgerAccountId(LEDGER_ACCOUNT_ID)).thenReturn(Optional.of(wallet));
-        WalletBalanceChangedEvent event = createWalletBalanceChangedEvent("750.00", "650.00");
+        AccountWalletEntity accountWalletEntity = createGbpAccountWalletEntity();
+        when(accountWalletRepository.findByLedgerAccountId(accountWalletEntity.getLedgerAccountId()))
+                .thenReturn(Optional.of(accountWalletEntity));
+        WalletBalanceChangedEvent walletBalanceChangedEvent =
+                createWalletBalanceChangedEvent(accountWalletEntity.getLedgerAccountId().toString(), "750.00", "650.00");
 
-        accountWalletBalanceService.applyWalletBalanceChange(event);
-        accountWalletBalanceService.applyWalletBalanceChange(event);
+        accountWalletBalanceService.applyWalletBalanceChange(walletBalanceChangedEvent);
+        accountWalletBalanceService.applyWalletBalanceChange(walletBalanceChangedEvent);
 
-        assertThat(wallet.getBalance()).isEqualByComparingTo(new BigDecimal("750.00"));
-        assertThat(wallet.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("650.00"));
+        assertThat(accountWalletEntity.getBalance()).isEqualByComparingTo(new BigDecimal("750.00"));
+        assertThat(accountWalletEntity.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("650.00"));
     }
 
     @Test
     void shouldIgnoreBalanceChangesForUnknownWallets() {
-        when(accountWalletRepository.findByLedgerAccountId(LEDGER_ACCOUNT_ID)).thenReturn(Optional.empty());
+        UUID unknownLedgerAccountId = UUID.randomUUID();
+        when(accountWalletRepository.findByLedgerAccountId(unknownLedgerAccountId)).thenReturn(Optional.empty());
 
         accountWalletBalanceService.applyWalletBalanceChange(
-                createWalletBalanceChangedEvent("750.00", "650.00"));
+                createWalletBalanceChangedEvent(unknownLedgerAccountId.toString(), "750.00", "650.00"));
 
         verify(accountWalletRepository, never()).save(any());
     }
 
-    private static AccountWalletEntity createWallet() {
-        return AccountWalletEntity.builder()
-                .id(UUID.randomUUID())
-                .ledgerAccountId(LEDGER_ACCOUNT_ID)
-                .currency(Currency.GBP)
-                .build();
+    @Test
+    void shouldRejectAnEventWhoseLedgerAccountIdIsNotAUuid() {
+        WalletBalanceChangedEvent malformedWalletBalanceChangedEvent =
+                createWalletBalanceChangedEvent("not-a-uuid", "750.00", "650.00");
+
+        assertThatThrownBy(() -> accountWalletBalanceService.applyWalletBalanceChange(malformedWalletBalanceChangedEvent))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verifyNoInteractions(accountWalletRepository);
     }
 
-    private static WalletBalanceChangedEvent createWalletBalanceChangedEvent(
-            String postedBalance,
-            String availableBalance) {
-
-        return WalletBalanceChangedEvent.newBuilder()
-                .setEventId(UUID.randomUUID().toString())
-                .setLedgerAccountId(LEDGER_ACCOUNT_ID.toString())
-                .setCustomerAccountId(UUID.randomUUID().toString())
-                .setCurrency("GBP")
-                .setPostedBalance(postedBalance)
-                .setAvailableBalance(availableBalance)
-                .setPendingDebits("100.00")
-                .setPendingCredits("0.00")
-                .setTimestamp(System.currentTimeMillis())
-                .build();
+    private static AccountWalletEntity createGbpAccountWalletEntity() {
+        return createPersistedAccountWalletEntity(
+                createPersistedAccountEntity(UUID.randomUUID(), UUID.randomUUID()), Currency.GBP, true);
     }
 }

@@ -25,25 +25,25 @@ public class WalletBalanceChangedEventConsumer {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(
-            @Payload WalletBalanceChangedEvent event,
+            @Payload WalletBalanceChangedEvent walletBalanceChangedEvent,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
         log.info("Consumed WalletBalanceChangedEvent: ledgerAccountId:{}, currency:{}, partition:{}, offset:{}",
-                event.getLedgerAccountId(),
-                event.getCurrency(),
+                walletBalanceChangedEvent.getLedgerAccountId(),
+                walletBalanceChangedEvent.getCurrency(),
                 partition,
                 offset);
 
         try {
-            accountWalletBalanceService.applyWalletBalanceChange(event);
+            accountWalletBalanceService.applyWalletBalanceChange(walletBalanceChangedEvent);
             acknowledgment.acknowledge();
-        } catch (Exception e) {
+        } catch (Exception exception) {
             throw new WalletBalanceChangedEventException(
                     "Failed to process WalletBalanceChangedEvent for ledgerAccountId: %s",
-                    e,
-                    event.getLedgerAccountId());
+                    exception,
+                    walletBalanceChangedEvent.getLedgerAccountId());
         }
     }
 }

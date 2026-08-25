@@ -16,52 +16,52 @@ import java.util.stream.Collectors;
 public class AccountWalletMapper {
 
     public static List<AccountWalletEntity> toAccountWalletEntities(
-            AccountEntity account,
+            AccountEntity accountEntity,
             List<Currency> currencies,
-            List<LedgerAccountResponse> ledgerAccounts) {
+            List<LedgerAccountResponse> ledgerAccountResponses) {
 
-        Map<Currency, UUID> ledgerAccountIdsByCurrency = toLedgerAccountIdsByCurrency(ledgerAccounts);
+        Map<Currency, UUID> ledgerAccountIdsByCurrency = toLedgerAccountIdsByCurrency(ledgerAccountResponses);
         Currency primaryCurrency = currencies.getFirst();
 
         return currencies.stream()
                 .map(currency -> toAccountWalletEntity(
-                        account,
+                        accountEntity,
                         currency,
                         ledgerAccountIdsByCurrency.get(currency),
                         currency == primaryCurrency))
                 .toList();
     }
 
-    public static AccountWalletResponse toAccountWalletResponse(AccountWalletEntity entity) {
+    public static AccountWalletResponse toAccountWalletResponse(AccountWalletEntity accountWalletEntity) {
         return AccountWalletResponse.builder()
-                .id(entity.getId())
-                .ledgerAccountId(entity.getLedgerAccountId())
-                .currency(entity.getCurrency())
-                .walletStatus(entity.getWalletStatus())
-                .balance(entity.getBalance())
-                .availableBalance(entity.getAvailableBalance())
-                .primary(entity.isPrimary())
+                .id(accountWalletEntity.getId())
+                .ledgerAccountId(accountWalletEntity.getLedgerAccountId())
+                .currency(accountWalletEntity.getCurrency())
+                .walletStatus(accountWalletEntity.getWalletStatus())
+                .balance(accountWalletEntity.getBalance())
+                .availableBalance(accountWalletEntity.getAvailableBalance())
+                .primary(accountWalletEntity.isPrimary())
                 .build();
     }
 
     private static Map<Currency, UUID> toLedgerAccountIdsByCurrency(
-            List<LedgerAccountResponse> ledgerAccounts) {
+            List<LedgerAccountResponse> ledgerAccountResponses) {
 
-        return ledgerAccounts.stream()
+        return ledgerAccountResponses.stream()
                 .collect(Collectors.toMap(
                         LedgerAccountResponse::getCurrency,
                         LedgerAccountResponse::getLedgerAccountId,
-                        (existing, _) -> existing));
+                        (existingLedgerAccountId, _) -> existingLedgerAccountId));
     }
 
     private static AccountWalletEntity toAccountWalletEntity(
-            AccountEntity account,
+            AccountEntity accountEntity,
             Currency currency,
             UUID ledgerAccountId,
             boolean primary) {
 
         return AccountWalletEntity.builder()
-                .account(account)
+                .account(accountEntity)
                 .ledgerAccountId(ledgerAccountId)
                 .currency(currency)
                 .primary(primary)

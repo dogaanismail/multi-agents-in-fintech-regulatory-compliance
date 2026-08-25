@@ -26,22 +26,22 @@ public class AccountWalletService {
 
     @Transactional
     public List<AccountWalletEntity> openWallets(
-            AccountEntity account,
+            AccountEntity accountEntity,
             List<Currency> currencies) {
 
         List<Currency> walletCurrencies = currencies.stream().distinct().toList();
 
-        List<LedgerAccountResponse> ledgerAccounts =
-                ledgerClientService.openLedgerWallets(account.getId(), walletCurrencies);
+        List<LedgerAccountResponse> ledgerAccountResponses =
+                ledgerClientService.openLedgerWallets(accountEntity.getId(), walletCurrencies);
 
-        List<AccountWalletEntity> wallets =
-                AccountWalletMapper.toAccountWalletEntities(account, walletCurrencies, ledgerAccounts);
+        List<AccountWalletEntity> accountWalletEntities =
+                AccountWalletMapper.toAccountWalletEntities(accountEntity, walletCurrencies, ledgerAccountResponses);
 
-        List<AccountWalletEntity> openedWallets = accountWalletRepository.saveAll(wallets);
+        List<AccountWalletEntity> openedAccountWalletEntities = accountWalletRepository.saveAll(accountWalletEntities);
 
-        log.info("Opened {} wallet(s) for account: {}", openedWallets.size(), account.getId());
+        log.info("Opened {} wallet(s) for account: {}", openedAccountWalletEntities.size(), accountEntity.getId());
 
-        return openedWallets;
+        return openedAccountWalletEntities;
     }
 
     @Transactional(readOnly = true)
@@ -59,13 +59,11 @@ public class AccountWalletService {
             UUID accountId,
             Currency currency) {
 
-        log.info("Fetching wallet for account: {} and currency: {}",
-                accountId,
-                currency);
+        log.info("Fetching wallet for account: {} and currency: {}", accountId, currency);
 
-        AccountWalletEntity wallet = accountWalletRepository.findByAccountIdAndCurrency(accountId, currency)
+        AccountWalletEntity accountWalletEntity = accountWalletRepository.findByAccountIdAndCurrency(accountId, currency)
                 .orElseThrow(() -> new WalletNotFoundException(accountId, currency));
 
-        return AccountWalletMapper.toAccountWalletResponse(wallet);
+        return AccountWalletMapper.toAccountWalletResponse(accountWalletEntity);
     }
 }

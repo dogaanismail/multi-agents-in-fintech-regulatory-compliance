@@ -56,8 +56,11 @@ public class AccountEntity extends BaseEntity {
     @Column(name = "closing_date")
     private LocalDate closingDate;
 
+    // Both sides of the association hold each other; including this side in equals/hashCode
+    // would recurse through AccountWalletEntity.account and overflow the stack.
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @Builder.Default
+    @EqualsAndHashCode.Exclude
     private List<AccountWalletEntity> wallets = new ArrayList<>();
 
 }
