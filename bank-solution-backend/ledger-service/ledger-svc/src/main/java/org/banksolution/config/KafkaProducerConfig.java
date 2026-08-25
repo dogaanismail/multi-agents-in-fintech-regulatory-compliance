@@ -35,8 +35,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<@NonNull String, @NonNull LedgerPostingCompletedEvent>
-    ledgerPostingCompletedEventProducerFactory() {
+    public ProducerFactory<@NonNull String, @NonNull LedgerPostingCompletedEvent> ledgerPostingCompletedEventProducerFactory() {
 
         return new DefaultKafkaProducerFactory<>(getProducerConfigs());
     }

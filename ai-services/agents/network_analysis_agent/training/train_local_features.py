@@ -14,14 +14,25 @@ so no test-window structure leaks into training, metrics reported on the test
 window only. Artifacts overwrite trained_models/ in place:
   network_analysis_catboost_model.pkl / _scaler.pkl / _metadata.json
 
+SAML-D contains zero directed 3-cycles, so a model trained on it alone gives
+cycle3_count no weight at all. The optional --augment flag mixes in a random
+sample of IBM AML account-level features (built by prepare_naa_local_features
+in the harness), whose graph does contain cycles (71% of accounts), so the
+cycle feature gets learnable variance across both classes. A uniform random
+sample is deliberate: sampling only cycle-bearing accounts would teach the
+model "augmented row = cycle = whatever those labels say" instead of the
+cycle's real, context-dependent meaning.
+
 Run from this directory with the agent's pinned library versions:
   python train_local_features.py [path-to-SAML-D-csv]
+      [--augment path/to/naa_local_features_train.parquet]
+      [--augment-sample 200000]
 """
 
+import argparse
 import json
 import pathlib
 import pickle
-import sys
 import time
 from datetime import datetime, timezone
 
@@ -208,14 +219,41 @@ def evaluate(y_true: np.ndarray, y_score: np.ndarray, threshold: float) -> dict:
     }
 
 
+def load_augmentation_sample(parquet_path: pathlib.Path, sample_size: int) -> pd.DataFrame:
+    augmentation = pd.read_parquet(parquet_path)[FEATURE_NAMES + ["is_laundering"]]
+    if len(augmentation) > sample_size:
+        augmentation = augmentation.sample(n=sample_size, random_state=42)
+    cycle_share = (augmentation["cycle3_count"] > 0).mean()
+    log(f"augmentation: {len(augmentation):,} accounts from {parquet_path.name}, "
+        f"{cycle_share:.1%} with cycles, {augmentation['is_laundering'].mean():.4%} illicit")
+    return augmentation
+
+
 def main() -> None:
-    csv_path = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_CSV
+    parser = argparse.ArgumentParser()
+    parser.add_argument("csv", nargs="?", type=pathlib.Path, default=DEFAULT_CSV)
+    parser.add_argument("--augment", type=pathlib.Path, default=None)
+    parser.add_argument("--augment-sample", type=int, default=200_000)
+    args = parser.parse_args()
+
+    csv_path = args.csv
     log(f"Loading SAML-D from {csv_path}")
     df = load_transactions(csv_path)
     log(f"{len(df):,} transactions, {df['is_laundering'].mean():.4%} illicit")
 
     train = build_window_features(df[df["split"] == "train"], "train")
     test = build_window_features(df[df["split"] == "test"], "test")
+
+    augmentation_info = None
+    if args.augment:
+        augmentation = load_augmentation_sample(args.augment, args.augment_sample)
+        augmentation_info = {
+            "source": str(args.augment),
+            "accounts": int(len(augmentation)),
+            "cycle_share": float((augmentation["cycle3_count"] > 0).mean()),
+            "illicit_rate": float(augmentation["is_laundering"].mean()),
+        }
+        train = pd.concat([train, augmentation], ignore_index=True).sample(frac=1.0, random_state=42)
 
     scaler = StandardScaler().fit(train[FEATURE_NAMES])
     y_train = train["is_laundering"].to_numpy()
@@ -229,6 +267,10 @@ def main() -> None:
     log(f"Test window: ROC-AUC {performance['roc_auc']:.4f}  "
         f"PR-AUC {performance['pr_auc']:.4f}  F1 {performance['f1_score']:.4f}  "
         f"P {performance['precision']:.4f}  R {performance['recall']:.4f}")
+    log("feature importances:")
+    for name, importance in sorted(zip(FEATURE_NAMES, model.get_feature_importance()),
+                                   key=lambda pair: -pair[1]):
+        log(f"  {name:<28} {importance:6.2f}")
 
     MODELS_DIR.mkdir(exist_ok=True)
     pickle.dump(model, open(MODELS_DIR / "network_analysis_catboost_model.pkl", "wb"))
@@ -239,8 +281,9 @@ def main() -> None:
             "name": "CatBoost",
             "type": "Local Ego-net Money-flow Anomaly Detector",
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "version": "3.0_local_features",
+            "version": "3.1_cycle_augmented" if augmentation_info else "3.0_local_features",
         },
+        "augmentation": augmentation_info,
         "config": {
             "data_path": str(csv_path),
             "temporal_split": 0.8,

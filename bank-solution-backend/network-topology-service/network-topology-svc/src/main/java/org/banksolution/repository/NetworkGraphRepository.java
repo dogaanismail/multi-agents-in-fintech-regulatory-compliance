@@ -4,11 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.domain.AccountMovement;
 import org.banksolution.domain.AccountNeighbourhood;
-import org.neo4j.driver.Driver;
+import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.Values;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
@@ -34,8 +31,8 @@ public class NetworkGraphRepository {
 
             return new AccountNeighbourhood(
                     accountId,
-                    new HashSet<>(structural.get("senderAccountIds").asList(v -> v.asString())),
-                    new HashSet<>(structural.get("receiverAccountIds").asList(v -> v.asString())),
+                    new HashSet<>(structural.get("senderAccountIds").asList(Value::asString)),
+                    new HashSet<>(structural.get("receiverAccountIds").asList(Value::asString)),
                     structural.get("cycle3Count").asInt(),
                     structural.get("twoHopOutReach").asInt(),
                     toAccountMovements(movements, "incomingMovements"),
