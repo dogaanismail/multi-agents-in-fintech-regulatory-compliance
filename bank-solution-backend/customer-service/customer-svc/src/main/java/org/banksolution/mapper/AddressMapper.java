@@ -8,24 +8,23 @@ import org.banksolution.model.response.AddressResponse;
 @UtilityClass
 public class AddressMapper {
 
-    public static CustomerAddress toEntity(AddressRequest request) {
+    public static CustomerAddress toCustomerAddress(AddressRequest addressRequest) {
         return CustomerAddress.builder()
-                .city(request.getCity())
-                .countryCode(request.getCountryCode())
+                .city(addressRequest.getCity())
+                .countryCode(addressRequest.getCountryCode())
                 .build();
     }
 
-    public static void updateEntity(CustomerAddress entity, AddressRequest request) {
-        entity.setCity(request.getCity());
-        entity.setCountryCode(request.getCountryCode());
+    public static void updateCustomerAddress(CustomerAddress customerAddress, AddressRequest addressRequest) {
+        customerAddress.setCity(addressRequest.getCity());
+        customerAddress.setCountryCode(addressRequest.getCountryCode());
     }
 
-    public static AddressResponse toResponse(CustomerAddress entity) {
+    public static AddressResponse toAddressResponse(CustomerAddress customerAddress) {
         return AddressResponse.builder()
-                .id(entity.getId())
-                .city(entity.getCity())
-                .countryCode(entity.getCountryCode())
+                .id(customerAddress.getId())
+                .city(customerAddress.getCity())
+                .countryCode(customerAddress.getCountryCode())
                 .build();
     }
 }
-

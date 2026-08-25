@@ -27,17 +27,19 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping
-    public ResponseEntity<@NonNull CustomerResponse> createCustomer(@Valid @RequestBody CustomerCreateRequest request) {
-        log.info("POST /api/v1/customers - Creating customer with email: {}", request.getEmail());
-        CustomerResponse response = customerService.createCustomer(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<@NonNull CustomerResponse> createCustomer(
+            @Valid @RequestBody CustomerCreateRequest customerCreateRequest) {
+
+        log.info("POST /api/v1/customers - Creating customer with email: {}", customerCreateRequest.getEmail());
+        CustomerResponse customerResponse = customerService.createCustomer(customerCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerResponse);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<@NonNull CustomerResponse> getCustomerById(@PathVariable UUID id) {
         log.info("GET /api/v1/customers/{} - Fetching customer", id);
-        CustomerResponse response = customerService.getCustomerById(id);
-        return ResponseEntity.ok(response);
+        CustomerResponse customerResponse = customerService.getCustomerById(id);
+        return ResponseEntity.ok(customerResponse);
     }
 
     @GetMapping
@@ -49,18 +51,18 @@ public class CustomerController {
     ) {
         log.info("GET /api/v1/customers - Fetching all customers with page: {}, size: {}", page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        PageResponse<CustomerResponse> response = customerService.getAllCustomers(pageable);
-        return ResponseEntity.ok(response);
+        PageResponse<CustomerResponse> customerResponsePage = customerService.getAllCustomers(pageable);
+        return ResponseEntity.ok(customerResponsePage);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<@NonNull CustomerResponse> updateCustomer(
             @PathVariable UUID id,
-            @Valid @RequestBody CustomerUpdateRequest request
+            @Valid @RequestBody CustomerUpdateRequest customerUpdateRequest
     ) {
         log.info("PUT /api/v1/customers/{} - Updating customer", id);
-        CustomerResponse response = customerService.updateCustomer(id, request);
-        return ResponseEntity.ok(response);
+        CustomerResponse customerResponse = customerService.updateCustomer(id, customerUpdateRequest);
+        return ResponseEntity.ok(customerResponse);
     }
 
     @DeleteMapping("/{id}")
@@ -70,5 +72,3 @@ public class CustomerController {
         return ResponseEntity.noContent().build();
     }
 }
-
-
