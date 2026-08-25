@@ -352,7 +352,9 @@ Hard-won specifics baked into that module:
   `application-test.properties` sets `spring.liquibase.change-log=classpath:db.changelog-master.xml`
   plus `spring.jpa.hibernate.ddl-auto=validate`, so entity/changelog drift fails context startup. Repository tests then
   round-trip the tricky column types — `text[]`, `jsonb`, decimal precision/scale, `@Version` bump, FK + unique
-  constraints — with **no SQL files**.
+  constraints — with **no test-only SQL**. When a test exposes a schema bug, fix it with a real changeset in the
+  service's `-db-migration-changelog` (e.g. `chk_risk_check_request_status` was missing the `TIMEOUT` enum value), and
+  keep a repository test that persists **every** enum value so constraint/enum drift stays caught.
 - **No Schema Registry container.** Producers and consumers point at
   `mock://risk-engine-tests`; the confluent serializers share one in-JVM registry per scope. Kafka itself is a real
   `ConfluentKafkaContainer` (`cp-kafka:7.5.0`).
@@ -365,6 +367,8 @@ Hard-won specifics baked into that module:
   the JSON contract.
 - **Lazy JPA proxies**: outside a session only `getId()` is safe on a proxy — assert by comparing ids, never by walking
   `a.getB().getC()`.
+- **Time goes through the `Clock` bean** (`GeneralConfig`), never `Instant.now()`/`System.currentTimeMillis()` in
+  services — unit tests inject `Clock.fixed(...)` and assert exact durations (see `RiskAssessmentCompleteServiceTest`).
 - **Coverage**: the module applies `jacoco`; `test` is finalized by `jacocoTestReport` and
   `integrationTest` by `jacocoIntegrationTestReport`, which merges every `.exec` so the HTML/XML under
   `build/reports/jacoco/` shows unit + integration combined (risk-engine sits at ~99.5% line coverage;
