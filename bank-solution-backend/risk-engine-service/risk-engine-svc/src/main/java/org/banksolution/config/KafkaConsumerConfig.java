@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -102,7 +103,11 @@ public class KafkaConsumerConfig {
     }
 
     private ConsumerRecordRecoverer deadLetterRecoverer() {
-        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(deadLetterKafkaTemplate());
+        // Spring Kafka 4 defaults the suffix to "-dlt"; the platform convention
+        // (dlt-tool.py, Kafka UI dashboards) is "<topic>.DLT", so pin it explicitly.
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+                deadLetterKafkaTemplate(),
+                (record, _) -> new TopicPartition(record.topic() + ".DLT", record.partition()));
         return (record, exception) -> {
             log.error("Routing message to dead-letter topic. Topic: {}, Partition: {}, Offset: {}, Key: {}",
                     record.topic(), record.partition(), record.offset(), record.key(), exception);

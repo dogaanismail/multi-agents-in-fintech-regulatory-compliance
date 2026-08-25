@@ -326,6 +326,50 @@ extracting a well-named method over explaining a block.
   global state. Use a fresh random `customerAccountId` per test, and assert on **deltas**
   (balance before vs after) rather than absolute totals of shared internal accounts.
 
+### The per-service test blueprint (copy from `risk-engine-svc`)
+
+`ledger-svc` established the layout; `risk-engine-svc` extends it to the common service shape (PostgreSQL + Kafka +
+Feign) and is the template to copy for the remaining services. Everything lives under `src/test/java/org/banksolution/`:
+
+- `common/annotations/IntegrationTest` — `@Tag("integration")` + `@SpringBootTest(RANDOM_PORT)`
+  + `@ContextConfiguration(initializers = {PostgreSQLInitializer, KafkaInitializer,
+  WireMockInitializer})` + `@ActiveProfiles("test")` + `@AutoConfigureMockMvc`.
+- `common/initializers/*` — each holds its container/server in a **`static` field**, starts it once per JVM, and injects
+  addresses with `TestPropertyValues`. Spring caches the context, so every test class shares one PostgreSQL, one Kafka
+  and one WireMock.
+- `common/BaseIntegrationTest` — `MockMvc`, `ObjectMapper`, and a `@BeforeEach` that
+  `resetAll()`s WireMock so stubs never leak between tests.
+- `common/kafka/KafkaTestClients` — Avro producer/consumer factories plus
+  `awaitMatchingEvent(topic, timeout, predicate)`; test consumers use a fresh random group id + `earliest` and filter by
+  their own ids, never by offset arithmetic.
+- `fixtures/` — `create…`-prefixed statics for Avro events, entities and Feign DTOs.
+
+Hard-won specifics baked into that module:
+
+- **Migrations are part of the test.** The service jar has no Liquibase; tests add
+  `testImplementation 'org.springframework.boot:spring-boot-starter-liquibase'` (Boot 4 module split — `liquibase-core`
+  alone does **not** auto-configure) and
+  `application-test.properties` sets `spring.liquibase.change-log=classpath:db.changelog-master.xml`
+  plus `spring.jpa.hibernate.ddl-auto=validate`, so entity/changelog drift fails context startup. Repository tests then
+  round-trip the tricky column types — `text[]`, `jsonb`, decimal precision/scale, `@Version` bump, FK + unique
+  constraints — with **no SQL files**.
+- **No Schema Registry container.** Producers and consumers point at
+  `mock://risk-engine-tests`; the confluent serializers share one in-JVM registry per scope. Kafka itself is a real
+  `ConfluentKafkaContainer` (`cp-kafka:7.5.0`).
+- **DLQ is tested end-to-end**: publish a poison event, await the parked copy on
+  `<topic>.DLT`. Spring Kafka 4 changed the default dead-letter suffix to `-dlt`, so each service's
+  `KafkaConsumerConfig` must pin the destination resolver to
+  `record.topic() + ".DLT"` (risk-engine already does; replicate when testing a service).
+- **Feign clients hit one WireMock**, distinguished by base path (`/api/v1/accounts`, `/api/v1/networks`,
+  `/api/v1/customer-profiles`); stub bodies are built with `objectMapper.writeValueAsString(fixture)`, which also pins
+  the JSON contract.
+- **Lazy JPA proxies**: outside a session only `getId()` is safe on a proxy — assert by comparing ids, never by walking
+  `a.getB().getC()`.
+- **Coverage**: the module applies `jacoco`; `test` is finalized by `jacocoTestReport` and
+  `integrationTest` by `jacocoIntegrationTestReport`, which merges every `.exec` so the HTML/XML under
+  `build/reports/jacoco/` shows unit + integration combined (risk-engine sits at ~99.5% line coverage;
+  `RiskEngineServiceApplication.main` and unreachable `switch` defaults are the only gaps).
+
 ### SonarQube rules that come up
 
 - **S5778** — an `assertThatThrownBy` / `assertThrows` lambda may contain only one throwing
