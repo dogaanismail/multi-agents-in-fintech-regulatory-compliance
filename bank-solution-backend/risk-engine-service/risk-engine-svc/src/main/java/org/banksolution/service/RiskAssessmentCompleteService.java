@@ -9,6 +9,8 @@ import org.banksolution.entity.RiskCheckRequestEntity;
 import org.banksolution.infrastructure.messaging.kafka.producer.RiskAssessmentCompletedEventProducer;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+
 import static org.banksolution.mapper.RiskAssessmentCompletedEventMapper.toEvent;
 
 @Service
@@ -17,17 +19,19 @@ import static org.banksolution.mapper.RiskAssessmentCompletedEventMapper.toEvent
 public class RiskAssessmentCompleteService {
 
     private final RiskAssessmentCompletedEventProducer riskAssessmentCompletedEventProducer;
+    private final Clock clock;
 
     public void publishRiskAssessmentCompletedEvent(
             FraudAnalysisCompletedEvent fraudAnalysisCompletedEvent,
             RiskCheckRequestEntity riskCheckRequestEntity,
             RiskAssessmentEntity riskAssessmentEntity) {
 
+        long processingTimeMs = clock.millis() - riskCheckRequestEntity.getRequestTimestamp();
         RiskAssessmentCompletedEvent riskAssessmentCompletedEvent = toEvent(
                 fraudAnalysisCompletedEvent,
                 riskCheckRequestEntity,
                 riskAssessmentEntity,
-                fraudAnalysisCompletedEvent.getTimestamp()
+                processingTimeMs
         );
 
         riskAssessmentCompletedEventProducer.produceRiskAssessmentCompletedEvent(riskAssessmentCompletedEvent);

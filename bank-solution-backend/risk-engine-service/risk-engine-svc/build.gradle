@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version "${springframeworkBootVersion}"
     id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
     id 'java'
+    id 'jacoco'
 }
 
 group = 'org.bank.solution'
@@ -17,6 +18,7 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
     }
 }
 
@@ -48,6 +50,18 @@ dependencies {
     implementation project(':risk-engine-service:risk-engine-svc-db-migration-changelog')
 
     implementation 'org.postgresql:postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:kafka'
+    // Integration tests run the real Liquibase changelog against the Postgres container,
+    // so schema drift between migrations and entities fails the build.
+    testImplementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    testImplementation 'org.liquibase:liquibase-core'
+    testImplementation "org.wiremock:wiremock-standalone:${wireMockStandaloneVersion}"
+    testImplementation 'org.awaitility:awaitility'
 }
 
 springBoot {
@@ -55,7 +69,41 @@ springBoot {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    finalizedBy jacocoTestReport
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs Testcontainers-based integration tests (requires a Docker daemon).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter test
+    finalizedBy jacocoIntegrationTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.register('jacocoIntegrationTestReport', JacocoReport) {
+    description = 'Coverage report over unit + integration test executions combined.'
+    group = 'verification'
+    mustRunAfter tasks.withType(Test)
+    executionData fileTree(layout.buildDirectory).include('jacoco/*.exec')
+    sourceSets sourceSets.main
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 bootJar {

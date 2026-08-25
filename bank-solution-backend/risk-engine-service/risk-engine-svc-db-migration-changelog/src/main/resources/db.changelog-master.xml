@@ -35,4 +35,9 @@
         <sqlFile path="changelog/add_agent_observation_feature_contributions.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-08-26-01-00" author="Ismail Dogan">
+        <comment>Allow the TIMEOUT status in risk_check_request</comment>
+        <sqlFile path="changelog/allow_timeout_status_in_risk_check_request.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -20,7 +20,7 @@ public class FraudAnalysisRequestedEventMapper {
                 .setPaymentId(transactionFeatures.getPaymentId())
                 .setRiskCheckRequestId(riskCheckRequestId)
                 .setTimestamp(timestamp)
-                .setIsCrossBorderPayment(isCrossBorder(transactionFeatures.getSenderBankLocation(), transactionFeatures.getSenderBankLocation()))
+                .setIsCrossBorderPayment(isCrossBorder(transactionFeatures.getSenderBankLocation(), transactionFeatures.getReceiverBankLocation()))
                 .setTransactionFeatures(transactionFeatures)
                 .setCustomerFeatures(customerFeatures)
                 .setNetworkFeatures(networkFeatures)
