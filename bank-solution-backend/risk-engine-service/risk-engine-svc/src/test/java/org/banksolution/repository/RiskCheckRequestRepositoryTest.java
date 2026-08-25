@@ -69,6 +69,20 @@ class RiskCheckRequestRepositoryTest extends BaseIntegrationTest {
     }
 
     @Test
+    void shouldAcceptEveryRiskCheckStatusAgainstTheCheckConstraint() {
+        for (RiskCheckStatus status : RiskCheckStatus.values()) {
+            RiskCheckRequestEntity entity = createTransferRiskCheckRequestEntity();
+            entity.setId(null);
+            entity.setStatus(status);
+
+            UUID savedId = riskCheckRequestRepository.saveAndFlush(entity).getId();
+
+            assertThat(riskCheckRequestRepository.findById(savedId).orElseThrow().getStatus())
+                    .isEqualTo(status);
+        }
+    }
+
+    @Test
     void shouldBumpTheOptimisticLockVersionWhenTheStatusIsUpdated() {
         RiskCheckRequestEntity entity = createTransferRiskCheckRequestEntity();
         entity.setId(null);

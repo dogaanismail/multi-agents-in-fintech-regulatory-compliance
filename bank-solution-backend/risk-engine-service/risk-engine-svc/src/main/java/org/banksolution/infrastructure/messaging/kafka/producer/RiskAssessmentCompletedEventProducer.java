@@ -32,7 +32,7 @@ public class RiskAssessmentCompletedEventProducer {
                     event.getRiskCheckRequestId(),
                     e);
             throw new RiskAssessmentCompletedEventException(
-                    "Failed to process FraudAnalysisCompletedEvent for paymentId: %s, riskCheckRequestId: %s",
+                    "Failed to publish RiskAssessmentCompletedEvent for paymentId: %s, riskCheckRequestId: %s",
                     e,
                     event.getPaymentId(),
                     event.getRiskCheckRequestId()

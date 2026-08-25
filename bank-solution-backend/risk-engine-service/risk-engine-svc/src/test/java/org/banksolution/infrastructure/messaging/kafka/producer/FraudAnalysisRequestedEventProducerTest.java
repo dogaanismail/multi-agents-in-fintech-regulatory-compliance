@@ -55,6 +55,7 @@ class FraudAnalysisRequestedEventProducerTest {
 
         assertThatThrownBy(() -> fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(event))
                 .isInstanceOf(FraudAnalysisRequestedEventException.class)
+                .hasMessageContaining("FraudAnalysisRequestedEvent")
                 .hasMessageContaining(PAYMENT_ID);
     }
 

@@ -8,27 +8,34 @@ import org.banksolution.infrastructure.messaging.kafka.producer.RiskAssessmentCo
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.banksolution.fixtures.FraudAnalysisFixtures.createFraudAnalysisCompletedEvent;
 import static org.banksolution.fixtures.RiskAssessmentFixtures.createRiskAssessmentEntity;
+import static org.banksolution.fixtures.RiskCheckRequestFixtures.REQUEST_TIMESTAMP;
 import static org.banksolution.fixtures.RiskCheckRequestFixtures.createTransferRiskCheckRequestEntity;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class RiskAssessmentCompleteServiceTest {
 
+    private static final long ELAPSED_MS = 750L;
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(Instant.ofEpochMilli(REQUEST_TIMESTAMP + ELAPSED_MS), ZoneOffset.UTC);
+
     @Mock
     private RiskAssessmentCompletedEventProducer riskAssessmentCompletedEventProducer;
 
-    @InjectMocks
-    private RiskAssessmentCompleteService riskAssessmentCompleteService;
-
     @Test
     void shouldPublishTheCompletedEventBuiltFromTheAssessment() {
+        RiskAssessmentCompleteService riskAssessmentCompleteService =
+                new RiskAssessmentCompleteService(riskAssessmentCompletedEventProducer, FIXED_CLOCK);
         RiskCheckRequestEntity riskCheckRequest = createTransferRiskCheckRequestEntity();
         RiskAssessmentEntity riskAssessment = createRiskAssessmentEntity(riskCheckRequest);
         FraudAnalysisCompletedEvent fraudAnalysisCompletedEvent =
@@ -45,7 +52,6 @@ class RiskAssessmentCompleteServiceTest {
         assertThat(event.getRiskCheckRequestId()).isEqualTo(riskCheckRequest.getId().toString());
         assertThat(event.getPaymentId()).isEqualTo(riskCheckRequest.getPaymentId());
         assertThat(event.getRiskScore()).isEqualTo(riskAssessment.getRiskScore().doubleValue());
-        // Current behavior: the fraud event's response timestamp is passed through as processingTimeMs
-        assertThat(event.getProcessingTimeMs()).isEqualTo(fraudAnalysisCompletedEvent.getTimestamp());
+        assertThat(event.getProcessingTimeMs()).isEqualTo(ELAPSED_MS);
     }
 }

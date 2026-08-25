@@ -55,6 +55,7 @@ class RiskAssessmentCompletedEventProducerTest {
 
         assertThatThrownBy(() -> riskAssessmentCompletedEventProducer.produceRiskAssessmentCompletedEvent(event))
                 .isInstanceOf(RiskAssessmentCompletedEventException.class)
+                .hasMessageContaining("RiskAssessmentCompletedEvent")
                 .hasMessageContaining(event.getPaymentId());
     }
 
