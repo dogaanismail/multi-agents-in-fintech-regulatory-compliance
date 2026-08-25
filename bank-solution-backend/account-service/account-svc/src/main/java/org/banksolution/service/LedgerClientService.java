@@ -25,18 +25,19 @@ public class LedgerClientService {
             List<Currency> currencies) {
 
         try {
-            List<LedgerAccountResponse> ledgerAccounts = ledgerServiceClient.createLedgerAccounts(
+            List<LedgerAccountResponse> ledgerAccountResponses = ledgerServiceClient.createLedgerAccounts(
                     CreateLedgerAccountsRequest.forCurrencies(accountId, currencies));
 
             log.info("Opened {} ledger wallet(s) for account: {}, currencies: {}",
-                    ledgerAccounts.size(),
+                    ledgerAccountResponses.size(),
                     accountId,
                     currencies);
 
-            return ledgerAccounts;
-        } catch (FeignException e) {
-            log.error("Failed to open ledger wallets for account: {}, status: {}", accountId, e.status(), e);
-            throw new WalletCreationFailedException(accountId, e);
+            return ledgerAccountResponses;
+        } catch (FeignException feignException) {
+            log.error("Failed to open ledger wallets for account: {}, status: {}",
+                    accountId, feignException.status(), feignException);
+            throw new WalletCreationFailedException(accountId, feignException);
         }
     }
 }

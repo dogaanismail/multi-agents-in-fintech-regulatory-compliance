@@ -13,36 +13,37 @@ import java.util.List;
 public class AccountMapper {
 
     public static AccountEntity toAccountEntity(
-            OpenAccountRequest request,
-            String accountNumber) {
+            OpenAccountRequest openAccountRequest,
+            String accountNumber,
+            LocalDate openingDate) {
 
         return AccountEntity.builder()
-                .customerId(request.getCustomerId())
+                .customerId(openAccountRequest.getCustomerId())
                 .accountNumber(accountNumber)
-                .bankLocation(request.getBankLocation())
-                .accountType(request.getAccountType())
-                .openingDate(LocalDate.now())
+                .bankLocation(openAccountRequest.getBankLocation())
+                .accountType(openAccountRequest.getAccountType())
+                .openingDate(openingDate)
                 .build();
     }
 
     public static AccountResponse toAccountResponse(
-            AccountEntity account,
-            List<AccountWalletEntity> wallets) {
+            AccountEntity accountEntity,
+            List<AccountWalletEntity> accountWalletEntities) {
 
         return AccountResponse.builder()
-                .id(account.getId())
-                .customerId(account.getCustomerId())
-                .accountNumber(account.getAccountNumber())
-                .bankLocation(account.getBankLocation().name().toUpperCase())
-                .accountType(account.getAccountType())
-                .accountStatus(account.getAccountStatus())
-                .openingDate(account.getOpeningDate())
-                .closingDate(account.getClosingDate())
-                .wallets(wallets.stream()
+                .id(accountEntity.getId())
+                .customerId(accountEntity.getCustomerId())
+                .accountNumber(accountEntity.getAccountNumber())
+                .bankLocation(accountEntity.getBankLocation().name().toUpperCase())
+                .accountType(accountEntity.getAccountType())
+                .accountStatus(accountEntity.getAccountStatus())
+                .openingDate(accountEntity.getOpeningDate())
+                .closingDate(accountEntity.getClosingDate())
+                .wallets(accountWalletEntities.stream()
                         .map(AccountWalletMapper::toAccountWalletResponse)
                         .toList())
-                .createdAt(account.getCreatedAt())
-                .updatedAt(account.getUpdatedAt())
+                .createdAt(accountEntity.getCreatedAt())
+                .updatedAt(accountEntity.getUpdatedAt())
                 .build();
     }
 }

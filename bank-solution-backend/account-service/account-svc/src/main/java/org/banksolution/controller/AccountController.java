@@ -27,46 +27,47 @@ public class AccountController {
     private final AccountWalletService accountWalletService;
 
     @PostMapping("open-account")
-    public ResponseEntity<@NonNull AccountResponse> openAccount(@Valid @RequestBody OpenAccountRequest request) {
-        log.info("POST /api/v1/accounts - Opening account for customer: {}", request.getCustomerId());
-        AccountResponse response = accountService.openAccount(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<@NonNull AccountResponse> openAccount(@Valid @RequestBody OpenAccountRequest openAccountRequest) {
+        log.info("POST /api/v1/accounts - Opening account for customer: {}", openAccountRequest.getCustomerId());
+        AccountResponse accountResponse = accountService.openAccount(openAccountRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(accountResponse);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<@NonNull AccountResponse> getAccountById(@PathVariable UUID id) {
-        log.info("GET /api/v1/accounts/{} - Fetching account", id);
-        AccountResponse response = accountService.getAccountById(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<@NonNull AccountResponse> getAccountById(@PathVariable("id") UUID accountId) {
+        log.info("GET /api/v1/accounts/{} - Fetching account", accountId);
+        AccountResponse accountResponse = accountService.getAccountById(accountId);
+        return ResponseEntity.ok(accountResponse);
     }
 
     @GetMapping("/ids")
-    public ResponseEntity<@NonNull List<AccountResponse>> getByAccountIds(@RequestParam List<UUID> ids) {
-        log.info("GET /api/v1/accounts - Fetching accounts with ids: {}", ids);
-        return ResponseEntity.ok(accountService.getByAccountIds(ids));
+    public ResponseEntity<@NonNull List<AccountResponse>> getByAccountIds(@RequestParam("ids") List<UUID> accountIds) {
+        log.info("GET /api/v1/accounts - Fetching accounts with ids: {}", accountIds);
+        List<AccountResponse> accountResponses = accountService.getByAccountIds(accountIds);
+        return ResponseEntity.ok(accountResponses);
     }
 
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<@NonNull List<AccountResponse>> getAccountsByCustomerId(@PathVariable UUID customerId) {
         log.info("GET /api/v1/accounts/customer/{} - Fetching accounts for customer", customerId);
-        List<AccountResponse> response = accountService.getAccountsByCustomerId(customerId);
-        return ResponseEntity.ok(response);
+        List<AccountResponse> accountResponses = accountService.getAccountsByCustomerId(customerId);
+        return ResponseEntity.ok(accountResponses);
     }
 
     @GetMapping("/{id}/wallets")
-    public ResponseEntity<@NonNull List<AccountWalletResponse>> getWalletsByAccountId(@PathVariable UUID id) {
-        log.info("GET /api/v1/accounts/{}/wallets - Fetching wallets", id);
-        List<AccountWalletResponse> response = accountWalletService.getWalletsByAccountId(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<@NonNull List<AccountWalletResponse>> getWalletsByAccountId(@PathVariable("id") UUID accountId) {
+        log.info("GET /api/v1/accounts/{}/wallets - Fetching wallets", accountId);
+        List<AccountWalletResponse> accountWalletResponses = accountWalletService.getWalletsByAccountId(accountId);
+        return ResponseEntity.ok(accountWalletResponses);
     }
 
     @GetMapping("/{id}/wallets/{currency}")
     public ResponseEntity<@NonNull AccountWalletResponse> getWalletByCurrency(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID accountId,
             @PathVariable Currency currency) {
 
-        log.info("GET /api/v1/accounts/{}/wallets/{} - Fetching wallet", id, currency);
-        AccountWalletResponse response = accountWalletService.getWalletByCurrency(id, currency);
-        return ResponseEntity.ok(response);
+        log.info("GET /api/v1/accounts/{}/wallets/{} - Fetching wallet", accountId, currency);
+        AccountWalletResponse accountWalletResponse = accountWalletService.getWalletByCurrency(accountId, currency);
+        return ResponseEntity.ok(accountWalletResponse);
     }
 }

@@ -17,5 +17,5 @@ import java.util.List;
 public interface LedgerServiceClient {
 
     @PostMapping("/batch")
-    List<LedgerAccountResponse> createLedgerAccounts(@RequestBody CreateLedgerAccountsRequest request);
+    List<LedgerAccountResponse> createLedgerAccounts(@RequestBody CreateLedgerAccountsRequest createLedgerAccountsRequest);
 }

@@ -20,24 +20,25 @@ public class AccountWalletBalanceService {
     private final AccountWalletRepository accountWalletRepository;
 
     @Transactional
-    public void applyWalletBalanceChange(WalletBalanceChangedEvent event) {
-        UUID ledgerAccountId = UUID.fromString(event.getLedgerAccountId());
+    public void applyWalletBalanceChange(WalletBalanceChangedEvent walletBalanceChangedEvent) {
+        UUID ledgerAccountId = UUID.fromString(walletBalanceChangedEvent.getLedgerAccountId());
 
-        Optional<AccountWalletEntity> wallet = accountWalletRepository.findByLedgerAccountId(ledgerAccountId);
+        Optional<AccountWalletEntity> optionalAccountWalletEntity =
+                accountWalletRepository.findByLedgerAccountId(ledgerAccountId);
 
-        if (wallet.isEmpty()) {
+        if (optionalAccountWalletEntity.isEmpty()) {
             log.warn("No wallet found for ledgerAccountId: {}, ignoring balance change", ledgerAccountId);
             return;
         }
 
-        AccountWalletEntity accountWallet = wallet.get();
-        accountWallet.setBalance(new BigDecimal(event.getPostedBalance()));
-        accountWallet.setAvailableBalance(new BigDecimal(event.getAvailableBalance()));
-        accountWalletRepository.save(accountWallet);
+        AccountWalletEntity accountWalletEntity = optionalAccountWalletEntity.get();
+        accountWalletEntity.setBalance(new BigDecimal(walletBalanceChangedEvent.getPostedBalance()));
+        accountWalletEntity.setAvailableBalance(new BigDecimal(walletBalanceChangedEvent.getAvailableBalance()));
+        accountWalletRepository.save(accountWalletEntity);
 
         log.info("Projected ledger balances onto wallet {}: balance:{}, availableBalance:{}",
-                accountWallet.getId(),
-                event.getPostedBalance(),
-                event.getAvailableBalance());
+                accountWalletEntity.getId(),
+                walletBalanceChangedEvent.getPostedBalance(),
+                walletBalanceChangedEvent.getAvailableBalance());
     }
 }
