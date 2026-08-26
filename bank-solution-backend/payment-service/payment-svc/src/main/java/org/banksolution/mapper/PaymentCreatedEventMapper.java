@@ -23,11 +23,11 @@ public class PaymentCreatedEventMapper {
                         paymentRequestEntity.getSourceAccountId().toString() : null)
                 .setDestinationAccountId(paymentRequestEntity.getDestinationAccountId() != null ?
                         paymentRequestEntity.getDestinationAccountId().toString() : null)
-                .setAmount(paymentRequestEntity.getAmount().toString())
+                .setAmount(paymentRequestEntity.getAmount().toPlainString())
                 .setFromCurrency(paymentRequestEntity.getFromCurrency().name())
                 .setToCurrency(paymentRequestEntity.getToCurrency().name())
-                .setConvertedAmount(paymentRequestEntity.getConvertedAmount().toString())
-                .setAppliedExchangeRate(paymentRequestEntity.getAppliedExchangeRate() != null ? paymentRequestEntity.getAppliedExchangeRate().toString() : null)
+                .setConvertedAmount(paymentRequestEntity.getConvertedAmount().toPlainString())
+                .setAppliedExchangeRate(paymentRequestEntity.getAppliedExchangeRate() != null ? paymentRequestEntity.getAppliedExchangeRate().toPlainString() : null)
                 .setPaymentType(com.aml.payment.PaymentType.valueOf(paymentRequestEntity.getPaymentType().name()))
                 .setPaymentScheme(com.aml.payment.PaymentScheme.valueOf(
                         paymentRequestEntity.getPaymentScheme().name()))

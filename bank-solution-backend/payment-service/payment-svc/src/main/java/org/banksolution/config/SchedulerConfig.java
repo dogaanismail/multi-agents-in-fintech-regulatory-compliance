@@ -41,9 +41,9 @@ public class SchedulerConfig {
 
     @Bean
     public RecurringTaskWithPersistentSchedule<ScheduleAndRateData> currencyRatesRefreshTask(
-            CurrencyConversionScheduledService service) {
+            CurrencyConversionScheduledService currencyConversionScheduledService) {
         return Tasks.recurringWithPersistentSchedule(TASK_NAME, ScheduleAndRateData.class)
-                .execute((instance, ctx) -> service.fetchAndUpdateRates());
+                .execute((taskInstance, executionContext) -> currencyConversionScheduledService.fetchAndUpdateRates());
     }
 
     @Bean
@@ -58,8 +58,8 @@ public class SchedulerConfig {
                 .build();
         this.scheduler.start();
 
-        TaskInstanceId instanceId = TaskInstanceId.of(TASK_NAME, "main");
-        if (this.scheduler.getScheduledExecution(instanceId).isEmpty()) {
+        TaskInstanceId mainTaskInstanceId = TaskInstanceId.of(TASK_NAME, "main");
+        if (this.scheduler.getScheduledExecution(mainTaskInstanceId).isEmpty()) {
             this.scheduler.schedule(
                     SchedulableInstance.of(
                             currencyRatesRefreshTask.instance("main", new ScheduleAndRateData(intervalMs)),

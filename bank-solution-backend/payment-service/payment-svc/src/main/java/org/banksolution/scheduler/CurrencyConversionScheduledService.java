@@ -16,8 +16,8 @@ public class CurrencyConversionScheduledService {
         log.info("Scheduled currency rate sync triggered");
         try {
             currencyRateSyncService.syncRates();
-        } catch (Exception e) {
-            log.error("Failed to sync exchange rates during scheduled run", e);
+        } catch (Exception syncFailure) {
+            log.error("Failed to sync exchange rates during scheduled run", syncFailure);
         }
     }
 }

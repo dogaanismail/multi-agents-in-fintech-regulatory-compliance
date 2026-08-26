@@ -10,21 +10,21 @@ import org.banksolution.model.request.PaymentRequest;
 public class PaymentSchemeClassifier {
 
     public static PaymentScheme classify(
-            PaymentRequest request,
+            PaymentRequest paymentRequest,
             PaymentAccounts resolvedAccounts) {
 
         if (resolvedAccounts != null) {
             return PaymentScheme.INTERNAL_TRANSFER;
         }
 
-        if (request.getSourceAccountId() != null) {
+        if (paymentRequest.getSourceAccountId() != null) {
             return PaymentScheme.EXTERNAL_OUTBOUND;
         }
 
-        if (request.getDestinationAccountId() != null) {
+        if (paymentRequest.getDestinationAccountId() != null) {
             return PaymentScheme.EXTERNAL_INBOUND;
         }
 
-        throw new UnresolvablePaymentSchemeException(request.getPaymentType());
+        throw new UnresolvablePaymentSchemeException(paymentRequest.getPaymentType());
     }
 }

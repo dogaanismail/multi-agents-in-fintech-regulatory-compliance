@@ -8,7 +8,7 @@ import org.banksolution.model.response.PaymentRequestResponse;
 @UtilityClass
 public class PaymentRequestMapper {
 
-    public static PaymentRequestEntity toEntity(
+    public static PaymentRequestEntity toPaymentRequestEntity(
             PaymentRequest paymentRequest) {
 
         return PaymentRequestEntity.builder()
@@ -23,7 +23,7 @@ public class PaymentRequestMapper {
                 .build();
     }
 
-    public static PaymentRequestResponse toResponse(
+    public static PaymentRequestResponse toPaymentRequestResponse(
             PaymentRequestEntity paymentRequestEntity,
             String message) {
 

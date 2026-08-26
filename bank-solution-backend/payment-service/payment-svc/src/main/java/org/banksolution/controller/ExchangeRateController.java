@@ -25,10 +25,10 @@ public class ExchangeRateController {
 
     @GetMapping("/{from}/{to}")
     public ResponseEntity<ExchangeRateResponse> getRate(
-            @PathVariable String from,
-            @PathVariable String to) {
-        log.info("GET /api/v1/exchange-rates/{}/{} - Fetching exchange rate", from, to);
-        return exchangeRateService.getRate(from.toUpperCase(), to.toUpperCase())
+            @PathVariable("from") String fromCurrency,
+            @PathVariable("to") String toCurrency) {
+        log.info("GET /api/v1/exchange-rates/{}/{} - Fetching exchange rate", fromCurrency, toCurrency);
+        return exchangeRateService.getRate(fromCurrency.toUpperCase(), toCurrency.toUpperCase())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
