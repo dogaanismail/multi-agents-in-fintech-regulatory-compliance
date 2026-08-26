@@ -31,7 +31,7 @@ public class TigerBeetleInternalAccountRepository {
         }
 
         IdBatch ids = new IdBatch(ledgerAccountIds.size());
-        ledgerAccountIds.forEach(id -> ids.add(UInt128.asBytes(id)));
+        ledgerAccountIds.forEach(ledgerAccountId -> ids.add(UInt128.asBytes(ledgerAccountId)));
 
         AccountBatch accounts = lookupAccountsInTigerBeetle(ids);
         List<LedgerInternalAccount> internalAccounts = new ArrayList<>();
@@ -48,11 +48,11 @@ public class TigerBeetleInternalAccountRepository {
         }
 
         AccountBatch batch = new AccountBatch(internalAccounts.size());
-        internalAccounts.forEach(account -> {
+        internalAccounts.forEach(internalAccount -> {
             batch.add();
-            batch.setId(UInt128.asBytes(account.id()));
-            batch.setLedger(account.currency().getNumericCode());
-            batch.setCode(account.accountType().getCode());
+            batch.setId(UInt128.asBytes(internalAccount.id()));
+            batch.setLedger(internalAccount.currency().getNumericCode());
+            batch.setCode(internalAccount.accountType().getCode());
             batch.setFlags(AccountFlags.HISTORY);
         });
 
@@ -68,9 +68,9 @@ public class TigerBeetleInternalAccountRepository {
     private AccountBatch lookupAccountsInTigerBeetle(IdBatch ids) {
         try {
             return tigerBeetleClient.lookupAccounts(ids);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
     }
 
@@ -78,9 +78,9 @@ public class TigerBeetleInternalAccountRepository {
         CreateAccountResultBatch results;
         try {
             results = tigerBeetleClient.createAccounts(batch);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
 
         while (results.next()) {

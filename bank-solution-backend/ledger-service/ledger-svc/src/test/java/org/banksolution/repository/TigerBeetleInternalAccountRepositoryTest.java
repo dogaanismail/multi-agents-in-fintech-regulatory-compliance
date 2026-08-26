@@ -5,6 +5,10 @@ import org.banksolution.domain.LedgerAccountIds;
 import org.banksolution.domain.LedgerInternalAccount;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.LedgerAccountType;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.banksolution.exception.LedgerAccountPersistenceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,5 +61,26 @@ class TigerBeetleInternalAccountRepositoryTest extends BaseIntegrationTest {
         assertThat(tigerBeetleInternalAccountRepository.findInternalAccountsByIds(derivedIds))
                 .extracting(LedgerInternalAccount::accountType)
                 .containsExactlyInAnyOrder(LedgerAccountType.INBOUND_CLEARING, LedgerAccountType.OUTBOUND_CLEARING);
+    }
+
+    @Test
+    void shouldRefuseToReuseAnInternalAccountIdOnADifferentLedger() {
+        LedgerInternalAccount gbpSuspenseAccount = tigerBeetleInternalAccountRepository.persistInternalAccount(
+                LedgerInternalAccount.newInternalAccount(LedgerAccountType.SUSPENSE, Currency.GBP));
+        LedgerInternalAccount conflictingAccount = LedgerInternalAccount.builder()
+                .id(gbpSuspenseAccount.id())
+                .accountType(LedgerAccountType.SUSPENSE)
+                .currency(Currency.EUR)
+                .build();
+
+        assertThatThrownBy(() -> tigerBeetleInternalAccountRepository.persistInternalAccount(conflictingAccount))
+                .isInstanceOf(LedgerAccountPersistenceException.class)
+                .hasMessageContaining("ExistsWithDifferentLedger");
+    }
+
+    @Test
+    void shouldShortCircuitEmptyLookupsAndPersists() {
+        assertThat(tigerBeetleInternalAccountRepository.findInternalAccountsByIds(List.of())).isEmpty();
+        assertThat(tigerBeetleInternalAccountRepository.persistInternalAccounts(List.of())).isEmpty();
     }
 }

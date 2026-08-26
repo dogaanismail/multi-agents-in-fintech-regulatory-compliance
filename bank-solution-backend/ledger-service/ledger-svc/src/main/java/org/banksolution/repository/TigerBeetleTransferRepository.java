@@ -4,6 +4,7 @@ import com.tigerbeetle.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.domain.LedgerTransfer;
+import org.banksolution.enums.TransferType;
 import org.banksolution.exception.InsufficientLedgerFundsException;
 import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.LedgerUnavailableException;
@@ -69,9 +70,9 @@ public class TigerBeetleTransferRepository {
 
         try {
             return toLedgerTransfers(tigerBeetleClient.queryTransfers(queryFilter));
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
     }
 
@@ -96,14 +97,14 @@ public class TigerBeetleTransferRepository {
                 transferBatch.setFlags(TransferFlags.NONE);
             }
             // Accounts, currency and code are inherited from the authorisation being resolved.
-            case POST_PENDING -> {
+            default -> {
                 transferBatch.setPendingId(UInt128.asBytes(ledgerTransfer.pendingTransferId()));
-                transferBatch.setAmount(TransferBatch.AMOUNT_MAX);
-                transferBatch.setFlags(TransferFlags.POST_PENDING_TRANSFER);
-            }
-            case VOID_PENDING -> {
-                transferBatch.setPendingId(UInt128.asBytes(ledgerTransfer.pendingTransferId()));
-                transferBatch.setFlags(TransferFlags.VOID_PENDING_TRANSFER);
+                if (ledgerTransfer.transferType() == TransferType.POST_PENDING) {
+                    transferBatch.setAmount(TransferBatch.AMOUNT_MAX);
+                    transferBatch.setFlags(TransferFlags.POST_PENDING_TRANSFER);
+                } else {
+                    transferBatch.setFlags(TransferFlags.VOID_PENDING_TRANSFER);
+                }
             }
         }
 
@@ -124,9 +125,9 @@ public class TigerBeetleTransferRepository {
         CreateTransferResultBatch results;
         try {
             results = tigerBeetleClient.createTransfers(transferBatch);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
 
         while (results.next()) {
@@ -157,9 +158,9 @@ public class TigerBeetleTransferRepository {
     private TransferBatch lookupTransfersInTigerBeetle(IdBatch idBatch) {
         try {
             return tigerBeetleClient.lookupTransfers(idBatch);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
     }
 

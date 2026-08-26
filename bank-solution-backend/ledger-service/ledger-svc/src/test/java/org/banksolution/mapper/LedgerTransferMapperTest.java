@@ -87,6 +87,16 @@ class LedgerTransferMapperTest {
     }
 
     @Test
+    void shouldKeepAPendingTransferIdWhoseHighBitsHappenToBeZero() {
+        UUID lowBitsOnlyPendingTransferId = new UUID(0L, 1L);
+        TransferBatch transferBatch = createTransferBatch(SETTLEMENT, Currency.GBP, GBP_MINOR_UNITS);
+        transferBatch.setPendingId(UInt128.asBytes(lowBitsOnlyPendingTransferId));
+
+        assertThat(LedgerTransferMapper.toLedgerTransfer(transferBatch).pendingTransferId())
+                .isEqualTo(lowBitsOnlyPendingTransferId);
+    }
+
+    @Test
     void shouldLeaveThePendingTransferIdNullWhenTigerBeetleReportsZero() {
         TransferBatch transferBatch = createTransferBatch(OUTBOUND_AUTHORISATION, Currency.GBP, GBP_MINOR_UNITS);
 

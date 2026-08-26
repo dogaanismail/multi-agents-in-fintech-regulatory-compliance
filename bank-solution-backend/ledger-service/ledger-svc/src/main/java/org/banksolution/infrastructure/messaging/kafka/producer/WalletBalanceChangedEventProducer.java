@@ -16,14 +16,14 @@ public class WalletBalanceChangedEventProducer {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull WalletBalanceChangedEvent> walletBalanceChangedEventKafkaTemplate;
 
-    public void publish(WalletBalanceChangedEvent event) {
-        String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getWalletBalanceChanged();
+    public void publish(WalletBalanceChangedEvent walletBalanceChangedEvent) {
+        String walletBalanceChangedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getWalletBalanceChanged();
 
-        walletBalanceChangedEventKafkaTemplate.send(topic, event.getLedgerAccountId(), event);
+        walletBalanceChangedEventKafkaTemplate.send(walletBalanceChangedTopic, walletBalanceChangedEvent.getLedgerAccountId(), walletBalanceChangedEvent);
 
         log.info("Published WalletBalanceChangedEvent: ledgerAccountId:{}, currency:{}, availableBalance:{}",
-                event.getLedgerAccountId(),
-                event.getCurrency(),
-                event.getAvailableBalance());
+                walletBalanceChangedEvent.getLedgerAccountId(),
+                walletBalanceChangedEvent.getCurrency(),
+                walletBalanceChangedEvent.getAvailableBalance());
     }
 }

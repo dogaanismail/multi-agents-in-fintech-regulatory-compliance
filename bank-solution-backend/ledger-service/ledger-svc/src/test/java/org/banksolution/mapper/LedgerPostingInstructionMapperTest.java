@@ -4,6 +4,7 @@ import org.banksolution.domain.LedgerPostingInstruction;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.LedgerAccountType;
 import org.banksolution.model.request.CreateLedgerPostingInstructionRequest;
+import org.banksolution.model.request.InternalTransferMovementRequest;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -83,6 +84,28 @@ class LedgerPostingInstructionMapperTest {
 
         assertThat(toLedgerPostingInstruction(request).internalAccountType())
                 .isEqualTo(LedgerAccountType.FEES_INCOME);
+    }
+
+    @Test
+    void shouldMapInternalTransferAuthorisationBetweenTwoCustomerAccounts() {
+        UUID destinationCustomerAccountId = UUID.randomUUID();
+        CreateLedgerPostingInstructionRequest createLedgerPostingInstructionRequest = CreateLedgerPostingInstructionRequest.builder()
+                .clientTransactionId(CLIENT_TRANSACTION_ID)
+                .internalTransferAuthorisation(InternalTransferMovementRequest.builder()
+                        .amount(AMOUNT)
+                        .currency(Currency.GBP)
+                        .sourceCustomerAccountId(CUSTOMER_ACCOUNT_ID)
+                        .destinationCustomerAccountId(destinationCustomerAccountId)
+                        .build())
+                .build();
+
+        LedgerPostingInstruction ledgerPostingInstruction = toLedgerPostingInstruction(createLedgerPostingInstructionRequest);
+
+        assertThat(ledgerPostingInstruction.postingInstructionType()).isEqualTo(INTERNAL_TRANSFER_AUTHORISATION);
+        assertThat(ledgerPostingInstruction.customerAccountId()).isEqualTo(CUSTOMER_ACCOUNT_ID);
+        assertThat(ledgerPostingInstruction.counterpartyCustomerAccountId()).isEqualTo(destinationCustomerAccountId);
+        assertThat(ledgerPostingInstruction.amount()).isEqualByComparingTo(AMOUNT);
+        assertThat(ledgerPostingInstruction.internalAccountType()).isNull();
     }
 
     @Test
