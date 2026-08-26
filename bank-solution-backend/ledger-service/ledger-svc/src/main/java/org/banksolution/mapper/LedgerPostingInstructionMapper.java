@@ -13,65 +13,65 @@ public final class LedgerPostingInstructionMapper {
     }
 
     public static LedgerPostingInstruction toLedgerPostingInstruction(
-            CreateLedgerPostingInstructionRequest request) {
+            CreateLedgerPostingInstructionRequest createLedgerPostingInstructionRequest) {
 
-        UUID clientTransactionId = request.getClientTransactionId();
+        UUID clientTransactionId = createLedgerPostingInstructionRequest.getClientTransactionId();
 
-        if (request.getInboundAuthorisation() != null) {
-            CustomerAccountMovementRequest movement = request.getInboundAuthorisation();
+        if (createLedgerPostingInstructionRequest.getInboundAuthorisation() != null) {
+            CustomerAccountMovementRequest customerAccountMovementRequest = createLedgerPostingInstructionRequest.getInboundAuthorisation();
             return LedgerPostingInstruction.inboundAuthorisation(clientTransactionId,
-                    movement.getAmount(),
-                    movement.getCurrency(),
-                    movement.getCustomerAccountId(),
-                    movement.getInternalAccountType()
+                    customerAccountMovementRequest.getAmount(),
+                    customerAccountMovementRequest.getCurrency(),
+                    customerAccountMovementRequest.getCustomerAccountId(),
+                    customerAccountMovementRequest.getInternalAccountType()
             );
         }
 
-        if (request.getOutboundAuthorisation() != null) {
-            CustomerAccountMovementRequest movement = request.getOutboundAuthorisation();
+        if (createLedgerPostingInstructionRequest.getOutboundAuthorisation() != null) {
+            CustomerAccountMovementRequest customerAccountMovementRequest = createLedgerPostingInstructionRequest.getOutboundAuthorisation();
             return LedgerPostingInstruction.outboundAuthorisation(clientTransactionId,
-                    movement.getAmount(),
-                    movement.getCurrency(),
-                    movement.getCustomerAccountId(),
-                    movement.getInternalAccountType()
+                    customerAccountMovementRequest.getAmount(),
+                    customerAccountMovementRequest.getCurrency(),
+                    customerAccountMovementRequest.getCustomerAccountId(),
+                    customerAccountMovementRequest.getInternalAccountType()
             );
         }
 
-        if (request.getInboundHardSettlement() != null) {
-            CustomerAccountMovementRequest movement = request.getInboundHardSettlement();
+        if (createLedgerPostingInstructionRequest.getInboundHardSettlement() != null) {
+            CustomerAccountMovementRequest customerAccountMovementRequest = createLedgerPostingInstructionRequest.getInboundHardSettlement();
             return LedgerPostingInstruction.inboundHardSettlement(clientTransactionId,
-                    movement.getAmount(),
-                    movement.getCurrency(),
-                    movement.getCustomerAccountId(),
-                    movement.getInternalAccountType()
+                    customerAccountMovementRequest.getAmount(),
+                    customerAccountMovementRequest.getCurrency(),
+                    customerAccountMovementRequest.getCustomerAccountId(),
+                    customerAccountMovementRequest.getInternalAccountType()
             );
         }
 
-        if (request.getOutboundHardSettlement() != null) {
-            CustomerAccountMovementRequest movement = request.getOutboundHardSettlement();
+        if (createLedgerPostingInstructionRequest.getOutboundHardSettlement() != null) {
+            CustomerAccountMovementRequest customerAccountMovementRequest = createLedgerPostingInstructionRequest.getOutboundHardSettlement();
             return LedgerPostingInstruction.outboundHardSettlement(clientTransactionId,
-                    movement.getAmount(),
-                    movement.getCurrency(),
-                    movement.getCustomerAccountId(),
-                    movement.getInternalAccountType()
+                    customerAccountMovementRequest.getAmount(),
+                    customerAccountMovementRequest.getCurrency(),
+                    customerAccountMovementRequest.getCustomerAccountId(),
+                    customerAccountMovementRequest.getInternalAccountType()
             );
         }
 
-        if (request.getInternalTransferAuthorisation() != null) {
-            InternalTransferMovementRequest movement = request.getInternalTransferAuthorisation();
+        if (createLedgerPostingInstructionRequest.getInternalTransferAuthorisation() != null) {
+            InternalTransferMovementRequest internalTransferMovementRequest = createLedgerPostingInstructionRequest.getInternalTransferAuthorisation();
             return LedgerPostingInstruction.internalTransferAuthorisation(clientTransactionId,
-                    movement.getAmount(),
-                    movement.getCurrency(),
-                    movement.getSourceCustomerAccountId(),
-                    movement.getDestinationCustomerAccountId()
+                    internalTransferMovementRequest.getAmount(),
+                    internalTransferMovementRequest.getCurrency(),
+                    internalTransferMovementRequest.getSourceCustomerAccountId(),
+                    internalTransferMovementRequest.getDestinationCustomerAccountId()
             );
         }
 
-        if (request.getSettlement() != null) {
+        if (createLedgerPostingInstructionRequest.getSettlement() != null) {
             return LedgerPostingInstruction.settlement(clientTransactionId);
         }
 
-        if (request.getRelease() != null) {
+        if (createLedgerPostingInstructionRequest.getRelease() != null) {
             return LedgerPostingInstruction.release(clientTransactionId);
         }
 

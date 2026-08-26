@@ -21,21 +21,21 @@ import java.util.List;
 public class ChartOfAccountsSeeder implements ApplicationRunner {
 
     private final TigerBeetleInternalAccountRepository tigerBeetleInternalAccountRepository;
-    private final ChartOfAccountsProperties properties;
+    private final ChartOfAccountsProperties chartOfAccountsProperties;
 
     @Override
-    public void run(@NonNull ApplicationArguments args) {
-        List<LedgerInternalAccount> internalAccounts = properties.currencies().stream()
+    public void run(@NonNull ApplicationArguments applicationArguments) {
+        List<LedgerInternalAccount> internalAccounts = chartOfAccountsProperties.currencies().stream()
                 .flatMap(currency -> Arrays.stream(LedgerAccountType.internalTypes())
-                        .map(type -> LedgerInternalAccount.newInternalAccount(type, currency)))
+                        .map(internalAccountType -> LedgerInternalAccount.newInternalAccount(internalAccountType, currency)))
                 .toList();
 
         try {
             tigerBeetleInternalAccountRepository.persistInternalAccounts(internalAccounts);
             log.info("Chart of accounts ready: {} internal accounts across {}",
-                    internalAccounts.size(), properties.currencies());
-        } catch (Exception e) {
-            log.error("Chart of accounts seeding failed; internal accounts may be missing", e);
+                    internalAccounts.size(), chartOfAccountsProperties.currencies());
+        } catch (Exception seedingFailure) {
+            log.error("Chart of accounts seeding failed; internal accounts may be missing", seedingFailure);
         }
     }
 }

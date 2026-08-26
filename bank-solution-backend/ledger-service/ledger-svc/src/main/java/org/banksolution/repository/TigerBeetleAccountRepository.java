@@ -39,7 +39,7 @@ public class TigerBeetleAccountRepository {
         }
 
         IdBatch ids = new IdBatch(ledgerAccountIds.size());
-        ledgerAccountIds.forEach(id -> ids.add(UInt128.asBytes(id)));
+        ledgerAccountIds.forEach(ledgerAccountId -> ids.add(UInt128.asBytes(ledgerAccountId)));
 
         AccountBatch accounts = lookupAccountsInTigerBeetle(ids);
         List<LedgerAccount> ledgerAccounts = new ArrayList<>();
@@ -56,12 +56,12 @@ public class TigerBeetleAccountRepository {
         }
 
         AccountBatch batch = new AccountBatch(ledgerAccounts.size());
-        ledgerAccounts.forEach(account -> {
+        ledgerAccounts.forEach(ledgerAccount -> {
             batch.add();
-            batch.setId(UInt128.asBytes(account.id()));
-            batch.setUserData128(UInt128.asBytes(account.accountId()));
-            batch.setLedger(account.currency().getNumericCode());
-            batch.setCode(account.accountType().getCode());
+            batch.setId(UInt128.asBytes(ledgerAccount.id()));
+            batch.setUserData128(UInt128.asBytes(ledgerAccount.accountId()));
+            batch.setLedger(ledgerAccount.currency().getNumericCode());
+            batch.setCode(ledgerAccount.accountType().getCode());
             batch.setFlags(WALLET_FLAGS);
         });
 
@@ -92,18 +92,18 @@ public class TigerBeetleAccountRepository {
     private AccountBatch queryAccountsInTigerBeetle(QueryFilter queryFilter) {
         try {
             return tigerBeetleClient.queryAccounts(queryFilter);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
     }
 
     private AccountBatch lookupAccountsInTigerBeetle(IdBatch ids) {
         try {
             return tigerBeetleClient.lookupAccounts(ids);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
     }
 
@@ -111,9 +111,9 @@ public class TigerBeetleAccountRepository {
         CreateAccountResultBatch results;
         try {
             results = tigerBeetleClient.createAccounts(batch);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            throw new LedgerUnavailableException(e);
+            throw new LedgerUnavailableException(interruption);
         }
 
         while (results.next()) {

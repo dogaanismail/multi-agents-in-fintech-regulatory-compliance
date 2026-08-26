@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version "${springframeworkBootVersion}"
     id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
     id 'java'
+    id 'jacoco'
 }
 
 group = 'org.bank.solution'
@@ -47,6 +48,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
     testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:kafka'
+    testImplementation 'org.awaitility:awaitility'
 }
 
 springBoot {
@@ -57,6 +60,7 @@ test {
     useJUnitPlatform {
         excludeTags 'integration'
     }
+    finalizedBy jacocoTestReport
 }
 
 tasks.register('integrationTest', Test) {
@@ -68,6 +72,26 @@ tasks.register('integrationTest', Test) {
         includeTags 'integration'
     }
     shouldRunAfter test
+    finalizedBy jacocoIntegrationTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.register('jacocoIntegrationTestReport', JacocoReport) {
+    description = 'Coverage report over unit + integration test executions combined.'
+    group = 'verification'
+    mustRunAfter tasks.withType(Test)
+    executionData fileTree(layout.buildDirectory).include('jacoco/*.exec')
+    sourceSets sourceSets.main
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 tasks.withType(JavaExec).configureEach {

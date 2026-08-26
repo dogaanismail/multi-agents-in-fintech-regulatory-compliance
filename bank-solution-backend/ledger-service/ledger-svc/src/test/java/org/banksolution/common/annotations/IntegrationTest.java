@@ -1,6 +1,7 @@
 package org.banksolution.common.annotations;
 
 import org.banksolution.LedgerServiceApplication;
+import org.banksolution.common.initializers.KafkaInitializer;
 import org.banksolution.common.initializers.TigerBeetleInitializer;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -14,7 +15,8 @@ import org.springframework.test.context.ContextConfiguration;
         classes = {LedgerServiceApplication.class}
 )
 @ContextConfiguration(initializers = {
-        TigerBeetleInitializer.class
+        TigerBeetleInitializer.class,
+        KafkaInitializer.class
 })
 @ActiveProfiles({"test"})
 @AutoConfigureMockMvc

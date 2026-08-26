@@ -23,7 +23,7 @@ public class TigerBeetleHealthIndicator implements HealthIndicator {
     private static final Duration PROBE_TIMEOUT = Duration.ofSeconds(2);
 
     private final Client tigerBeetleClient;
-    private final TigerBeetleProperties properties;
+    private final TigerBeetleProperties tigerBeetleProperties;
 
     @Override
     public Health health() {
@@ -33,20 +33,20 @@ public class TigerBeetleHealthIndicator implements HealthIndicator {
                     .get(PROBE_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
             return up();
-        } catch (TimeoutException e) {
-            return down("no reply within " + PROBE_TIMEOUT.toMillis() + "ms", e);
-        } catch (InterruptedException e) {
+        } catch (TimeoutException probeTimeout) {
+            return down("no reply within " + PROBE_TIMEOUT.toMillis() + "ms", probeTimeout);
+        } catch (InterruptedException interruption) {
             Thread.currentThread().interrupt();
-            return down("probe interrupted", e);
-        } catch (Exception e) {
-            return down(e.getMessage(), e);
+            return down("probe interrupted", interruption);
+        } catch (Exception probeFailure) {
+            return down(probeFailure.getMessage(), probeFailure);
         }
     }
 
     private Health up() {
         return Health.up()
-                .withDetail("clusterId", properties.clusterId())
-                .withDetail("addresses", properties.addresses())
+                .withDetail("clusterId", tigerBeetleProperties.clusterId())
+                .withDetail("addresses", tigerBeetleProperties.addresses())
                 .build();
     }
 
@@ -56,8 +56,8 @@ public class TigerBeetleHealthIndicator implements HealthIndicator {
 
         log.warn("TigerBeetle health probe failed: {}", reason);
         return Health.down(cause)
-                .withDetail("clusterId", properties.clusterId())
-                .withDetail("addresses", properties.addresses())
+                .withDetail("clusterId", tigerBeetleProperties.clusterId())
+                .withDetail("addresses", tigerBeetleProperties.addresses())
                 .build();
     }
 }

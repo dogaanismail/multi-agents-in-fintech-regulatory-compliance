@@ -16,14 +16,14 @@ public class LedgerPostingCompletedEventProducer {
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final KafkaTemplate<@NonNull String, @NonNull LedgerPostingCompletedEvent> ledgerPostingCompletedEventKafkaTemplate;
 
-    public void publish(LedgerPostingCompletedEvent event) {
-        String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getLedgerPostingCompleted();
+    public void publish(LedgerPostingCompletedEvent ledgerPostingCompletedEvent) {
+        String ledgerPostingCompletedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getLedgerPostingCompleted();
 
-        ledgerPostingCompletedEventKafkaTemplate.send(topic, event.getClientTransactionId(), event);
+        ledgerPostingCompletedEventKafkaTemplate.send(ledgerPostingCompletedTopic, ledgerPostingCompletedEvent.getClientTransactionId(), ledgerPostingCompletedEvent);
 
         log.info("Published LedgerPostingCompletedEvent: clientTransactionId:{}, type:{}, success:{}",
-                event.getClientTransactionId(),
-                event.getPostingInstructionType(),
-                event.getSuccess());
+                ledgerPostingCompletedEvent.getClientTransactionId(),
+                ledgerPostingCompletedEvent.getPostingInstructionType(),
+                ledgerPostingCompletedEvent.getSuccess());
     }
 }

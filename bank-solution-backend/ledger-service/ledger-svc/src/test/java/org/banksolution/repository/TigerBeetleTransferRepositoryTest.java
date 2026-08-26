@@ -9,6 +9,7 @@ import org.banksolution.enums.Currency;
 import org.banksolution.enums.LedgerAccountType;
 import org.banksolution.enums.PostingInstructionType;
 import org.banksolution.exception.InsufficientLedgerFundsException;
+import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,50 @@ class TigerBeetleTransferRepositoryTest extends BaseIntegrationTest {
 
         assertThatThrownBy(() -> tigerBeetleTransferRepository.persistLedgerTransfer(settlement))
                 .isInstanceOf(PendingAuthorisationNotFoundException.class);
+    }
+
+    @Test
+    void shouldTreatASettlementRedeliveredAfterPostingAsAlreadyApplied() {
+        UUID customerAccountId = givenFundedWallet();
+        UUID clientTransactionId = UUID.randomUUID();
+        LedgerTransfer authorisationTransfer = tigerBeetleTransferRepository.persistLedgerTransfer(
+                outboundAuthorisation(clientTransactionId, customerAccountId, AUTHORISED_AMOUNT));
+        LedgerTransfer settlementTransfer = LedgerTransfer.builder()
+                .id(LedgerTransferIds.deriveTransferId(clientTransactionId, SETTLEMENT))
+                .clientTransactionId(clientTransactionId)
+                .postingInstructionType(SETTLEMENT)
+                .pendingTransferId(authorisationTransfer.id())
+                .build();
+
+        LedgerTransfer settledTransfer = tigerBeetleTransferRepository.persistLedgerTransfer(settlementTransfer);
+        LedgerTransfer redeliveredSettlementTransfer = tigerBeetleTransferRepository.persistLedgerTransfer(settlementTransfer);
+
+        assertThat(redeliveredSettlementTransfer.id()).isEqualTo(settledTransfer.id());
+        assertThat(redeliveredSettlementTransfer.pendingTransferId()).isEqualTo(authorisationTransfer.id());
+    }
+
+    @Test
+    void shouldRejectATransferWhoseDebitAndCreditAccountsAreTheSame() {
+        UUID customerAccountId = givenFundedWallet();
+        UUID walletLedgerAccountId = LedgerAccountIds.deriveWalletAccountId(customerAccountId, CURRENCY);
+        LedgerTransfer selfTransfer = movementTransfer(
+                UUID.randomUUID(), OUTBOUND_HARD_SETTLEMENT, walletLedgerAccountId, walletLedgerAccountId, AUTHORISED_AMOUNT);
+
+        assertThatThrownBy(() -> tigerBeetleTransferRepository.persistLedgerTransfer(selfTransfer))
+                .isInstanceOf(LedgerPostingException.class)
+                .hasMessageContaining("AccountsMustBeDifferent");
+    }
+
+    @Test
+    void shouldFindAPersistedTransferByItsId() {
+        UUID customerAccountId = givenWallet();
+        UUID clientTransactionId = UUID.randomUUID();
+        LedgerTransfer persistedTransfer = tigerBeetleTransferRepository.persistLedgerTransfer(
+                inboundHardSettlement(clientTransactionId, customerAccountId, OPENING_BALANCE));
+
+        assertThat(tigerBeetleTransferRepository.findLedgerTransferById(persistedTransfer.id()))
+                .map(LedgerTransfer::clientTransactionId)
+                .contains(clientTransactionId);
     }
 
     @Test

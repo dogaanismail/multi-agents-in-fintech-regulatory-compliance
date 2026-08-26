@@ -5,6 +5,7 @@ import org.banksolution.domain.LedgerAccount;
 import org.banksolution.domain.LedgerAccountIds;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.LedgerAccountType;
+import org.banksolution.exception.LedgerAccountPersistenceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.LedgerAccountFixtures.createWallet;
 
 class TigerBeetleAccountRepositoryTest extends BaseIntegrationTest {
@@ -62,8 +64,29 @@ class TigerBeetleAccountRepositoryTest extends BaseIntegrationTest {
     }
 
     @Test
+    void shouldRefuseToReuseAWalletIdOnADifferentLedger() {
+        UUID accountId = UUID.randomUUID();
+        LedgerAccount gbpWallet = tigerBeetleAccountRepository.persistLedgerAccount(createWallet(accountId, Currency.GBP));
+        LedgerAccount conflictingWallet = LedgerAccount.builder()
+                .id(gbpWallet.id())
+                .accountId(accountId)
+                .accountType(LedgerAccountType.WALLET)
+                .currency(Currency.EUR)
+                .build();
+
+        assertThatThrownBy(() -> tigerBeetleAccountRepository.persistLedgerAccount(conflictingWallet))
+                .isInstanceOf(LedgerAccountPersistenceException.class)
+                .hasMessageContaining("ExistsWithDifferentLedger");
+    }
+
+    @Test
     void shouldReturnEmptyWhenWalletDoesNotExist() {
         assertThat(tigerBeetleAccountRepository.findLedgerAccountById(UUID.randomUUID())).isEmpty();
+    }
+
+    @Test
+    void shouldPersistNothingWhenNoAccountsAreGiven() {
+        assertThat(tigerBeetleAccountRepository.persistLedgerAccounts(List.of())).isEmpty();
     }
 
     @Test

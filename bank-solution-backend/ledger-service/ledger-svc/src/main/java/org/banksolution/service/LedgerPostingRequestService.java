@@ -23,15 +23,16 @@ public class LedgerPostingRequestService {
     private final LedgerPostingService ledgerPostingService;
     private final LedgerPostingCompletedEventProducer ledgerPostingCompletedEventProducer;
 
-    public void processLedgerPostingRequest(LedgerPostingRequestedEvent event) {
+    public void processLedgerPostingRequest(LedgerPostingRequestedEvent ledgerPostingRequestedEvent) {
         LedgerPostingInstruction postingInstruction =
-                LedgerPostingEventMapper.toLedgerPostingInstruction(event);
+                LedgerPostingEventMapper.toLedgerPostingInstruction(ledgerPostingRequestedEvent);
 
         try {
             List<LedgerTransfer> ledgerTransfers = ledgerPostingService.applyPostingInstruction(postingInstruction);
             publishSuccess(ledgerTransfers.getFirst());
-        } catch (InsufficientLedgerFundsException | PendingAuthorisationNotFoundException | LedgerPostingException e) {
-            publishRejection(event, e.getMessage());
+        } catch (InsufficientLedgerFundsException | PendingAuthorisationNotFoundException |
+                 LedgerPostingException ledgerRejection) {
+            publishRejection(ledgerPostingRequestedEvent, ledgerRejection.getMessage());
         }
     }
 
@@ -40,13 +41,13 @@ public class LedgerPostingRequestService {
                 LedgerPostingEventMapper.toSuccessfulLedgerPostingCompletedEvent(ledgerTransfer));
     }
 
-    private void publishRejection(LedgerPostingRequestedEvent event, String failureReason) {
+    private void publishRejection(LedgerPostingRequestedEvent ledgerPostingRequestedEvent, String failureReason) {
         log.warn("Ledger rejected {} for client transaction {}: {}",
-                event.getPostingInstructionType(), event.getClientTransactionId(), failureReason);
+                ledgerPostingRequestedEvent.getPostingInstructionType(), ledgerPostingRequestedEvent.getClientTransactionId(), failureReason);
 
-        LedgerPostingCompletedEvent rejection =
-                LedgerPostingEventMapper.toFailedLedgerPostingCompletedEvent(event, failureReason);
+        LedgerPostingCompletedEvent ledgerPostingRejectedEvent =
+                LedgerPostingEventMapper.toFailedLedgerPostingCompletedEvent(ledgerPostingRequestedEvent, failureReason);
 
-        ledgerPostingCompletedEventProducer.publish(rejection);
+        ledgerPostingCompletedEventProducer.publish(ledgerPostingRejectedEvent);
     }
 }

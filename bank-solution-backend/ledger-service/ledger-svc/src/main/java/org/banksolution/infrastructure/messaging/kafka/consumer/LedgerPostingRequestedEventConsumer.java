@@ -24,18 +24,18 @@ public class LedgerPostingRequestedEventConsumer {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(
-            @Payload LedgerPostingRequestedEvent event,
+            @Payload LedgerPostingRequestedEvent ledgerPostingRequestedEvent,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
 
         log.info("Consumed LedgerPostingRequestedEvent: clientTransactionId:{}, type:{}, partition:{}, offset:{}",
-                event.getClientTransactionId(),
-                event.getPostingInstructionType(),
+                ledgerPostingRequestedEvent.getClientTransactionId(),
+                ledgerPostingRequestedEvent.getPostingInstructionType(),
                 partition,
                 offset);
 
-        ledgerPostingRequestService.processLedgerPostingRequest(event);
+        ledgerPostingRequestService.processLedgerPostingRequest(ledgerPostingRequestedEvent);
 
         acknowledgment.acknowledge();
     }

@@ -2,12 +2,14 @@ package org.banksolution.service;
 
 import com.aml.ledger.WalletBalanceChangedEvent;
 import org.banksolution.common.BaseIntegrationTest;
+import org.banksolution.infrastructure.messaging.kafka.producer.WalletBalanceChangedEventProducer;
 import org.banksolution.domain.LedgerAccountIds;
 import org.banksolution.domain.LedgerPostingInstruction;
 import org.banksolution.enums.Currency;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,6 +20,9 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 class WalletBalancePublicationServiceTest extends BaseIntegrationTest {
+
+    @MockitoBean
+    private WalletBalanceChangedEventProducer walletBalanceChangedEventProducer;
 
     private static final Currency CURRENCY = Currency.GBP;
     private static final BigDecimal OPENING_BALANCE = new BigDecimal("1000.00");
@@ -36,10 +41,10 @@ class WalletBalancePublicationServiceTest extends BaseIntegrationTest {
         ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.outboundAuthorisation(
                 UUID.randomUUID(), AUTHORISED_AMOUNT, CURRENCY, customerAccountId, null));
 
-        WalletBalanceChangedEvent event = lastEventForWallet(customerAccountId, CURRENCY);
-        assertThat(event.getPostedBalance()).isEqualTo("1000.00");
-        assertThat(event.getAvailableBalance()).isEqualTo("750.00");
-        assertThat(event.getPendingDebits()).isEqualTo("250.00");
+        WalletBalanceChangedEvent walletBalanceChangedEvent = lastEventForWallet(customerAccountId, CURRENCY);
+        assertThat(walletBalanceChangedEvent.getPostedBalance()).isEqualTo("1000.00");
+        assertThat(walletBalanceChangedEvent.getAvailableBalance()).isEqualTo("750.00");
+        assertThat(walletBalanceChangedEvent.getPendingDebits()).isEqualTo("250.00");
     }
 
     @Test
@@ -51,10 +56,10 @@ class WalletBalancePublicationServiceTest extends BaseIntegrationTest {
                 clientTransactionId, AUTHORISED_AMOUNT, CURRENCY, customerAccountId, null));
         ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.settlement(clientTransactionId));
 
-        WalletBalanceChangedEvent event = lastEventForWallet(customerAccountId, CURRENCY);
-        assertThat(event.getPostedBalance()).isEqualTo("750.00");
-        assertThat(event.getAvailableBalance()).isEqualTo("750.00");
-        assertThat(event.getPendingDebits()).isEqualTo("0.00");
+        WalletBalanceChangedEvent walletBalanceChangedEvent = lastEventForWallet(customerAccountId, CURRENCY);
+        assertThat(walletBalanceChangedEvent.getPostedBalance()).isEqualTo("750.00");
+        assertThat(walletBalanceChangedEvent.getAvailableBalance()).isEqualTo("750.00");
+        assertThat(walletBalanceChangedEvent.getPendingDebits()).isEqualTo("0.00");
     }
 
     @Test
@@ -66,9 +71,9 @@ class WalletBalancePublicationServiceTest extends BaseIntegrationTest {
                 clientTransactionId, AUTHORISED_AMOUNT, CURRENCY, customerAccountId, null));
         ledgerPostingService.applyPostingInstruction(LedgerPostingInstruction.release(clientTransactionId));
 
-        WalletBalanceChangedEvent event = lastEventForWallet(customerAccountId, CURRENCY);
-        assertThat(event.getPostedBalance()).isEqualTo("1000.00");
-        assertThat(event.getAvailableBalance()).isEqualTo("1000.00");
+        WalletBalanceChangedEvent walletBalanceChangedEvent = lastEventForWallet(customerAccountId, CURRENCY);
+        assertThat(walletBalanceChangedEvent.getPostedBalance()).isEqualTo("1000.00");
+        assertThat(walletBalanceChangedEvent.getAvailableBalance()).isEqualTo("1000.00");
     }
 
     @Test
@@ -125,10 +130,10 @@ class WalletBalancePublicationServiceTest extends BaseIntegrationTest {
     }
 
     private List<WalletBalanceChangedEvent> capturedEvents() {
-        ArgumentCaptor<WalletBalanceChangedEvent> captor =
+        ArgumentCaptor<WalletBalanceChangedEvent> walletBalanceChangedEventCaptor =
                 ArgumentCaptor.forClass(WalletBalanceChangedEvent.class);
-        verify(walletBalanceChangedEventProducer, atLeastOnce()).publish(captor.capture());
-        return captor.getAllValues();
+        verify(walletBalanceChangedEventProducer, atLeastOnce()).publish(walletBalanceChangedEventCaptor.capture());
+        return walletBalanceChangedEventCaptor.getAllValues();
     }
 
     private WalletBalanceChangedEvent lastEventForWallet(UUID customerAccountId, Currency currency) {
@@ -136,8 +141,8 @@ class WalletBalancePublicationServiceTest extends BaseIntegrationTest {
                 LedgerAccountIds.deriveWalletAccountId(customerAccountId, currency).toString();
 
         return capturedEvents().stream()
-                .filter(event -> event.getLedgerAccountId().equals(walletLedgerAccountId))
-                .reduce((first, second) -> second)
+                .filter(walletBalanceChangedEvent -> walletBalanceChangedEvent.getLedgerAccountId().equals(walletLedgerAccountId))
+                .reduce((_, second) -> second)
                 .orElseThrow();
     }
 }
