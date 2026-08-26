@@ -24,29 +24,28 @@ public class ExchangeRateService {
     public List<ExchangeRateResponse> getAllRates() {
         return exchangeRateRepository.findAll()
                 .stream()
-                .map(ExchangeRateMapper::toResponse)
+                .map(ExchangeRateMapper::toExchangeRateResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public Optional<ExchangeRateResponse> getRate(String from, String to) {
-        if (from.equalsIgnoreCase(to)) {
+    public Optional<ExchangeRateResponse> getRate(String fromCurrency, String toCurrency) {
+        if (fromCurrency.equalsIgnoreCase(toCurrency)) {
             return Optional.empty();
         }
-        
-        String pair = from.toUpperCase() + to.toUpperCase();
-        return exchangeRateRepository.findByCurrencyPair(pair)
-                .map(ExchangeRateMapper::toResponse);
+        String currencyPair = fromCurrency.toUpperCase() + toCurrency.toUpperCase();
+        return exchangeRateRepository.findByCurrencyPair(currencyPair)
+                .map(ExchangeRateMapper::toExchangeRateResponse);
     }
 
     @Transactional(readOnly = true)
-    public Optional<BigDecimal> getConversionRate(String from, String to) {
-        if (from.equalsIgnoreCase(to)) {
+    public Optional<BigDecimal> getConversionRate(String fromCurrency, String toCurrency) {
+        if (fromCurrency.equalsIgnoreCase(toCurrency)) {
             return Optional.of(BigDecimal.ONE);
         }
 
-        String pair = from.toUpperCase() + to.toUpperCase();
-        return exchangeRateRepository.findByCurrencyPair(pair)
+        String currencyPair = fromCurrency.toUpperCase() + toCurrency.toUpperCase();
+        return exchangeRateRepository.findByCurrencyPair(currencyPair)
                 .map(ExchangeRateEntity::getRate);
     }
 }

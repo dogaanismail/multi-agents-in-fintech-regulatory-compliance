@@ -31,9 +31,10 @@ public class CurrencyConversionService {
         BigDecimal rate = exchangeRateService.getConversionRate(sellCurrency.name(), buyCurrency.name())
                 .orElseThrow(() -> new ExchangeRateUnavailableException(sellCurrency, buyCurrency));
 
-        return fixedSide == FixedSide.SELL
-                ? sellSideFixed(amount, sellCurrency, buyCurrency, rate)
-                : buySideFixed(amount, sellCurrency, buyCurrency, rate);
+        // SELL is the default; a request that omits the side must not silently become BUY-fixed
+        return fixedSide == FixedSide.BUY
+                ? buySideFixed(amount, sellCurrency, buyCurrency, rate)
+                : sellSideFixed(amount, sellCurrency, buyCurrency, rate);
     }
 
     private static CurrencyConversion sellSideFixed(

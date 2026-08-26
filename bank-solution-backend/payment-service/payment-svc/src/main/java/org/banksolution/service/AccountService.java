@@ -21,35 +21,35 @@ public class AccountService {
             return Optional.empty();
         }
 
-        List<AccountResponse> accounts = accountServiceClient.getAccountsByIds(
+        List<AccountResponse> accountResponses = accountServiceClient.getAccountsByIds(
                 List.of(sourceAccountId, destinationAccountId));
 
-        AccountResponse source = accounts.stream()
-                .filter(acc -> acc.getId().equals(sourceAccountId))
+        AccountResponse sourceAccountResponse = accountResponses.stream()
+                .filter(accountResponse -> accountResponse.getId().equals(sourceAccountId))
                 .findFirst()
                 .orElse(null);
 
-        AccountResponse destination = accounts.stream()
-                .filter(acc -> acc.getId().equals(destinationAccountId))
+        AccountResponse destinationAccountResponse = accountResponses.stream()
+                .filter(accountResponse -> accountResponse.getId().equals(destinationAccountId))
                 .findFirst()
                 .orElse(null);
 
-        if (source == null || destination == null) {
+        if (sourceAccountResponse == null || destinationAccountResponse == null) {
             return Optional.empty();
         }
 
-        return Optional.of(new PaymentAccounts(source, destination));
+        return Optional.of(new PaymentAccounts(sourceAccountResponse, destinationAccountResponse));
     }
 
-    public boolean isCrossBorderPayment(PaymentAccounts accounts) {
-        String sourceLocation = accounts.source().getBankLocation();
-        String destinationLocation = accounts.destination().getBankLocation();
+    public boolean isCrossBorderPayment(PaymentAccounts paymentAccounts) {
+        String sourceBankLocation = paymentAccounts.source().getBankLocation();
+        String destinationBankLocation = paymentAccounts.destination().getBankLocation();
 
-        if (sourceLocation == null || destinationLocation == null) {
+        if (sourceBankLocation == null || destinationBankLocation == null) {
             return false;
         }
 
-        return !sourceLocation.equalsIgnoreCase(destinationLocation);
+        return !sourceBankLocation.equalsIgnoreCase(destinationBankLocation);
     }
 
 }

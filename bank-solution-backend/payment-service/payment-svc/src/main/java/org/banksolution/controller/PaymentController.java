@@ -24,16 +24,16 @@ public class PaymentController {
 
     @PostMapping("/request")
     public ResponseEntity<@NonNull PaymentRequestResponse> requestPayment(
-            @Valid @RequestBody PaymentRequest request) {
+            @Valid @RequestBody PaymentRequest paymentRequest) {
 
         log.info("POST /api/v1/payments/request - customer: {}, type: {}, amount: {} {}",
-                request.getCustomerId(),
-                request.getPaymentType(),
-                request.getAmount(),
-                request.getFromCurrency());
+                paymentRequest.getCustomerId(),
+                paymentRequest.getPaymentType(),
+                paymentRequest.getAmount(),
+                paymentRequest.getFromCurrency());
 
-        PaymentRequestResponse response = paymentService.requestPayment(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        PaymentRequestResponse paymentRequestResponse = paymentService.requestPayment(paymentRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentRequestResponse);
     }
 
     @GetMapping("/customer/{customerId}")
@@ -41,8 +41,8 @@ public class PaymentController {
             @PathVariable UUID customerId) {
         log.info("GET /api/v1/payments/customer/{}", customerId);
 
-        List<PaymentRequestResponse> responses = paymentService.getPaymentsByCustomerId(customerId);
-        return ResponseEntity.ok(responses);
+        List<PaymentRequestResponse> paymentRequestResponses = paymentService.getPaymentsByCustomerId(customerId);
+        return ResponseEntity.ok(paymentRequestResponses);
     }
 }
 

@@ -1,9 +1,11 @@
 package org.banksolution.exception.handler;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.banksolution.exception.CustomError;
+import org.banksolution.exception.ExchangeRateUnavailableException;
 import org.banksolution.exception.PaymentNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,16 +53,7 @@ public class GlobalExceptionHandler {
 
         List<CustomError.CustomSubError> subErrors = new ArrayList<>();
         constraintViolationException.getConstraintViolations()
-                .forEach(constraintViolation ->
-                        subErrors.add(
-                                CustomError.CustomSubError.builder()
-                                        .message(constraintViolation.getMessage())
-                                        .field(StringUtils.substringAfterLast(constraintViolation.getPropertyPath().toString(), "."))
-                                        .value(constraintViolation.getInvalidValue() != null ? constraintViolation.getInvalidValue().toString() : null)
-                                        .type(constraintViolation.getInvalidValue().getClass().getSimpleName())
-                                        .build()
-                        )
-                );
+                .forEach(constraintViolation -> subErrors.add(toConstraintViolationSubError(constraintViolation)));
 
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.BAD_REQUEST)
@@ -70,6 +63,45 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    private static CustomError.CustomSubError toConstraintViolationSubError(ConstraintViolation<?> constraintViolation) {
+        Object invalidValue = constraintViolation.getInvalidValue();
+
+        return CustomError.CustomSubError.builder()
+                .message(constraintViolation.getMessage())
+                .field(StringUtils.substringAfterLast(constraintViolation.getPropertyPath().toString(), "."))
+                .value(invalidValue != null ? invalidValue.toString() : null)
+                .type(invalidValue != null ? invalidValue.getClass().getSimpleName() : null)
+                .build();
+    }
+
+    /**
+     * Account-presence and payment-scheme checks throw IllegalArgumentException; without this
+     * handler they fell through to the RuntimeException catch-all and surfaced as 404.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<@NonNull CustomError> handleIllegalArgument(IllegalArgumentException ex) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .header(CustomError.Header.VALIDATION_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ExchangeRateUnavailableException.class)
+    protected ResponseEntity<@NonNull CustomError> handleExchangeRateUnavailable(ExchangeRateUnavailableException ex) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -85,7 +117,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PaymentNotFoundException.class)
-    protected ResponseEntity<@NonNull CustomError> handleAccountNotFoundException(PaymentNotFoundException ex) {
+    protected ResponseEntity<@NonNull CustomError> handlePaymentNotFoundException(PaymentNotFoundException ex) {
 
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)

@@ -6,24 +6,24 @@ import org.banksolution.model.request.PaymentRequest;
 @UtilityClass
 public class PaymentRequestUtil {
 
-    public void validatePaymentRequest(PaymentRequest request) {
-        switch (request.getPaymentType()) {
-            case TRANSFER_OUT, WITHDRAWAL -> requireSourceAccount(request);
-            case TRANSFER_IN, DEPOSIT -> requireDestinationAccount(request);
+    public void validatePaymentRequest(PaymentRequest paymentRequest) {
+        switch (paymentRequest.getPaymentType()) {
+            case TRANSFER_OUT, WITHDRAWAL -> requireSourceAccount(paymentRequest);
+            default -> requireDestinationAccount(paymentRequest);
         }
     }
 
-    private void requireSourceAccount(PaymentRequest request) {
-        if (request.getSourceAccountId() == null) {
+    private void requireSourceAccount(PaymentRequest paymentRequest) {
+        if (paymentRequest.getSourceAccountId() == null) {
             throw new IllegalArgumentException(
-                    "Source account is required for " + request.getPaymentType());
+                    "Source account is required for " + paymentRequest.getPaymentType());
         }
     }
 
-    private void requireDestinationAccount(PaymentRequest request) {
-        if (request.getDestinationAccountId() == null) {
+    private void requireDestinationAccount(PaymentRequest paymentRequest) {
+        if (paymentRequest.getDestinationAccountId() == null) {
             throw new IllegalArgumentException(
-                    "Destination account is required for " + request.getPaymentType());
+                    "Destination account is required for " + paymentRequest.getPaymentType());
         }
     }
 }

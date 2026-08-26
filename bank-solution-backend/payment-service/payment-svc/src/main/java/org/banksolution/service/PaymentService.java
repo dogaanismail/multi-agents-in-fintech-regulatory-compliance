@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.banksolution.mapper.PaymentRequestMapper.toEntity;
-import static org.banksolution.mapper.PaymentRequestMapper.toResponse;
+import static org.banksolution.mapper.PaymentRequestMapper.toPaymentRequestEntity;
+import static org.banksolution.mapper.PaymentRequestMapper.toPaymentRequestResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -31,34 +31,34 @@ public class PaymentService {
     private final CurrencyConversionService currencyConversionService;
 
     @Transactional
-    public PaymentRequestResponse requestPayment(PaymentRequest request) {
+    public PaymentRequestResponse requestPayment(PaymentRequest paymentRequest) {
         log.info("Processing payment request for customer: {}, type: {}, amount: {} {}",
-                request.getCustomerId(),
-                request.getPaymentType(),
-                request.getAmount(),
-                request.getFromCurrency());
+                paymentRequest.getCustomerId(),
+                paymentRequest.getPaymentType(),
+                paymentRequest.getAmount(),
+                paymentRequest.getFromCurrency());
 
-        PaymentRequestUtil.validatePaymentRequest(request);
+        PaymentRequestUtil.validatePaymentRequest(paymentRequest);
 
-        Optional<PaymentAccounts> paymentAccounts = accountService.loadPaymentAccounts(
-                request.getSourceAccountId(),
-                request.getDestinationAccountId());
+        Optional<PaymentAccounts> resolvedPaymentAccounts = accountService.loadPaymentAccounts(
+                paymentRequest.getSourceAccountId(),
+                paymentRequest.getDestinationAccountId());
 
-        CurrencyConversion conversion = currencyConversionService.convert(
-                request.getAmount(),
-                request.getFromCurrency(),
-                request.getToCurrency(),
-                request.getFixedSide());
+        CurrencyConversion currencyConversion = currencyConversionService.convert(
+                paymentRequest.getAmount(),
+                paymentRequest.getFromCurrency(),
+                paymentRequest.getToCurrency(),
+                paymentRequest.getFixedSide());
 
-        PaymentRequestEntity paymentRequestEntity = toEntity(request);
-        applyConversion(paymentRequestEntity, conversion);
+        PaymentRequestEntity paymentRequestEntity = toPaymentRequestEntity(paymentRequest);
+        applyConversion(paymentRequestEntity, currencyConversion);
         paymentRequestEntity.setPaymentScheme(
-                PaymentSchemeClassifier.classify(request, paymentAccounts.orElse(null)));
+                PaymentSchemeClassifier.classify(paymentRequest, resolvedPaymentAccounts.orElse(null)));
 
         PaymentRequestEntity savedPaymentRequestEntity = paymentRequestRepository
                 .save(paymentRequestEntity);
 
-        boolean isCrossBorderPayment = paymentAccounts
+        boolean isCrossBorderPayment = resolvedPaymentAccounts
                 .map(accountService::isCrossBorderPayment)
                 .orElse(false);
 
@@ -66,17 +66,17 @@ public class PaymentService {
         paymentCreatedEventProducer.publishPaymentCreatedEvent(savedPaymentRequestEntity, isCrossBorderPayment);
 
         log.info("Payment request created: id:{}", savedPaymentRequestEntity.getId());
-        return toResponse(savedPaymentRequestEntity, "Payment request submitted successfully and is being processed");
+        return toPaymentRequestResponse(savedPaymentRequestEntity, "Payment request submitted successfully and is being processed");
     }
 
     @Transactional(readOnly = true)
     public List<PaymentRequestResponse> getPaymentsByCustomerId(UUID customerId) {
         log.info("Fetching payments for customer: {}", customerId);
 
-        List<PaymentRequestEntity> payments = paymentRequestRepository.findByCustomerId(customerId);
+        List<PaymentRequestEntity> paymentRequestEntities = paymentRequestRepository.findByCustomerId(customerId);
 
-        return payments.stream()
-                .map(entity -> toResponse(entity, null))
+        return paymentRequestEntities.stream()
+                .map(paymentRequestEntity -> toPaymentRequestResponse(paymentRequestEntity, null))
                 .toList();
     }
 

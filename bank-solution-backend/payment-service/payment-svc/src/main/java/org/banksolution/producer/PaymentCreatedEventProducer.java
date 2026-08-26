@@ -20,20 +20,20 @@ public class PaymentCreatedEventProducer {
     private final KafkaTemplate<@NonNull String, @NonNull PaymentCreatedEvent> paymentCreatedEventKafkaTemplate;
 
     public void publishPaymentCreatedEvent(
-            PaymentRequestEntity paymentRequest,
+            PaymentRequestEntity paymentRequestEntity,
             boolean isCrossBorderPayment) {
 
-        log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequest.getId());
+        log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequestEntity.getId());
 
-        String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCreated();
-        String messageKey = paymentRequest.getId().toString();
-        PaymentCreatedEvent event = toPaymentCreatedEvent(paymentRequest, isCrossBorderPayment);
-        paymentCreatedEventKafkaTemplate.send(topic, messageKey, event);
+        String paymentCreatedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCreated();
+        String messageKey = paymentRequestEntity.getId().toString();
+        PaymentCreatedEvent paymentCreatedEvent = toPaymentCreatedEvent(paymentRequestEntity, isCrossBorderPayment);
+        paymentCreatedEventKafkaTemplate.send(paymentCreatedTopic, messageKey, paymentCreatedEvent);
 
         log.info("Published PaymentCreatedEvent: eventId:{}, paymentId:{}, type:{}",
-                event.getEventId(),
-                event.getPaymentId(),
-                event.getPaymentType());
+                paymentCreatedEvent.getEventId(),
+                paymentCreatedEvent.getPaymentId(),
+                paymentCreatedEvent.getPaymentType());
     }
 }
 

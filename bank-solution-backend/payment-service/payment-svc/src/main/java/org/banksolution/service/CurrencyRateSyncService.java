@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,59 +30,60 @@ public class CurrencyRateSyncService {
 
     private final ExchangeRateRepository exchangeRateRepository;
     private final ExchangeRateApiClient exchangeRateApiClient;
+    private final Clock clock;
 
     @Transactional
     public void syncRates() {
         log.info("Syncing exchange rates from external provider using base currency: {}", BASE_CURRENCY);
 
-        ExchangeRateApiResponse apiResponse = exchangeRateApiClient.fetchRates(BASE_CURRENCY);
+        ExchangeRateApiResponse exchangeRateApiResponse = exchangeRateApiClient.fetchRates(BASE_CURRENCY);
 
-        if (apiResponse == null || apiResponse.getRates() == null || apiResponse.getRates().isEmpty()) {
+        if (exchangeRateApiResponse == null || exchangeRateApiResponse.getRates() == null || exchangeRateApiResponse.getRates().isEmpty()) {
             log.warn("Exchange rate API returned empty or null response, skipping sync");
             return;
         }
 
-        Map<String, BigDecimal> gbpRates = new HashMap<>(apiResponse.getRates());
+        Map<String, BigDecimal> gbpRates = new HashMap<>(exchangeRateApiResponse.getRates());
         gbpRates.putIfAbsent(BASE_CURRENCY, BigDecimal.ONE);
 
-        Instant fetchedAt = Instant.now();
+        Instant fetchedAt = clock.instant();
 
-        Map<String, ExchangeRateEntity> existing = exchangeRateRepository.findAll().stream()
-                .collect(Collectors.toMap(ExchangeRateEntity::getCurrencyPair, e -> e));
+        Map<String, ExchangeRateEntity> existingExchangeRateEntitiesByPair = exchangeRateRepository.findAll().stream()
+                .collect(Collectors.toMap(ExchangeRateEntity::getCurrencyPair, exchangeRateEntity -> exchangeRateEntity));
 
         Currency[] currencies = Currency.values();
-        List<ExchangeRateEntity> toSave = new ArrayList<>();
+        List<ExchangeRateEntity> exchangeRateEntitiesToSave = new ArrayList<>();
 
-        for (Currency from : currencies) {
-            for (Currency to : currencies) {
-                if (from == to) {
+        for (Currency fromCurrency : currencies) {
+            for (Currency toCurrency : currencies) {
+                if (fromCurrency == toCurrency) {
                     continue;
                 }
 
-                BigDecimal fromRate = gbpRates.get(from.name());
-                BigDecimal toRate = gbpRates.get(to.name());
+                BigDecimal fromRate = gbpRates.get(fromCurrency.name());
+                BigDecimal toRate = gbpRates.get(toCurrency.name());
 
                 if (fromRate == null || toRate == null
                         || fromRate.compareTo(BigDecimal.ZERO) <= 0
                         || toRate.compareTo(BigDecimal.ZERO) <= 0) {
-                    log.warn("Skipping pair {}{}: rate missing or invalid in API response", from.name(), to.name());
+                    log.warn("Skipping pair {}{}: rate missing or invalid in API response", fromCurrency.name(), toCurrency.name());
                     continue;
                 }
 
                 BigDecimal rate = toRate.divide(fromRate, RATE_SCALE, RoundingMode.HALF_UP);
-                String currencyPair = from.name() + to.name();
+                String currencyPair = fromCurrency.name() + toCurrency.name();
 
-                ExchangeRateEntity entity = existing.containsKey(currencyPair)
-                        ? existing.get(currencyPair)
+                ExchangeRateEntity exchangeRateEntity = existingExchangeRateEntitiesByPair.containsKey(currencyPair)
+                        ? existingExchangeRateEntitiesByPair.get(currencyPair)
                         : ExchangeRateEntity.builder().currencyPair(currencyPair).build();
 
-                entity.setRate(rate);
-                entity.setFetchedAt(fetchedAt);
-                toSave.add(entity);
+                exchangeRateEntity.setRate(rate);
+                exchangeRateEntity.setFetchedAt(fetchedAt);
+                exchangeRateEntitiesToSave.add(exchangeRateEntity);
             }
         }
 
-        exchangeRateRepository.saveAll(toSave);
-        log.info("Exchange rate sync completed: {} pairs saved", toSave.size());
+        exchangeRateRepository.saveAll(exchangeRateEntitiesToSave);
+        log.info("Exchange rate sync completed: {} pairs saved", exchangeRateEntitiesToSave.size());
     }
 }
