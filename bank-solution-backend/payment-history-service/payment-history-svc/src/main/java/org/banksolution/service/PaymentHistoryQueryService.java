@@ -20,21 +20,19 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class PaymentHistoryQueryService {
 
-    private final PaymentHistoryRepository repository;
+    private final PaymentHistoryRepository paymentHistoryRepository;
 
     public Optional<PaymentHistoryResponse> getPaymentHistoryById(UUID paymentId) {
         log.debug("Querying payment history for paymentId: {}", paymentId);
-        
-        return repository.findById(paymentId)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findById(paymentId)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getCustomerPaymentHistory(UUID customerId, Pageable pageable) {
         log.debug("Querying payment history for customer: {}, page: {}", 
                 customerId, pageable.getPageNumber());
-        
-        return repository.findByCustomerId(customerId, pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findByCustomerId(customerId, pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getCustomerPaymentHistoryByDateRange(
@@ -42,50 +40,42 @@ public class PaymentHistoryQueryService {
             Instant startDate,
             Instant endDate,
             Pageable pageable) {
-        
         log.debug("Querying payment history for customer: {} between {} and {}", 
                 customerId, startDate, endDate);
-        
-        return repository.findByCustomerIdAndDateRange(customerId, startDate, endDate, pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findByCustomerIdAndDateRange(customerId, startDate, endDate, pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getPaymentHistoryByStatus(String status, Pageable pageable) {
         log.debug("Querying payment history for status: {}", status);
-        
-        return repository.findByStatus(status, pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findByStatus(status, pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getPaymentHistoryByFraudStatus(String fraudStatus, Pageable pageable) {
         log.debug("Querying payment history for fraud status: {}", fraudStatus);
-        
-        return repository.findByFraudStatus(fraudStatus, pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findByFraudStatus(fraudStatus, pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getPaymentHistoryByRiskLevel(String riskLevel, Pageable pageable) {
         log.debug("Querying payment history for risk level: {}", riskLevel);
-        
-        return repository.findByRiskLevel(riskLevel, pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findByRiskLevel(riskLevel, pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getPaymentHistoryByDateRange(
             Instant startDate,
             Instant endDate,
             Pageable pageable) {
-        
         log.debug("Querying payment history between {} and {}", startDate, endDate);
-        
-        return repository.findByDateRange(startDate, endDate, pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findByDateRange(startDate, endDate, pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 
     public Page<PaymentHistoryResponse> getAllPaymentHistory(Pageable pageable) {
         log.debug("Querying all payment history, page: {}", pageable.getPageNumber());
-        
-        return repository.findAll(pageable)
-                .map(PaymentHistoryResponseMapper::toResponse);
+        return paymentHistoryRepository.findAll(pageable)
+                .map(PaymentHistoryResponseMapper::toPaymentHistoryResponse);
     }
 }

@@ -7,7 +7,6 @@ import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventhandling.Timestamp;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.modelling.command.AggregateVersion;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.banksolution.domain.payment.command.*;
 import org.banksolution.domain.payment.event.*;
@@ -91,9 +90,6 @@ public class PaymentAggregate {
 
     private PaymentStatus releaseCompletionStatus;
     private String releaseCompletionReason;
-
-    @AggregateVersion
-    private Long version;
 
     @CommandHandler
     public PaymentAggregate(InitiatePaymentCommand initiatePaymentCommand) {

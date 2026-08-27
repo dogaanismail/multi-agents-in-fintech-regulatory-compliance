@@ -50,6 +50,7 @@ class PaymentAggregateSnapshotMapperTest {
         assertThat(paymentSnapshotEvent.getManualReviewRequestedAt()).isNull();
         assertThat(paymentSnapshotEvent.getBlockedAt()).isNull();
         assertThat(paymentSnapshotEvent.getSnapshotTimestamp()).isPositive();
+        assertThat(paymentSnapshotEvent.getVersion()).isEqualTo(7);
         RiskAssessmentSnapshot riskAssessmentSnapshot = paymentSnapshotEvent.getRiskAssessment();
         assertThat(riskAssessmentSnapshot.getRiskScore()).isEqualTo(0.10);
         assertThat(riskAssessmentSnapshot.getRiskAction()).isEqualTo("PROCEED");
@@ -98,6 +99,7 @@ class PaymentAggregateSnapshotMapperTest {
         assertThat(paymentSnapshotEvent.getRiskAssessment()).isNull();
         assertThat(paymentSnapshotEvent.getInitiatedAt()).isNull();
         assertThat(paymentSnapshotEvent.getCompletedAt()).isNull();
+        assertThat(paymentSnapshotEvent.getVersion()).isZero();
     }
 
     @Test

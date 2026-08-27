@@ -20,39 +20,55 @@ public class PaymentHistoryAggregationService {
 
     private final PaymentHistoryRepository paymentHistoryRepository;
 
+    /**
+     * Snapshots for one payment share a Kafka key, so live delivery is ordered; a replayed or
+     * redelivered snapshot may still carry an older aggregate version than the row already holds.
+     */
+    private static boolean isStale(PaymentSnapshotEvent paymentSnapshotEvent, PaymentHistoryEntity paymentHistoryEntity) {
+        Integer storedAggregateVersion = paymentHistoryEntity.getAggregateVersion();
+        return storedAggregateVersion != null && paymentSnapshotEvent.getVersion() < storedAggregateVersion;
+    }
+
     @Transactional
-    public void processPaymentSnapshotEvent(PaymentSnapshotEvent snapshot) {
+    public void processPaymentSnapshotEvent(PaymentSnapshotEvent paymentSnapshotEvent) {
         log.info("Processing payment snapshot: paymentId:{}, referenceNumber:{}, version:{}, trigger:{}",
-                snapshot.getPaymentId(),
-                snapshot.getReferenceNumber(),
-                snapshot.getVersion(),
-                snapshot.getEventTrigger());
+                paymentSnapshotEvent.getPaymentId(),
+                paymentSnapshotEvent.getReferenceNumber(),
+                paymentSnapshotEvent.getVersion(),
+                paymentSnapshotEvent.getEventTrigger());
 
-        Optional<PaymentHistoryEntity> existingHistory =
-                paymentHistoryRepository.findById(UUID.fromString(snapshot.getPaymentId()));
+        Optional<PaymentHistoryEntity> existingPaymentHistoryEntity =
+                paymentHistoryRepository.findById(UUID.fromString(paymentSnapshotEvent.getPaymentId()));
 
-        PaymentHistoryEntity history;
-        if (existingHistory.isPresent()) {
-            history = existingHistory.get();
+        PaymentHistoryEntity paymentHistoryEntity;
+        if (existingPaymentHistoryEntity.isPresent()) {
+            paymentHistoryEntity = existingPaymentHistoryEntity.get();
+            if (isStale(paymentSnapshotEvent, paymentHistoryEntity)) {
+                log.warn("Ignoring stale payment snapshot: paymentId:{}, snapshot version:{}, stored version:{}",
+                        paymentSnapshotEvent.getPaymentId(),
+                        paymentSnapshotEvent.getVersion(),
+                        paymentHistoryEntity.getAggregateVersion());
+                return;
+            }
             log.info("Updating existing payment history: paymentId:{}, referenceNumber:{}, old version:{}, new version:{}",
-                    snapshot.getPaymentId(),
-                    snapshot.getReferenceNumber(),
-                    history.getEntityVersion(),
-                    snapshot.getVersion());
+                    paymentSnapshotEvent.getPaymentId(),
+                    paymentSnapshotEvent.getReferenceNumber(),
+                    paymentHistoryEntity.getEntityVersion(),
+                    paymentSnapshotEvent.getVersion());
         } else {
-            history = new PaymentHistoryEntity();
+            paymentHistoryEntity = new PaymentHistoryEntity();
             log.info("Creating new payment history: paymentId:{}, referenceNumber:{}",
-                    snapshot.getPaymentId(),
-                    snapshot.getReferenceNumber());
+                    paymentSnapshotEvent.getPaymentId(),
+                    paymentSnapshotEvent.getReferenceNumber());
         }
 
-        mapSnapshotToHistory(snapshot, history);
-        paymentHistoryRepository.save(history);
+        mapSnapshotToHistory(paymentSnapshotEvent, paymentHistoryEntity);
+        paymentHistoryRepository.save(paymentHistoryEntity);
 
         log.info("Payment history saved: paymentId:{}, referenceNumber:{}, version:{}",
-                snapshot.getPaymentId(),
-                snapshot.getReferenceNumber(),
-                history.getEntityVersion());
+                paymentSnapshotEvent.getPaymentId(),
+                paymentSnapshotEvent.getReferenceNumber(),
+                paymentHistoryEntity.getEntityVersion());
     }
 
 }

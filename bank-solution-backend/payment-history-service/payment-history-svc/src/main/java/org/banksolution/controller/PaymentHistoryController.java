@@ -22,12 +22,12 @@ import java.util.UUID;
 @Slf4j
 public class PaymentHistoryController {
 
-    private final PaymentHistoryQueryService queryService;
+    private final PaymentHistoryQueryService paymentHistoryQueryService;
 
     @GetMapping("/{paymentId}")
     public ResponseEntity<@NonNull PaymentHistoryResponse> getPaymentHistory(@PathVariable UUID paymentId) {
         log.info("Fetching payment history for paymentId: {}", paymentId);
-        return queryService.getPaymentHistoryById(paymentId)
+        return paymentHistoryQueryService.getPaymentHistoryById(paymentId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -41,8 +41,8 @@ public class PaymentHistoryController {
                 pageable.getPageNumber(),
                 pageable.getPageSize());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getCustomerPaymentHistory(customerId, pageable);
-        return ResponseEntity.ok(history);
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getCustomerPaymentHistory(customerId, pageable);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 
     @GetMapping("/customer/{customerId}/date-range")
@@ -57,12 +57,12 @@ public class PaymentHistoryController {
                 endDate,
                 pageable.getPageNumber());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getCustomerPaymentHistoryByDateRange(
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getCustomerPaymentHistoryByDateRange(
                 customerId,
                 startDate,
                 endDate,
                 pageable);
-        return ResponseEntity.ok(history);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 
     @GetMapping("/status/{status}")
@@ -73,8 +73,8 @@ public class PaymentHistoryController {
                 status,
                 pageable.getPageNumber());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getPaymentHistoryByStatus(status, pageable);
-        return ResponseEntity.ok(history);
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getPaymentHistoryByStatus(status, pageable);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 
     @GetMapping("/fraud-status/{fraudStatus}")
@@ -84,8 +84,8 @@ public class PaymentHistoryController {
         log.info("Fetching payment history for fraud status: {}, page: {}",
                 fraudStatus, pageable.getPageNumber());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getPaymentHistoryByFraudStatus(fraudStatus, pageable);
-        return ResponseEntity.ok(history);
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getPaymentHistoryByFraudStatus(fraudStatus, pageable);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 
     @GetMapping("/risk-level/{riskLevel}")
@@ -95,8 +95,8 @@ public class PaymentHistoryController {
         log.info("Fetching payment history for risk level: {}, page: {}",
                 riskLevel, pageable.getPageNumber());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getPaymentHistoryByRiskLevel(riskLevel, pageable);
-        return ResponseEntity.ok(history);
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getPaymentHistoryByRiskLevel(riskLevel, pageable);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 
     @GetMapping("/date-range")
@@ -109,8 +109,8 @@ public class PaymentHistoryController {
                 endDate,
                 pageable.getPageNumber());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getPaymentHistoryByDateRange(startDate, endDate, pageable);
-        return ResponseEntity.ok(history);
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getPaymentHistoryByDateRange(startDate, endDate, pageable);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 
     @GetMapping
@@ -120,7 +120,7 @@ public class PaymentHistoryController {
                 pageable.getPageNumber(),
                 pageable.getPageSize());
 
-        Page<@NonNull PaymentHistoryResponse> history = queryService.getAllPaymentHistory(pageable);
-        return ResponseEntity.ok(history);
+        Page<@NonNull PaymentHistoryResponse> paymentHistoryResponses = paymentHistoryQueryService.getAllPaymentHistory(pageable);
+        return ResponseEntity.ok(paymentHistoryResponses);
     }
 }

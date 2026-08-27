@@ -4,62 +4,63 @@ import lombok.experimental.UtilityClass;
 import org.banksolution.dto.PaymentHistoryResponse;
 import org.banksolution.entity.PaymentHistoryEntity;
 
+import java.util.Collections;
 import java.util.List;
 
 @UtilityClass
 public class PaymentHistoryResponseMapper {
 
-    public static PaymentHistoryResponse toResponse(
-            PaymentHistoryEntity history) {
+    public static PaymentHistoryResponse toPaymentHistoryResponse(
+            PaymentHistoryEntity paymentHistoryEntity) {
 
         return PaymentHistoryResponse.builder()
-                .paymentId(history.getPaymentId())
-                .referenceNumber(history.getReferenceNumber())
-                .customerId(history.getCustomerId())
-                .sourceAccountId(history.getSourceAccountId())
-                .destinationAccountId(history.getDestinationAccountId())
-                .amount(history.getAmount())
-                .fromCurrency(history.getFromCurrency())
-                .toCurrency(history.getToCurrency())
-                .convertedAmount(history.getConvertedAmount())
-                .appliedExchangeRate(history.getAppliedExchangeRate())
-                .paymentType(history.getPaymentType())
-                .description(history.getDescription())
-                .status(history.getStatus())
-                .fraudStatus(history.getFraudStatus())
-                .riskScore(history.getRiskScore())
-                .riskLevel(history.getRiskLevel())
-                .riskAction(history.getRiskAction())
-                .fraudIndicators(history.getFraudIndicators())
-                .marlAssessment(mapMarlAssessment(history.getMarlAssessment()))
-                .initiatedAt(history.getInitiatedAt())
-                .riskCheckRequestedAt(history.getRiskCheckRequestedAt())
-                .riskCheckCompletedAt(history.getRiskCheckCompletedAt())
-                .fraudCheckApprovedAt(history.getFraudCheckApprovedAt())
-                .manualReviewRequestedAt(history.getManualReviewRequestedAt())
-                .manualReviewApprovedAt(history.getManualReviewApprovedAt())
-                .manualReviewRejectedAt(history.getManualReviewRejectedAt())
-                .ledgerAuthorisationInitiatedAt(history.getLedgerAuthorisationInitiatedAt())
-                .ledgerAuthorisedAt(history.getLedgerAuthorisedAt())
-                .ledgerSettlementInitiatedAt(history.getLedgerSettlementInitiatedAt())
-                .ledgerSettledAt(history.getLedgerSettledAt())
-                .ledgerReleaseInitiatedAt(history.getLedgerReleaseInitiatedAt())
-                .ledgerReleasedAt(history.getLedgerReleasedAt())
-                .completedAt(history.getCompletedAt())
-                .blockedAt(history.getBlockedAt())
-                .manualReviewedBy(history.getManualReviewedBy())
-                .manualReviewNotes(history.getManualReviewNotes())
-                .blockReason(history.getBlockReason())
-                .failureReason(history.getFailureReason())
-                .decisionOverriddenBy(history.getDecisionOverriddenBy())
-                .decisionOverrideReason(history.getDecisionOverrideReason())
-                .decisionOverriddenAt(history.getDecisionOverriddenAt())
-                .riskProcessingTimeMs(history.getRiskProcessingTimeMs())
-                .marlProcessingTimeMs(history.getMarlProcessingTimeMs())
-                .mlModelVersion(history.getMlModelVersion())
-                .aggregateVersion(history.getAggregateVersion())
-                .createdAt(history.getCreatedAt())
-                .updatedAt(history.getUpdatedAt())
+                .paymentId(paymentHistoryEntity.getPaymentId())
+                .referenceNumber(paymentHistoryEntity.getReferenceNumber())
+                .customerId(paymentHistoryEntity.getCustomerId())
+                .sourceAccountId(paymentHistoryEntity.getSourceAccountId())
+                .destinationAccountId(paymentHistoryEntity.getDestinationAccountId())
+                .amount(paymentHistoryEntity.getAmount())
+                .fromCurrency(paymentHistoryEntity.getFromCurrency())
+                .toCurrency(paymentHistoryEntity.getToCurrency())
+                .convertedAmount(paymentHistoryEntity.getConvertedAmount())
+                .appliedExchangeRate(paymentHistoryEntity.getAppliedExchangeRate())
+                .paymentType(paymentHistoryEntity.getPaymentType())
+                .description(paymentHistoryEntity.getDescription())
+                .status(paymentHistoryEntity.getStatus())
+                .fraudStatus(paymentHistoryEntity.getFraudStatus())
+                .riskScore(paymentHistoryEntity.getRiskScore())
+                .riskLevel(paymentHistoryEntity.getRiskLevel())
+                .riskAction(paymentHistoryEntity.getRiskAction())
+                .fraudIndicators(paymentHistoryEntity.getFraudIndicators())
+                .marlAssessment(mapMarlAssessment(paymentHistoryEntity.getMarlAssessment()))
+                .initiatedAt(paymentHistoryEntity.getInitiatedAt())
+                .riskCheckRequestedAt(paymentHistoryEntity.getRiskCheckRequestedAt())
+                .riskCheckCompletedAt(paymentHistoryEntity.getRiskCheckCompletedAt())
+                .fraudCheckApprovedAt(paymentHistoryEntity.getFraudCheckApprovedAt())
+                .manualReviewRequestedAt(paymentHistoryEntity.getManualReviewRequestedAt())
+                .manualReviewApprovedAt(paymentHistoryEntity.getManualReviewApprovedAt())
+                .manualReviewRejectedAt(paymentHistoryEntity.getManualReviewRejectedAt())
+                .ledgerAuthorisationInitiatedAt(paymentHistoryEntity.getLedgerAuthorisationInitiatedAt())
+                .ledgerAuthorisedAt(paymentHistoryEntity.getLedgerAuthorisedAt())
+                .ledgerSettlementInitiatedAt(paymentHistoryEntity.getLedgerSettlementInitiatedAt())
+                .ledgerSettledAt(paymentHistoryEntity.getLedgerSettledAt())
+                .ledgerReleaseInitiatedAt(paymentHistoryEntity.getLedgerReleaseInitiatedAt())
+                .ledgerReleasedAt(paymentHistoryEntity.getLedgerReleasedAt())
+                .completedAt(paymentHistoryEntity.getCompletedAt())
+                .blockedAt(paymentHistoryEntity.getBlockedAt())
+                .manualReviewedBy(paymentHistoryEntity.getManualReviewedBy())
+                .manualReviewNotes(paymentHistoryEntity.getManualReviewNotes())
+                .blockReason(paymentHistoryEntity.getBlockReason())
+                .failureReason(paymentHistoryEntity.getFailureReason())
+                .decisionOverriddenBy(paymentHistoryEntity.getDecisionOverriddenBy())
+                .decisionOverrideReason(paymentHistoryEntity.getDecisionOverrideReason())
+                .decisionOverriddenAt(paymentHistoryEntity.getDecisionOverriddenAt())
+                .riskProcessingTimeMs(paymentHistoryEntity.getRiskProcessingTimeMs())
+                .marlProcessingTimeMs(paymentHistoryEntity.getMarlProcessingTimeMs())
+                .mlModelVersion(paymentHistoryEntity.getMlModelVersion())
+                .aggregateVersion(paymentHistoryEntity.getAggregateVersion())
+                .createdAt(paymentHistoryEntity.getCreatedAt())
+                .updatedAt(paymentHistoryEntity.getUpdatedAt())
                 .build();
     }
 
@@ -107,7 +108,7 @@ public class PaymentHistoryResponseMapper {
             List<PaymentHistoryEntity.FeatureContribution> featureContributions) {
 
         if (featureContributions == null) {
-            return null;
+            return Collections.emptyList();
         }
 
         return featureContributions.stream()

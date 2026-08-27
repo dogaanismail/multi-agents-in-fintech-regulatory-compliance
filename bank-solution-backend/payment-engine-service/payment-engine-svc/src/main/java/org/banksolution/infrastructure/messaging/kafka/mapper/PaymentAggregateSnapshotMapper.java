@@ -10,6 +10,7 @@ import org.banksolution.enums.FraudAnalysisStatus;
 import org.banksolution.enums.PaymentStatus;
 
 import java.time.Instant;
+import java.util.Collections;
 
 @UtilityClass
 public class PaymentAggregateSnapshotMapper {
@@ -34,7 +35,7 @@ public class PaymentAggregateSnapshotMapper {
                 .setRiskAssessment(mapRiskAssessment(paymentResponse.riskAssessment()))
                 .setEventTrigger(eventTrigger)
                 .setSnapshotTimestamp(Instant.now().toEpochMilli())
-                .setVersion(0) //TODO: Check version for axon
+                .setVersion(toSnapshotVersion(paymentResponse.version()))
 
                 // Lifecycle timestamps
                 .setInitiatedAt(toEpochMillis(paymentResponse.initiatedAt()))
@@ -177,6 +178,10 @@ public class PaymentAggregateSnapshotMapper {
                 .build();
     }
 
+    private static int toSnapshotVersion(Long aggregateVersion) {
+        return aggregateVersion != null ? aggregateVersion.intValue() : 0;
+    }
+
     private static Long toEpochMillis(Instant instant) {
         return instant != null ? instant.toEpochMilli() : null;
     }
@@ -185,7 +190,7 @@ public class PaymentAggregateSnapshotMapper {
             java.util.List<org.banksolution.domain.payment.valueobject.FeatureContribution> featureContributions) {
 
         if (featureContributions == null) {
-            return null;
+            return Collections.emptyList();
         }
 
         return featureContributions.stream()
