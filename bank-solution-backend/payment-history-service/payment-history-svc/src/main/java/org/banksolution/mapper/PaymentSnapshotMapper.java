@@ -13,59 +13,59 @@ import static org.banksolution.mapper.RiskAssessmentSnapshotMapper.mapRiskAssess
 @UtilityClass
 public class PaymentSnapshotMapper {
 
-    public static void mapSnapshotToHistory(PaymentSnapshotEvent snapshot, PaymentHistoryEntity history) {
+    public static void mapSnapshotToHistory(PaymentSnapshotEvent paymentSnapshotEvent, PaymentHistoryEntity paymentHistoryEntity) {
         // Basic payment information
-        history.setPaymentId(UUID.fromString(snapshot.getPaymentId()));
-        history.setReferenceNumber(snapshot.getReferenceNumber());
-        history.setCustomerId(UUID.fromString(snapshot.getCustomerId()));
-        history.setSourceAccountId(UUID.fromString(snapshot.getSourceAccountId()));
-        history.setDestinationAccountId(UUID.fromString(snapshot.getDestinationAccountId()));
+        paymentHistoryEntity.setPaymentId(UUID.fromString(paymentSnapshotEvent.getPaymentId()));
+        paymentHistoryEntity.setReferenceNumber(paymentSnapshotEvent.getReferenceNumber());
+        paymentHistoryEntity.setCustomerId(UUID.fromString(paymentSnapshotEvent.getCustomerId()));
+        paymentHistoryEntity.setSourceAccountId(UUID.fromString(paymentSnapshotEvent.getSourceAccountId()));
+        paymentHistoryEntity.setDestinationAccountId(UUID.fromString(paymentSnapshotEvent.getDestinationAccountId()));
 
         // Amount and currency
-        history.setAmount(new BigDecimal(snapshot.getAmount()));
-        history.setFromCurrency(snapshot.getFromCurrency());
-        history.setToCurrency(snapshot.getToCurrency());
-        history.setConvertedAmount(new BigDecimal(snapshot.getConvertedAmount()));
-        history.setAppliedExchangeRate(snapshot.getAppliedExchangeRate() != null ? new BigDecimal(snapshot.getAppliedExchangeRate()) : null);
-        history.setPaymentType(snapshot.getPaymentType());
-        history.setDescription(snapshot.getDescription() != null ? snapshot.getDescription() : null);
+        paymentHistoryEntity.setAmount(new BigDecimal(paymentSnapshotEvent.getAmount()));
+        paymentHistoryEntity.setFromCurrency(paymentSnapshotEvent.getFromCurrency());
+        paymentHistoryEntity.setToCurrency(paymentSnapshotEvent.getToCurrency());
+        paymentHistoryEntity.setConvertedAmount(new BigDecimal(paymentSnapshotEvent.getConvertedAmount()));
+        paymentHistoryEntity.setAppliedExchangeRate(paymentSnapshotEvent.getAppliedExchangeRate() != null ? new BigDecimal(paymentSnapshotEvent.getAppliedExchangeRate()) : null);
+        paymentHistoryEntity.setPaymentType(paymentSnapshotEvent.getPaymentType());
+        paymentHistoryEntity.setDescription(paymentSnapshotEvent.getDescription());
 
-        history.setStatus(snapshot.getStatus().toString());
-        history.setFraudStatus(snapshot.getFraudStatus().toString());
+        paymentHistoryEntity.setStatus(paymentSnapshotEvent.getStatus().toString());
+        paymentHistoryEntity.setFraudStatus(paymentSnapshotEvent.getFraudStatus().toString());
 
-        if (snapshot.getRiskAssessment() != null) {
-            mapRiskAssessment(snapshot.getRiskAssessment(), history);
+        if (paymentSnapshotEvent.getRiskAssessment() != null) {
+            mapRiskAssessment(paymentSnapshotEvent.getRiskAssessment(), paymentHistoryEntity);
         }
 
         // Lifecycle timestamps - complete audit trail
-        history.setInitiatedAt(convertToInstant(snapshot.getInitiatedAt()));
-        history.setRiskCheckRequestedAt(convertToInstant(snapshot.getRiskCheckRequestedAt()));
-        history.setRiskCheckCompletedAt(convertToInstant(snapshot.getRiskCheckCompletedAt()));
-        history.setFraudCheckApprovedAt(convertToInstant(snapshot.getFraudCheckApprovedAt()));
-        history.setManualReviewRequestedAt(convertToInstant(snapshot.getManualReviewRequestedAt()));
-        history.setManualReviewApprovedAt(convertToInstant(snapshot.getManualReviewApprovedAt()));
-        history.setManualReviewRejectedAt(convertToInstant(snapshot.getManualReviewRejectedAt()));
-        history.setLedgerAuthorisationInitiatedAt(convertToInstant(snapshot.getLedgerAuthorisationInitiatedAt()));
-        history.setLedgerAuthorisedAt(convertToInstant(snapshot.getLedgerAuthorisedAt()));
-        history.setLedgerSettlementInitiatedAt(convertToInstant(snapshot.getLedgerSettlementInitiatedAt()));
-        history.setLedgerSettledAt(convertToInstant(snapshot.getLedgerSettledAt()));
-        history.setLedgerReleaseInitiatedAt(convertToInstant(snapshot.getLedgerReleaseInitiatedAt()));
-        history.setLedgerReleasedAt(convertToInstant(snapshot.getLedgerReleasedAt()));
-        history.setCompletedAt(convertToInstant(snapshot.getCompletedAt()));
-        history.setBlockedAt(convertToInstant(snapshot.getBlockedAt()));
+        paymentHistoryEntity.setInitiatedAt(convertToInstant(paymentSnapshotEvent.getInitiatedAt()));
+        paymentHistoryEntity.setRiskCheckRequestedAt(convertToInstant(paymentSnapshotEvent.getRiskCheckRequestedAt()));
+        paymentHistoryEntity.setRiskCheckCompletedAt(convertToInstant(paymentSnapshotEvent.getRiskCheckCompletedAt()));
+        paymentHistoryEntity.setFraudCheckApprovedAt(convertToInstant(paymentSnapshotEvent.getFraudCheckApprovedAt()));
+        paymentHistoryEntity.setManualReviewRequestedAt(convertToInstant(paymentSnapshotEvent.getManualReviewRequestedAt()));
+        paymentHistoryEntity.setManualReviewApprovedAt(convertToInstant(paymentSnapshotEvent.getManualReviewApprovedAt()));
+        paymentHistoryEntity.setManualReviewRejectedAt(convertToInstant(paymentSnapshotEvent.getManualReviewRejectedAt()));
+        paymentHistoryEntity.setLedgerAuthorisationInitiatedAt(convertToInstant(paymentSnapshotEvent.getLedgerAuthorisationInitiatedAt()));
+        paymentHistoryEntity.setLedgerAuthorisedAt(convertToInstant(paymentSnapshotEvent.getLedgerAuthorisedAt()));
+        paymentHistoryEntity.setLedgerSettlementInitiatedAt(convertToInstant(paymentSnapshotEvent.getLedgerSettlementInitiatedAt()));
+        paymentHistoryEntity.setLedgerSettledAt(convertToInstant(paymentSnapshotEvent.getLedgerSettledAt()));
+        paymentHistoryEntity.setLedgerReleaseInitiatedAt(convertToInstant(paymentSnapshotEvent.getLedgerReleaseInitiatedAt()));
+        paymentHistoryEntity.setLedgerReleasedAt(convertToInstant(paymentSnapshotEvent.getLedgerReleasedAt()));
+        paymentHistoryEntity.setCompletedAt(convertToInstant(paymentSnapshotEvent.getCompletedAt()));
+        paymentHistoryEntity.setBlockedAt(convertToInstant(paymentSnapshotEvent.getBlockedAt()));
 
         // Decision metadata
-        history.setManualReviewedBy(snapshot.getManualReviewedBy());
-        history.setManualReviewNotes(snapshot.getManualReviewNotes());
-        history.setBlockReason(snapshot.getBlockReason());
-        history.setFailureReason(snapshot.getFailureReason());
+        paymentHistoryEntity.setManualReviewedBy(paymentSnapshotEvent.getManualReviewedBy());
+        paymentHistoryEntity.setManualReviewNotes(paymentSnapshotEvent.getManualReviewNotes());
+        paymentHistoryEntity.setBlockReason(paymentSnapshotEvent.getBlockReason());
+        paymentHistoryEntity.setFailureReason(paymentSnapshotEvent.getFailureReason());
 
         // Decision override metadata
-        history.setDecisionOverriddenBy(snapshot.getDecisionOverriddenBy());
-        history.setDecisionOverrideReason(snapshot.getDecisionOverrideReason());
-        history.setDecisionOverriddenAt(convertToInstant(snapshot.getDecisionOverriddenAt()));
+        paymentHistoryEntity.setDecisionOverriddenBy(paymentSnapshotEvent.getDecisionOverriddenBy());
+        paymentHistoryEntity.setDecisionOverrideReason(paymentSnapshotEvent.getDecisionOverrideReason());
+        paymentHistoryEntity.setDecisionOverriddenAt(convertToInstant(paymentSnapshotEvent.getDecisionOverriddenAt()));
 
-        history.setAggregateVersion(snapshot.getVersion());
+        paymentHistoryEntity.setAggregateVersion(paymentSnapshotEvent.getVersion());
     }
 
     private static Instant convertToInstant(Long epochMilli) {

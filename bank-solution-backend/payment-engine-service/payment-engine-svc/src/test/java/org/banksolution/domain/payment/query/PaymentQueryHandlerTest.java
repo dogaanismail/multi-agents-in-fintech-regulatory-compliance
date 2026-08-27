@@ -46,6 +46,7 @@ class PaymentQueryHandlerTest {
         when(paymentRepository.load(PAYMENT_UUID.toString())).thenReturn(lockAwareAggregate);
         when(lockAwareAggregate.getWrappedAggregate()).thenReturn(eventSourcedAggregate);
         when(eventSourcedAggregate.getAggregateRoot()).thenReturn(paymentAggregate);
+        when(lockAwareAggregate.version()).thenReturn(3L);
 
         PaymentResponse paymentResponse = paymentQueryHandler.handle(new FindPaymentQuery(PAYMENT_UUID.toString()));
 
@@ -67,7 +68,7 @@ class PaymentQueryHandlerTest {
         assertThat(paymentResponse.riskAssessmentRequestedAt()).isEqualTo(OCCURRED_AT.plusSeconds(2));
         assertThat(paymentResponse.manualReviewRequestedAt()).isEqualTo(OCCURRED_AT.plusSeconds(3));
         assertThat(paymentResponse.completedAt()).isNull();
-        assertThat(paymentResponse.version()).isNull();
+        assertThat(paymentResponse.version()).isEqualTo(3L);
     }
 
     @Test

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentSnapshotEventConsumer {
 
-    private final PaymentHistoryAggregationService historyService;
+    private final PaymentHistoryAggregationService paymentHistoryAggregationService;
 
     @KafkaListener(
             topics = "${spring.kafka.topics.incoming.payment-snapshot-events}",
@@ -24,7 +24,7 @@ public class PaymentSnapshotEventConsumer {
             containerFactory = "paymentSnapshotKafkaListenerContainerFactory"
     )
     public void consume(
-            @Payload PaymentSnapshotEvent snapshot,
+            @Payload PaymentSnapshotEvent paymentSnapshotEvent,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
@@ -35,24 +35,24 @@ public class PaymentSnapshotEventConsumer {
                 topic,
                 partition,
                 offset,
-                snapshot.getPaymentId(),
-                snapshot.getReferenceNumber(),
-                snapshot.getVersion(),
-                snapshot.getEventTrigger());
+                paymentSnapshotEvent.getPaymentId(),
+                paymentSnapshotEvent.getReferenceNumber(),
+                paymentSnapshotEvent.getVersion(),
+                paymentSnapshotEvent.getEventTrigger());
 
         try {
-            historyService.processPaymentSnapshotEvent(snapshot);
+            paymentHistoryAggregationService.processPaymentSnapshotEvent(paymentSnapshotEvent);
             acknowledgment.acknowledge();
             log.info("Successfully processed PaymentSnapshotEvent for paymentId: {}, referenceNumber: {}, version: {}",
-                    snapshot.getPaymentId(),
-                    snapshot.getReferenceNumber(),
-                    snapshot.getVersion());
-        } catch (Exception e) {
+                    paymentSnapshotEvent.getPaymentId(),
+                    paymentSnapshotEvent.getReferenceNumber(),
+                    paymentSnapshotEvent.getVersion());
+        } catch (Exception processingFailure) {
             log.error("Error processing PaymentSnapshotEvent for paymentId: {}, referenceNumber: {}",
-                    snapshot.getPaymentId(),
-                    snapshot.getReferenceNumber(),
-                    e);
-            throw e;
+                    paymentSnapshotEvent.getPaymentId(),
+                    paymentSnapshotEvent.getReferenceNumber(),
+                    processingFailure);
+            throw processingFailure;
         }
     }
 }

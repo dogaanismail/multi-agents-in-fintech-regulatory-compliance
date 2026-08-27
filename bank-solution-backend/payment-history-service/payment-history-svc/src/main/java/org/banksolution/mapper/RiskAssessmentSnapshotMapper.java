@@ -12,25 +12,24 @@ import static org.banksolution.mapper.MarlAssessmentSnapshotMapper.mapMarlAssess
 public class RiskAssessmentSnapshotMapper {
 
     public static void mapRiskAssessment(
-            RiskAssessmentSnapshot riskAssessment,
+            RiskAssessmentSnapshot riskAssessmentSnapshot,
             PaymentHistoryEntity paymentHistoryEntity) {
 
-        paymentHistoryEntity.setRiskScore(riskAssessment.getRiskScore());
-        paymentHistoryEntity.setRiskLevel(riskAssessment.getRiskLevel());
-        paymentHistoryEntity.setRiskAction(riskAssessment.getRiskAction());
+        paymentHistoryEntity.setRiskScore(riskAssessmentSnapshot.getRiskScore());
+        paymentHistoryEntity.setRiskLevel(riskAssessmentSnapshot.getRiskLevel());
+        paymentHistoryEntity.setRiskAction(riskAssessmentSnapshot.getRiskAction());
 
-        paymentHistoryEntity.setFraudIndicators(riskAssessment.getFraudIndicators() != null ?
-                new ArrayList<>(riskAssessment.getFraudIndicators()) : new ArrayList<>());
+        paymentHistoryEntity.setFraudIndicators(riskAssessmentSnapshot.getFraudIndicators() != null ?
+                new ArrayList<>(riskAssessmentSnapshot.getFraudIndicators()) : new ArrayList<>());
 
-        paymentHistoryEntity.setMlModelVersion(riskAssessment.getMlModelVersion() != null ?
-                riskAssessment.getMlModelVersion() : null);
+        paymentHistoryEntity.setMlModelVersion(riskAssessmentSnapshot.getMlModelVersion());
 
-        paymentHistoryEntity.setRiskProcessingTimeMs(riskAssessment.getProcessingTimeMs());
+        paymentHistoryEntity.setRiskProcessingTimeMs(riskAssessmentSnapshot.getProcessingTimeMs());
 
-        if (riskAssessment.getMarlAssessment() != null) {
-            PaymentHistoryEntity.MarlAssessment marlAssessment = mapMarlAssessment(riskAssessment.getMarlAssessment());
+        if (riskAssessmentSnapshot.getMarlAssessment() != null) {
+            PaymentHistoryEntity.MarlAssessment marlAssessment = mapMarlAssessment(riskAssessmentSnapshot.getMarlAssessment());
             paymentHistoryEntity.setMarlAssessment(marlAssessment);
-            paymentHistoryEntity.setMarlProcessingTimeMs((long) riskAssessment.getMarlAssessment().getProcessingTimeMs());
+            paymentHistoryEntity.setMarlProcessingTimeMs((long) riskAssessmentSnapshot.getMarlAssessment().getProcessingTimeMs());
         }
     }
 }

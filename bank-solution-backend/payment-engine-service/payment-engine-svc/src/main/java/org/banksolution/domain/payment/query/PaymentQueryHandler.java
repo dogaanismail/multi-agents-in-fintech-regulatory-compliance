@@ -21,8 +21,11 @@ public class PaymentQueryHandler {
         log.debug("Handling FindPaymentQuery for paymentId: {}", findPaymentQuery.paymentId());
 
         try {
-            PaymentAggregate paymentAggregate =
-                    paymentRepository.load(findPaymentQuery.paymentId()).getWrappedAggregate().getAggregateRoot();
+            // Event-sourced aggregates never populate an @AggregateVersion field; the version
+            // is the last event's sequence number, held by the wrapper.
+            var loadedAggregate = paymentRepository.load(findPaymentQuery.paymentId());
+            PaymentAggregate paymentAggregate = loadedAggregate.getWrappedAggregate().getAggregateRoot();
+            Long aggregateVersion = loadedAggregate.version();
 
             return new PaymentResponse(
                     paymentAggregate.getPaymentId().toString(),
@@ -42,7 +45,7 @@ public class PaymentQueryHandler {
                     paymentAggregate.getStatus(),
                     paymentAggregate.getFraudStatus(),
                     paymentAggregate.getRiskAssessment(),
-                    paymentAggregate.getVersion(),
+                    aggregateVersion,
                     paymentAggregate.getInitiatedAt(),
                     paymentAggregate.getRiskAssessmentRequestedAt(),
                     paymentAggregate.getRiskAssessmentCompletedAt(),

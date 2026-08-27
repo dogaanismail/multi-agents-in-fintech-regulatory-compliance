@@ -61,7 +61,9 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
         assertThat(paymentCompletedEvent.getRiskScore()).isEqualTo(0.5);
         assertThat(paymentCompletedEvent.getProcessingTimeMs()).isGreaterThan(0);
 
+        PaymentSnapshotEvent initiatedSnapshot = awaitSnapshot(paymentId, PaymentEventTrigger.PAYMENT_INITIATED);
         PaymentSnapshotEvent completedSnapshot = awaitSnapshot(paymentId, PaymentEventTrigger.PAYMENT_COMPLETED);
+        assertThat(completedSnapshot.getVersion()).isGreaterThan(initiatedSnapshot.getVersion());
         assertThat(completedSnapshot.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(completedSnapshot.getFraudStatus()).isEqualTo(FraudCheckStatus.APPROVED);
         assertThat(completedSnapshot.getRiskAssessment().getRiskAction()).isEqualTo("PROCEED");
