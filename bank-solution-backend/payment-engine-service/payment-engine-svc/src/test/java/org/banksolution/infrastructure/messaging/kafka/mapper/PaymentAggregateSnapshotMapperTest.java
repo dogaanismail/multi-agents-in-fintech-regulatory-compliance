@@ -10,6 +10,7 @@ import org.banksolution.domain.payment.valueobject.MarlAssessment;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.banksolution.enums.FraudAnalysisStatus;
 import org.banksolution.enums.PaymentStatus;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -104,19 +105,14 @@ class PaymentAggregateSnapshotMapperTest {
 
     @Test
     void shouldLeaveFeatureContributionsAbsentWhenAnAgentExplainedNothing() {
-        AgentObservation unexplainedAgentObservation =
-                new AgentObservation("transaction-pattern-agent", false, 0.1, 0.1, "LOW", 1.0, null, null);
-        MarlAssessment partialMarlAssessment = new MarlAssessment("marl-req-2", "REVIEW", 0.5, 0.1,
-                unexplainedAgentObservation, unexplainedAgentObservation, unexplainedAgentObservation,
-                Map.of(), 5L, "training");
-        RiskAssessment riskAssessment = new RiskAssessment("risk-req-2", 0.5, "MEDIUM", "ESCALATE", List.of(), null, 1L, partialMarlAssessment);
+        RiskAssessment riskAssessment = getRiskAssessment();
 
         PaymentSnapshotEvent paymentSnapshotEvent = PaymentAggregateSnapshotMapper.toSnapshot(
                 createPaymentResponse(PaymentStatus.MANUAL_REVIEW_REQUIRED, FraudAnalysisStatus.REVIEW_REQUIRED, riskAssessment),
                 "MANUAL_REVIEW_REQUESTED");
 
         var marlAssessmentSnapshot = paymentSnapshotEvent.getRiskAssessment().getMarlAssessment();
-        assertThat(marlAssessmentSnapshot.getTransactionAgentObservation().getFeatureContributions()).isNull();
+        assertThat(marlAssessmentSnapshot.getTransactionAgentObservation().getFeatureContributions()).isEmpty();
         assertThat(marlAssessmentSnapshot.getCustomerAgentObservation().getShapBaseValue()).isNull();
         assertThat(marlAssessmentSnapshot.getNetworkAgentObservation().getAgentName()).isEqualTo("transaction-pattern-agent");
     }
@@ -145,5 +141,23 @@ class PaymentAggregateSnapshotMapperTest {
         PaymentSnapshotEvent paymentSnapshotEvent = PaymentAggregateSnapshotMapper.toSnapshot(paymentResponse, "PAYMENT_INITIATED");
 
         assertThat(new BigDecimal(paymentSnapshotEvent.getAmount())).isEqualByComparingTo(AMOUNT);
+    }
+
+    private static @NonNull RiskAssessment getRiskAssessment() {
+        AgentObservation unexplainedAgentObservation =
+                new AgentObservation("transaction-pattern-agent", false, 0.1, 0.1, "LOW", 1.0, null, null);
+        MarlAssessment partialMarlAssessment = new MarlAssessment("marl-req-2", "REVIEW", 0.5, 0.1,
+                unexplainedAgentObservation, unexplainedAgentObservation, unexplainedAgentObservation,
+                Map.of(), 5L, "training");
+
+        return new RiskAssessment("risk-req-2",
+                0.5,
+                "MEDIUM",
+                "ESCALATE",
+                List.of(),
+                null,
+                1L,
+                partialMarlAssessment
+        );
     }
 }

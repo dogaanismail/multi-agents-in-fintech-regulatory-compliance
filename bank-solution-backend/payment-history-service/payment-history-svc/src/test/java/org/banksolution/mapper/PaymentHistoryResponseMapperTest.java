@@ -73,6 +73,6 @@ class PaymentHistoryResponseMapperTest {
         paymentHistoryEntity.setMarlAssessment(marlAssessment);
 
         assertThat(PaymentHistoryResponseMapper.toPaymentHistoryResponse(paymentHistoryEntity)
-                .getMarlAssessment().getTransactionAgentObservation().getFeatureContributions()).isNull();
+                .getMarlAssessment().getTransactionAgentObservation().getFeatureContributions()).isEmpty();
     }
 }

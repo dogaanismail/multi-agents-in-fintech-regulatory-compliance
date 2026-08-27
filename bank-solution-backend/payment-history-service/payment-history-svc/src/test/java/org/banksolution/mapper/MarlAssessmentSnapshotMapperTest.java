@@ -28,7 +28,7 @@ class MarlAssessmentSnapshotMapperTest {
                     assertThat(featureContribution.getShapValue()).isEqualTo(0.31);
                     assertThat(featureContribution.getDirection()).isEqualTo("increase");
                 });
-        assertThat(marlAssessment.getCustomerAgentObservation().getFeatureContributions()).isNull();
+        assertThat(marlAssessment.getCustomerAgentObservation().getFeatureContributions()).isEmpty();
         assertThat(marlAssessment.getCustomerAgentObservation().getShapBaseValue()).isNull();
         assertThat(marlAssessment.getNetworkAgentObservation().getFeatureContributions()).isEmpty();
         assertThat(marlAssessment.getNetworkAgentObservation().getShapBaseValue()).isEqualTo(0.1);
