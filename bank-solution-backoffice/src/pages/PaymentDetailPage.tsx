@@ -187,6 +187,10 @@ export const PaymentDetailPage: React.FC = () => {
           <InfoRow label="Payment ID" value={<CopyButton text={payment.paymentId} />} />
           <InfoRow label="Reference Number" value={payment.referenceNumber} />
           <InfoRow
+              label="Aggregate Version"
+              value={<AggregateVersionBadge aggregateVersion={payment.aggregateVersion}/>}
+          />
+          <InfoRow
             label="From Currency"
             value={<span className="font-mono font-semibold">{payment.fromCurrency}</span>}
           />
@@ -378,7 +382,11 @@ export const PaymentDetailPage: React.FC = () => {
       )}
 
       {/* Timeline */}
-      <Card title="🗓️ Payment Timeline">
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">🗓️ Payment Timeline</h2>
+          <AggregateVersionBadge aggregateVersion={payment.aggregateVersion} showEventCount/>
+        </div>
         {(() => {
           // ── Duration formatter ────────────────────────────────────────────────
           const fmtDur = (ms: number): string => {
@@ -505,6 +513,13 @@ export const PaymentDetailPage: React.FC = () => {
                   </div>
                 );
               })}
+              {payment.aggregateVersion != null && (
+                  <p className="mt-2 text-xs text-gray-400">
+                    Projected from the payment's event stream at version {payment.aggregateVersion}
+                    {' '}({payment.aggregateVersion + 1} domain events); snapshot
+                    received {formatDate(payment.updatedAt)}.
+                  </p>
+              )}
             </div>
           );
         })()}
@@ -697,6 +712,34 @@ export const PaymentDetailPage: React.FC = () => {
 };
 
 // Helper Components
+/**
+ * The aggregate version is the sequence number of the last event applied to the payment in
+ * payment-engine's event store; it only ever grows, so it tells the officer how far the
+ * lifecycle has advanced and lets a stale projection be spotted at a glance.
+ */
+const AggregateVersionBadge: React.FC<{ aggregateVersion: number | null; showEventCount?: boolean }> = ({
+                                                                                                          aggregateVersion,
+                                                                                                          showEventCount = false,
+                                                                                                        }) => {
+  if (aggregateVersion == null) {
+    return <span className="text-sm text-gray-400 italic">not yet projected</span>;
+  }
+  return (
+      <span
+          className="inline-flex items-center gap-2"
+          title="Sequence number of the last event applied to the payment aggregate in the event store"
+      >
+      <span
+          className="font-mono text-sm font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">
+        v{aggregateVersion}
+      </span>
+        {showEventCount && (
+            <span className="text-xs text-gray-500">{aggregateVersion + 1} events</span>
+        )}
+    </span>
+  );
+};
+
 const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div>
     <label className="block text-sm font-bold text-gray-700">{label}</label>

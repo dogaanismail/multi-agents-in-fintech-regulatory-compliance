@@ -7,12 +7,14 @@ import org.banksolution.entity.RiskCheckRequestEntity;
 import org.banksolution.enums.AgentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.RiskAssessmentFixtures.createMarlAssessmentEntity;
 import static org.banksolution.fixtures.RiskCheckRequestFixtures.createTransferRiskCheckRequestEntity;
 
@@ -44,6 +46,29 @@ class AgentObservationRepositoryTest extends BaseIntegrationTest {
         assertThat(reloaded.getContribution()).isEqualByComparingTo(entity.getContribution());
         assertThat(reloaded.getShapBaseValue()).isEqualByComparingTo(entity.getShapBaseValue());
         assertThat(reloaded.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldAcceptEveryConfidenceTheAgentsCanReportAgainstTheCheckConstraint() {
+        MarlAssessmentEntity marlAssessment = persistedMarlAssessment();
+
+        for (String agentConfidence : List.of("LOW", "MEDIUM", "HIGH", "CRITICAL", "UNKNOWN")) {
+            AgentObservationEntity agentObservationEntity = createAgentObservation(marlAssessment);
+            agentObservationEntity.setConfidence(agentConfidence);
+
+            UUID savedId = agentObservationRepository.saveAndFlush(agentObservationEntity).getId();
+
+            assertThat(agentObservationRepository.findById(savedId).orElseThrow().getConfidence()).isEqualTo(agentConfidence);
+        }
+    }
+
+    @Test
+    void shouldRejectAConfidenceOutsideTheContract() {
+        AgentObservationEntity agentObservationEntity = createAgentObservation(persistedMarlAssessment());
+        agentObservationEntity.setConfidence("MAYBE");
+
+        assertThatThrownBy(() -> agentObservationRepository.saveAndFlush(agentObservationEntity))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test

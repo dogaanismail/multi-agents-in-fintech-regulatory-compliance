@@ -53,7 +53,7 @@ export interface PaymentHistoryResponse {
   riskProcessingTimeMs: number | null;
   marlProcessingTimeMs: number | null;
   mlModelVersion: string | null;
-  aggregateVersion: number;
+  aggregateVersion: number | null;
   createdAt: string;
   updatedAt: string;
 }
