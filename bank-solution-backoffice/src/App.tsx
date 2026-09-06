@@ -12,6 +12,7 @@ import { ConfigurationListPage } from './pages/ConfigurationListPage';
 import { ConfigurationDetailPage } from './pages/ConfigurationDetailPage';
 import { MarlTrainingPage } from './pages/MarlTrainingPage';
 import {LearningEvidencePage} from './pages/LearningEvidencePage';
+import {ReviewQueuePage} from './pages/ReviewQueuePage';
 import { ReplayBufferPage } from './pages/ReplayBufferPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AuditLogPage } from './pages/AuditLogPage';
@@ -40,6 +41,7 @@ function App() {
             <Route path="ledger" element={<LedgerPage/>}/>
           <Route path="configurations" element={<ConfigurationListPage />} />
           <Route path="configurations/:configId" element={<ConfigurationDetailPage />} />
+          <Route path="review-queue" element={<ReviewQueuePage/>}/>
           <Route path="marl-training" element={<MarlTrainingPage />} />
             <Route path="model-learning" element={<LearningEvidencePage/>}/>
           <Route path="replay-buffer" element={<ReplayBufferPage />} />

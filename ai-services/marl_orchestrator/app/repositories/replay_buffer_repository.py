@@ -162,6 +162,7 @@ class ReplayBufferRepository:
             entry.reward_source = "manual_review"
             entry.officer_decision = officer_decision
             entry.feedback_type = feedback_type
+            entry.officer_notes = officer_notes
             entry.is_used_in_training = False
             entry.training_run_id = None
             entry.updated_at = datetime.now(timezone.utc)
@@ -174,6 +175,31 @@ class ReplayBufferRepository:
             f"reviewed_by={reviewed_by or 'unknown'}"
         )
         return entry
+
+    async def find_pending_reviews(
+            self, limit: int = 200
+    ) -> List[AgentReplayBufferEntry]:
+        """
+        The compliance officer's worklist: REVIEW decisions with no officer
+        verdict yet, ordered by exposure (risk x amount) descending so the
+        riskiest, largest payments surface first; ties break oldest-first.
+        """
+        exposure = (
+                AgentReplayBufferEntry.mean_risk_score
+                * func.coalesce(AgentReplayBufferEntry.amount, 0.0)
+        )
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(AgentReplayBufferEntry)
+                .where(AgentReplayBufferEntry.marl_action == "REVIEW")
+                .where(AgentReplayBufferEntry.officer_decision.is_(None))
+                # Any manual reward means an officer already acted, even on
+                # legacy rows that predate the officer_decision column
+                .where(AgentReplayBufferEntry.reward_source == "automated")
+                .order_by(exposure.desc(), AgentReplayBufferEntry.created_at.asc())
+                .limit(limit)
+            )
+            return list(result.scalars().all())
 
     async def find_officer_labeled(
             self, limit: int = 500

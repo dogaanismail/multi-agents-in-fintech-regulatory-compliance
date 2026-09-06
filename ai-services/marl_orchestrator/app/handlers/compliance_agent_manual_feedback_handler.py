@@ -61,6 +61,7 @@ class ComplianceAgentManualFeedbackHandler:
                 feedback_type=feedback_type,
                 counterfactual_reward=counterfactual_reward,
                 reviewed_by=reviewed_by,
+                officer_notes=notes,
             )
 
             if success:

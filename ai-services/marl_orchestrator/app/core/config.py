@@ -136,6 +136,8 @@ class Settings(BaseSettings):
     # Fraction of BLOCK decisions routed to REVIEW instead, so compliance
     # officers adjudicate them and the replay buffer gains labelled data
     exploration_epsilon: float = float(os.getenv("EXPLORATION_EPSILON", "0.05"))
+    # Minutes a payment may wait in the review queue before it counts as an SLA breach
+    review_sla_minutes: int = int(os.getenv("REVIEW_SLA_MINUTES", "60"))
 
     # Logging
     log_path: str = "./logs"

@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, String
+from sqlalchemy import Boolean, DateTime, Float, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -71,6 +71,24 @@ class AgentReplayBufferEntry(Base):
     feedback_type: Mapped[Optional[str]] = mapped_column(
         String(30), nullable=True, default=None,
         comment="MANUAL_REVIEW | DECISION_OVERRIDE"
+    )
+    officer_notes: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, default=None,
+        comment="Free-text reason the compliance officer gave with their verdict"
+    )
+
+    # ── Review-queue context (captured at decision time) ──────────────────────
+    amount: Mapped[Optional[float]] = mapped_column(
+        Float, nullable=True, default=None,
+        comment="Payment amount, for exposure-based queue ordering"
+    )
+    currency: Mapped[Optional[str]] = mapped_column(
+        String(10), nullable=True, default=None
+    )
+    decision_reasons: Mapped[Optional[list]] = mapped_column(
+        JSONB, nullable=True, default=None,
+        comment="Structured reason codes explaining the decision, e.g. "
+                "[{'code': 'AGENT_SUSPICIOUS_VOTES', 'detail': '...'}]"
     )
 
     # ── Decision metadata ─────────────────────────────────────────────────────

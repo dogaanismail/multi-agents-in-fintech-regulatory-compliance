@@ -9,7 +9,7 @@ import asyncio
 import random
 import time
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict, Optional
 
 import numpy as np
 
@@ -88,27 +88,28 @@ class FraudDecisionService:
             # Step 3: MADDPG makes coordinated decision
             decision = self._make_maddpg_decision(state)
 
+            # Structured reason codes: every decision carries a machine-readable
+            # explanation of how it was reached, persisted with the experience so
+            # compliance officers see *why* a payment landed in their queue.
+            decision_reasons = [{
+                "code": f"POLICY_{decision['action']}",
+                "detail": f"MADDPG policy chose {decision['action']} "
+                          f"with confidence {decision['confidence']:.2f}",
+            }]
+
             # Step 3b: Post-decision escalation override
             # MADDPG only outputs ALLOW or BLOCK; this rule catches the case where
-            # MADDPG says ALLOW but the model is uncertain (low confidence) or one
-            # or more specialist agents flagged the payment as suspicious.
+            # MADDPG says ALLOW but the model is uncertain (low confidence) or
+            # enough specialist agents flagged the payment as suspicious.
             # Those payments are routed to human review instead of being auto-approved.
-            if self._should_escalate(decision, observations):
-                escalation_threshold = dynamic_config.get_float(
-                    "ESCALATION_CONFIDENCE_THRESHOLD",
-                    settings.escalation_confidence_threshold
-                )
-                suspicious_agents = [
-                    name for name, obs in observations.items() if obs.is_suspicious
-                ]
+            escalation_reasons = self._build_escalation_reasons(decision, observations)
+            if escalation_reasons:
                 logger.warning(
-                    f"Escalation override for payment {payment_id}: "
-                    f"ALLOW → REVIEW "
-                    f"(confidence={decision['confidence']:.3f}, "
-                    f"threshold={escalation_threshold:.3f}, "
-                    f"suspicious_agents={suspicious_agents})"
+                    f"Escalation override for payment {payment_id}: ALLOW → REVIEW "
+                    f"(reasons={[reason['code'] for reason in escalation_reasons]})"
                 )
                 decision['action'] = 'REVIEW'
+                decision_reasons.extend(escalation_reasons)
 
             # Step 3c: Exploration — route a small fraction of BLOCK decisions
             # to human review instead.  The officer's verdict flows back as
@@ -120,6 +121,11 @@ class FraudDecisionService:
                     f"BLOCK → REVIEW (epsilon-driven, officer adjudicates)"
                 )
                 decision['action'] = 'REVIEW'
+                decision_reasons.append({
+                    "code": "EXPLORATION",
+                    "detail": "BLOCK routed to human review by the exploration "
+                              "policy so an officer verdict can teach the model",
+                })
 
             # Step 4: Calculate processing time
             processing_time = (time.time() - start_time) * 1000  # ms
@@ -140,6 +146,9 @@ class FraudDecisionService:
                     state=state,
                     observations=observations,
                     decision=decision,
+                    decision_reasons=decision_reasons,
+                    amount=self._extract_amount(transaction_features),
+                    currency=transaction_features.get("paymentCurrency"),
                 )
             )
             
@@ -281,26 +290,61 @@ class FraudDecisionService:
         Returns:
             True if the ALLOW decision should be upgraded to REVIEW.
         """
+        return bool(self._build_escalation_reasons(decision, observations))
+
+    def _build_escalation_reasons(
+            self,
+            decision: Dict[str, Any],
+            observations: Dict[str, AgentObservation]
+    ) -> list:
+        """
+        Evaluate the escalation conditions and return one structured reason per
+        triggered condition (empty list = no escalation).  The reasons are
+        persisted with the experience and shown in the officer's review queue.
+        """
         if decision['action'] != 'ALLOW':
-            return False  # Only ALLOW decisions can be escalated
+            return []  # Only ALLOW decisions can be escalated
 
         threshold = dynamic_config.get_float(
             "ESCALATION_CONFIDENCE_THRESHOLD",
             settings.escalation_confidence_threshold
         )
-        votes_required = dynamic_config.get_int(
+        votes_required = max(1, dynamic_config.get_int(
             "ESCALATION_SUSPICIOUS_VOTES",
             settings.escalation_suspicious_votes
-        )
+        ))
+
+        reasons = []
 
         # Condition 1: MADDPG is uncertain — confidence is below the threshold
-        low_confidence = decision['confidence'] < threshold
+        if decision['confidence'] < threshold:
+            reasons.append({
+                "code": "LOW_CONFIDENCE",
+                "detail": f"Policy confidence {decision['confidence']:.2f} is below "
+                          f"the escalation threshold {threshold:.2f}",
+            })
 
         # Condition 2: Conflicted signal — enough specialist agents flagged
-        suspicious_votes = sum(1 for obs in observations.values() if obs.is_suspicious)
-        agents_suspicious = suspicious_votes >= max(1, votes_required)
+        suspicious_agents = [
+            name for name, obs in observations.items() if obs.is_suspicious
+        ]
+        if len(suspicious_agents) >= votes_required:
+            reasons.append({
+                "code": "AGENT_SUSPICIOUS_VOTES",
+                "detail": f"{len(suspicious_agents)} of {len(observations)} specialist "
+                          f"agents flagged suspicious ({', '.join(suspicious_agents)}); "
+                          f"{votes_required} votes trigger review",
+            })
 
-        return low_confidence or agents_suspicious
+        return reasons
+
+    @staticmethod
+    def _extract_amount(transaction_features: Dict[str, Any]) -> Any:
+        amount = transaction_features.get("amount")
+        try:
+            return float(amount) if amount is not None else None
+        except (TypeError, ValueError):
+            return None
 
     def _should_explore(self, decision: Dict[str, Any]) -> bool:
         """
@@ -359,6 +403,9 @@ class FraudDecisionService:
         state: Dict[str, Dict[str, float]],
         observations: Dict[str, AgentObservation],
         decision: Dict[str, Any],
+            decision_reasons: Optional[list] = None,
+            amount: Optional[float] = None,
+            currency: Optional[str] = None,
     ) -> None:
         """
         Persist the current (s, a, r, s', done) tuple to the DB replay buffer.
@@ -426,6 +473,9 @@ class FraudDecisionService:
                 marl_confidence=decision["confidence"],
                 marl_q_value=float(decision["q_value"]),
                 mean_risk_score=mean_risk_score,
+                decision_reasons=decision_reasons,
+                amount=amount,
+                currency=currency,
             )
 
         except Exception as exc:

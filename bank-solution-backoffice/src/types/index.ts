@@ -503,3 +503,29 @@ export interface LearningSummaryResponse {
   completed_training_runs: number;
   total_gradient_steps: number;
 }
+
+// ─── Review Queue ────────────────────────────────────────────────────────────
+
+export interface DecisionReason {
+  code: string;
+  detail: string;
+}
+
+export interface ReviewQueueItem {
+  payment_id: string;
+  decided_at: string;
+  age_seconds: number;
+  sla_breached: boolean;
+  amount: number | null;
+  currency: string | null;
+  mean_risk_score: number;
+  marl_confidence: number;
+  decision_reasons: DecisionReason[];
+}
+
+export interface ReviewQueueResponse {
+  pending_count: number;
+  sla_minutes: number;
+  sla_breached_count: number;
+  items: ReviewQueueItem[];
+}

@@ -50,6 +50,9 @@ class ExperienceBufferService:
         marl_confidence: float,
         marl_q_value: float,
         mean_risk_score: float,
+            decision_reasons: Optional[list] = None,
+            amount: Optional[float] = None,
+            currency: Optional[str] = None,
     ) -> AgentReplayBufferEntry:
         """Build and persist one (s, a, r, s', done) experience tuple."""
         entry = AgentReplayBufferEntry(
@@ -67,6 +70,9 @@ class ExperienceBufferService:
             marl_confidence=marl_confidence,
             marl_q_value=marl_q_value,
             mean_risk_score=mean_risk_score,
+            decision_reasons=decision_reasons,
+            amount=amount,
+            currency=currency,
             is_used_in_training=False,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
@@ -127,6 +133,7 @@ class ExperienceBufferService:
             feedback_type: str,
             counterfactual_reward: float,
         reviewed_by: Optional[str] = None,
+            officer_notes: Optional[str] = None,
     ) -> bool:
         """
         Apply a compliance officer's verdict to the replay buffer.
@@ -149,6 +156,7 @@ class ExperienceBufferService:
             reviewed_by=reviewed_by,
             officer_decision=officer_decision,
             feedback_type=feedback_type,
+            officer_notes=officer_notes,
         )
         if entry is None:
             return False
@@ -173,6 +181,13 @@ class ExperienceBufferService:
             reward_source="counterfactual",
             officer_decision=officer_decision,
             feedback_type=feedback_type,
+            officer_notes=officer_notes,
+            decision_reasons=[{
+                "code": "COUNTERFACTUAL",
+                "detail": f"Injected from officer feedback: correct action was {correct_action}",
+            }],
+            amount=entry.amount,
+            currency=entry.currency,
             marl_action=correct_action,
             marl_confidence=entry.marl_confidence,
             marl_q_value=entry.marl_q_value,

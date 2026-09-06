@@ -2,8 +2,9 @@ package org.banksolution.service;
 
 import com.aml.fraud.TransactionFeatures;
 import org.banksolution.entity.RiskCheckRequestEntity;
-import org.banksolution.enums.MarlPaymentType;
+import org.banksolution.enums.PaymentType;
 import org.banksolution.exception.AccountNotFoundException;
+import org.banksolution.integration.account.dto.AccountResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,16 +17,15 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.IntegrationClientFixtures.createAccountResponse;
-import static org.banksolution.fixtures.RiskCheckRequestFixtures.createDepositRiskCheckRequestEntity;
-import static org.banksolution.fixtures.RiskCheckRequestFixtures.createTransferRiskCheckRequestEntity;
-import static org.banksolution.fixtures.RiskCheckRequestFixtures.createWithdrawalRiskCheckRequestEntity;
+import static org.banksolution.fixtures.RiskCheckRequestFixtures.createRiskCheckRequestEntity;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionFeatureServiceTest {
 
-    private static final String SENDER_ACCOUNT_NUMBER = "GB000111";
-    private static final String RECEIVER_ACCOUNT_NUMBER = "DE000222";
+    private static final UUID SOURCE_ACCOUNT_ID = UUID.randomUUID();
+    private static final UUID DESTINATION_ACCOUNT_ID = UUID.randomUUID();
+    private static final String EXTERNAL_ACCOUNT_PREFIX = "9000";
 
     @Mock
     private AccountService accountService;
@@ -34,58 +34,70 @@ class TransactionFeatureServiceTest {
     private TransactionFeatureService transactionFeatureService;
 
     @Test
-    void shouldFetchBothAccountsInOneBatchForATransfer() {
-        RiskCheckRequestEntity riskCheckRequest = createTransferRiskCheckRequestEntity();
-        UUID sourceAccountId = UUID.fromString(riskCheckRequest.getSourceAccountId());
-        UUID destinationAccountId = UUID.fromString(riskCheckRequest.getDestinationAccountId());
-        when(accountService.getAccountsByIds(List.of(sourceAccountId, destinationAccountId)))
-                .thenReturn(List.of(
-                        createAccountResponse(sourceAccountId, SENDER_ACCOUNT_NUMBER, "GB"),
-                        createAccountResponse(destinationAccountId, RECEIVER_ACCOUNT_NUMBER, "DE")));
+    void shouldBuildTransferFeaturesFromBothInternalAccounts() {
+        RiskCheckRequestEntity riskCheckRequestEntity = createRiskCheckRequestEntity(
+                PaymentType.TRANSFER_OUT,
+                SOURCE_ACCOUNT_ID.toString(),
+                DESTINATION_ACCOUNT_ID.toString());
+        AccountResponse senderAccount = createAccountResponse(SOURCE_ACCOUNT_ID, "1111111111", "GB");
+        AccountResponse receiverAccount = createAccountResponse(DESTINATION_ACCOUNT_ID, "2222222222", "DE");
+        when(accountService.getAccountsByIds(List.of(SOURCE_ACCOUNT_ID, DESTINATION_ACCOUNT_ID)))
+                .thenReturn(List.of(senderAccount, receiverAccount));
 
-        TransactionFeatures features = transactionFeatureService.getTransactionFeatures(riskCheckRequest);
+        TransactionFeatures transactionFeatures =
+                transactionFeatureService.getTransactionFeatures(riskCheckRequestEntity);
 
-        assertThat(features.getSenderAccount()).isEqualTo(SENDER_ACCOUNT_NUMBER);
-        assertThat(features.getReceiverAccount()).isEqualTo(RECEIVER_ACCOUNT_NUMBER);
-        assertThat(features.getPaymentType()).isEqualTo(MarlPaymentType.CROSS_BORDER.getValue());
+        assertThat(transactionFeatures.getSenderAccount()).isEqualTo("1111111111");
+        assertThat(transactionFeatures.getReceiverAccount()).isEqualTo("2222222222");
+        assertThat(transactionFeatures.getSenderBankLocation()).isEqualTo("GB");
+        assertThat(transactionFeatures.getReceiverBankLocation()).isEqualTo("DE");
     }
 
     @Test
-    void shouldFetchOnlyTheDestinationAccountForADeposit() {
-        RiskCheckRequestEntity riskCheckRequest = createDepositRiskCheckRequestEntity();
-        UUID destinationAccountId = UUID.fromString(riskCheckRequest.getDestinationAccountId());
-        when(accountService.getAccountById(destinationAccountId))
-                .thenReturn(createAccountResponse(destinationAccountId, RECEIVER_ACCOUNT_NUMBER, "GB"));
+    void shouldTreatMissingDestinationAccountAsExternalReceiver() {
+        RiskCheckRequestEntity riskCheckRequestEntity = createRiskCheckRequestEntity(
+                PaymentType.TRANSFER_OUT, SOURCE_ACCOUNT_ID.toString(), null);
+        AccountResponse senderAccount = createAccountResponse(SOURCE_ACCOUNT_ID, "1111111111", "GB");
+        when(accountService.getAccountsByIds(List.of(SOURCE_ACCOUNT_ID)))
+                .thenReturn(List.of(senderAccount));
 
-        TransactionFeatures features = transactionFeatureService.getTransactionFeatures(riskCheckRequest);
+        TransactionFeatures transactionFeatures =
+                transactionFeatureService.getTransactionFeatures(riskCheckRequestEntity);
 
-        assertThat(features.getReceiverAccount()).isEqualTo(RECEIVER_ACCOUNT_NUMBER);
-        assertThat(features.getPaymentType()).isEqualTo(MarlPaymentType.CASH_DEPOSIT.getValue());
+        assertThat(transactionFeatures.getSenderAccount()).isEqualTo("1111111111");
+        assertThat(transactionFeatures.getReceiverAccount()).startsWith(EXTERNAL_ACCOUNT_PREFIX);
+        assertThat(transactionFeatures.getSenderBankLocation()).isEqualTo("GB");
+        assertThat(transactionFeatures.getReceiverBankLocation()).isEqualTo("GB");
     }
 
     @Test
-    void shouldFetchOnlyTheSourceAccountForAWithdrawal() {
-        RiskCheckRequestEntity riskCheckRequest = createWithdrawalRiskCheckRequestEntity();
-        UUID sourceAccountId = UUID.fromString(riskCheckRequest.getSourceAccountId());
-        when(accountService.getAccountById(sourceAccountId))
-                .thenReturn(createAccountResponse(sourceAccountId, SENDER_ACCOUNT_NUMBER, "GB"));
+    void shouldTreatMissingSourceAccountAsExternalSender() {
+        RiskCheckRequestEntity riskCheckRequestEntity = createRiskCheckRequestEntity(
+                PaymentType.TRANSFER_IN, null, DESTINATION_ACCOUNT_ID.toString());
+        AccountResponse receiverAccount = createAccountResponse(DESTINATION_ACCOUNT_ID, "2222222222", "DE");
+        when(accountService.getAccountsByIds(List.of(DESTINATION_ACCOUNT_ID)))
+                .thenReturn(List.of(receiverAccount));
 
-        TransactionFeatures features = transactionFeatureService.getTransactionFeatures(riskCheckRequest);
+        TransactionFeatures transactionFeatures =
+                transactionFeatureService.getTransactionFeatures(riskCheckRequestEntity);
 
-        assertThat(features.getSenderAccount()).isEqualTo(SENDER_ACCOUNT_NUMBER);
-        assertThat(features.getPaymentType()).isEqualTo(MarlPaymentType.CASH_WITHDRAWAL.getValue());
+        assertThat(transactionFeatures.getSenderAccount()).startsWith(EXTERNAL_ACCOUNT_PREFIX);
+        assertThat(transactionFeatures.getReceiverAccount()).isEqualTo("2222222222");
+        assertThat(transactionFeatures.getSenderBankLocation()).isEqualTo("DE");
+        assertThat(transactionFeatures.getReceiverBankLocation()).isEqualTo("DE");
     }
 
     @Test
-    void shouldFailWhenTheBatchLookupIsMissingARequestedAccount() {
-        RiskCheckRequestEntity riskCheckRequest = createTransferRiskCheckRequestEntity();
-        UUID sourceAccountId = UUID.fromString(riskCheckRequest.getSourceAccountId());
-        UUID destinationAccountId = UUID.fromString(riskCheckRequest.getDestinationAccountId());
-        when(accountService.getAccountsByIds(List.of(sourceAccountId, destinationAccountId)))
-                .thenReturn(List.of(createAccountResponse(sourceAccountId, SENDER_ACCOUNT_NUMBER, "GB")));
+    void shouldThrowWhenAnInternalAccountIsMissingFromTheLookup() {
+        RiskCheckRequestEntity riskCheckRequestEntity = createRiskCheckRequestEntity(
+                PaymentType.TRANSFER_OUT,
+                SOURCE_ACCOUNT_ID.toString(),
+                DESTINATION_ACCOUNT_ID.toString());
+        AccountResponse senderAccount = createAccountResponse(SOURCE_ACCOUNT_ID, "1111111111", "GB");
+        when(accountService.getAccountsByIds(List.of(SOURCE_ACCOUNT_ID, DESTINATION_ACCOUNT_ID)))
+                .thenReturn(List.of(senderAccount));
 
-        assertThatThrownBy(() -> transactionFeatureService.getTransactionFeatures(riskCheckRequest))
-                .isInstanceOf(AccountNotFoundException.class)
-                .hasMessageContaining(destinationAccountId.toString());
+        assertThatThrownBy(() -> transactionFeatureService.getTransactionFeatures(riskCheckRequestEntity))
+                .isInstanceOf(AccountNotFoundException.class);
     }
 }

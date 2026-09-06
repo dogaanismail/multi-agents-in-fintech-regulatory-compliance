@@ -10,7 +10,9 @@ import org.banksolution.integration.account.dto.AccountResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.banksolution.mapper.TransactionFeaturesMapper.toTransactionFeatures;
 
@@ -34,14 +36,21 @@ public class TransactionFeatureService {
     }
 
     private TransactionFeatures buildTransferFeatures(RiskCheckRequestEntity riskCheckRequestEntity) {
-        UUID sourceAccountId = UUID.fromString(riskCheckRequestEntity.getSourceAccountId());
-        UUID destinationAccountId = UUID.fromString(riskCheckRequestEntity.getDestinationAccountId());
+        // A transfer to or from another bank has no internal account on that side;
+        // the mapper substitutes an external account number for a null account.
+        List<UUID> internalAccountIds = Stream.of(
+                        riskCheckRequestEntity.getSourceAccountId(),
+                        riskCheckRequestEntity.getDestinationAccountId())
+                .filter(Objects::nonNull)
+                .map(UUID::fromString)
+                .toList();
 
-        List<UUID> accountIds = List.of(sourceAccountId, destinationAccountId);
-        List<AccountResponse> accounts = accountService.getAccountsByIds(accountIds);
+        List<AccountResponse> accounts = accountService.getAccountsByIds(internalAccountIds);
 
-        AccountResponse senderAccount = findByAccountId(accounts, riskCheckRequestEntity.getSourceAccountId());
-        AccountResponse receiverAccount = findByAccountId(accounts, riskCheckRequestEntity.getDestinationAccountId());
+        AccountResponse senderAccount =
+                findByAccountIdOrNull(accounts, riskCheckRequestEntity.getSourceAccountId());
+        AccountResponse receiverAccount =
+                findByAccountIdOrNull(accounts, riskCheckRequestEntity.getDestinationAccountId());
 
         return toTransactionFeatures(riskCheckRequestEntity, senderAccount, receiverAccount);
     }
@@ -60,6 +69,10 @@ public class TransactionFeatureService {
 
         // TODO: Implement bank ledger account logic for cash withdrawals
         return toTransactionFeatures(riskCheckRequestEntity, senderAccount, null);
+    }
+
+    private AccountResponse findByAccountIdOrNull(List<AccountResponse> accounts, String accountId) {
+        return accountId == null ? null : findByAccountId(accounts, accountId);
     }
 
     private AccountResponse findByAccountId(List<AccountResponse> accounts, String accountId) {

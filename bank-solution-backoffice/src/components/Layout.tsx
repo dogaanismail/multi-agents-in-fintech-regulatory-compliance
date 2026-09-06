@@ -46,6 +46,9 @@ export const Layout: React.FC = () => {
               <NavLink to="/payments" active={isActive('/payments')}>
                 Payments
               </NavLink>
+              <NavLink to="/review-queue" active={isActive('/review-queue')}>
+                Review Queue
+              </NavLink>
               <NavLink to="/customers" active={isActive('/customers')}>
                 Customers
               </NavLink>
