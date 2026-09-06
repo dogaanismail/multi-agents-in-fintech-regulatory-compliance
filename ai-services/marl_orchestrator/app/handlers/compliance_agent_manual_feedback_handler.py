@@ -49,9 +49,17 @@ class ComplianceAgentManualFeedbackHandler:
                 logger.warning(f"Unknown feedbackType={feedback_type} for payment={payment_id}, skipping")
                 return False
 
-            success = await self.experience_buffer_service.apply_manual_reward(
+            correct_action = "ALLOW" if officer_decision == "APPROVE" else "BLOCK"
+            counterfactual_reward = self.reward_calculator_service.calculate_counterfactual_reward(
+                correct_action
+            )
+
+            success = await self.experience_buffer_service.apply_manual_feedback(
                 payment_id=payment_id,
                 manual_reward=reward,
+                officer_decision=officer_decision,
+                feedback_type=feedback_type,
+                counterfactual_reward=counterfactual_reward,
                 reviewed_by=reviewed_by,
             )
 

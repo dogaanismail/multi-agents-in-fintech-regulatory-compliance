@@ -47,6 +47,9 @@ class TrainingRunResponse(BaseModel):
     actor_customer_loss: Optional[float] = None
     actor_network_loss: Optional[float] = None
     model_saved: bool
+    probe_agreement_rate: Optional[float] = None
+    probe_count: Optional[int] = None
+    probe_avg_q_gap: Optional[float] = None
     error_message: Optional[str] = None
     started_at: str
     completed_at: Optional[str] = None

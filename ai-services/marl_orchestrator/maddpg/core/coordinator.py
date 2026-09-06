@@ -86,7 +86,11 @@ class MADDPGCoordinator:
         
         # Training statistics
         self.episode_count = 0
-        
+
+        # Inference is the default state; the trainer switches to train mode
+        # around gradient updates and switches back (BatchNorm consistency).
+        self.network_manager.eval_mode()
+
         logger.info("MADDPG Coordinator initialized")
         logger.info(f"  - Components: StateManager, NetworkManager, DecisionMaker, Trainer")
         logger.info(f"  - Agents: {num_agents} (transaction, customer, network)")
@@ -147,7 +151,55 @@ class MADDPGCoordinator:
             decision = self.decision_maker.make_decision(action_probs, q_value)
         
         return decision
-    
+
+    def decide_from_state(self, state: np.ndarray) -> Dict:
+        """
+        Make a decision directly from a pre-built state vector.
+
+        Used by learning-evidence evaluation to replay stored replay-buffer
+        states through the *current* policy without re-querying the detection
+        agents.
+
+        Args:
+            state: State vector [state_dim] as stored in the replay buffer.
+
+        Returns:
+            Decision dict with action, confidence, q_value, contributions.
+        """
+        state_tensor = torch.FloatTensor(np.asarray(state, dtype=np.float32)) \
+            .unsqueeze(0).to(self.device)
+
+        with torch.no_grad():
+            action_probs = self.network_manager.get_action_probs(state_tensor)
+            q_value = self.network_manager.critic.evaluate(state_tensor, action_probs)
+            decision = self.decision_maker.make_decision(action_probs, q_value)
+
+        return decision
+
+    def action_q_values(self, state: np.ndarray) -> Dict[str, float]:
+        """
+        Evaluate the critic for both joint actions on one state.
+
+        Returns {"q_block": ..., "q_allow": ...} where each value is the
+        critic's estimate for all three agents jointly taking that action.
+        Used for learning-evidence receipts ("the policy would now ALLOW this
+        payment: Q_allow 0.42 vs Q_block -0.31").
+        """
+        state_tensor = torch.FloatTensor(np.asarray(state, dtype=np.float32)) \
+            .unsqueeze(0).to(self.device)
+
+        q_values = {}
+        with torch.no_grad():
+            for label, action_index in (("q_block", 0), ("q_allow", 1)):
+                one_hot = torch.zeros(1, self.action_dim, device=self.device)
+                one_hot[0, action_index] = 1.0
+                joint_actions = [one_hot] * self.num_agents
+                q_values[label] = float(
+                    self.network_manager.critic.evaluate(state_tensor, joint_actions).item()
+                )
+
+        return q_values
+
     def update(self, batch_size: int = 64) -> Optional[Dict[str, float]]:
         """
         Update actors and critic using experience replay
@@ -181,8 +233,9 @@ class MADDPGCoordinator:
         """
         if path is None:
             path = settings.model_path
-        
+
         self.network_manager.load_models(Path(path))
+        self.network_manager.eval_mode()
 
 
 # Global instance

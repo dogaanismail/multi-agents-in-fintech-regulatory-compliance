@@ -62,23 +62,30 @@ class MADDPGTrainer:
             )
 
         states, actions, rewards, next_states, dones = self.replay_buffer.sample(effective_batch_size)
-        
+
         device = self.network_manager.device
         states = states.to(device)
         rewards = rewards.to(device)
         next_states = next_states.to(device)
         dones = dones.to(device)
         actions = [a.to(device) for a in actions]
-        
-        # Update Critic
-        critic_loss = self._update_critic(states, actions, rewards, next_states, dones)
-        
-        # Update Actors
-        actor_losses = self._update_actors(states, actions)
-        
-        # Soft update target networks
-        self.network_manager.soft_update()
-        
+
+        # BatchNorm must see batch statistics during updates and running
+        # statistics at inference, so gradient steps run in train mode and the
+        # networks are always returned to eval mode for the decision path.
+        self.network_manager.train_mode()
+        try:
+            # Update Critic
+            critic_loss = self._update_critic(states, actions, rewards, next_states, dones)
+
+            # Update Actors
+            actor_losses = self._update_actors(states, actions)
+
+            # Soft update target networks
+            self.network_manager.soft_update()
+        finally:
+            self.network_manager.eval_mode()
+
         self.training_step += 1
         
         return {

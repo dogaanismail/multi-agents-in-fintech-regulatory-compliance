@@ -84,6 +84,11 @@ class Settings(BaseSettings):
     training_batch_size: int = int(os.getenv("TRAINING_BATCH_SIZE", "64"))
     max_experiences_per_batch: int = int(os.getenv("MAX_EXPERIENCES_PER_BATCH", "1000"))
     save_model_after_training: bool = os.getenv("SAVE_MODEL_AFTER_TRAINING", "True").lower() == "true"
+    # Number of passes over the sampled experiences per training cycle
+    training_epochs: int = int(os.getenv("TRAINING_EPOCHS", "3"))
+    # When fewer unused experiences than the batch exist, top the batch up with
+    # recently used entries so small buffers still get meaningful gradient steps
+    training_replay_used_experiences: bool = os.getenv("TRAINING_REPLAY_USED_EXPERIENCES", "True").lower() == "true"
 
     # Agent trust weights — must sum to ~1.0; used to blend per-agent risk scores
     agent_weight_transaction: float = float(os.getenv("AGENT_WEIGHT_TRANSACTION", "0.333"))
@@ -125,6 +130,12 @@ class Settings(BaseSettings):
     reward_use_confidence_weighting: bool = os.getenv("REWARD_USE_CONFIDENCE_WEIGHTING", "True").lower() == "true"
     # Confidence threshold for auto-escalation
     escalation_confidence_threshold: float = float(os.getenv("ESCALATION_CONFIDENCE_THRESHOLD", "0.6"))
+    # Minimum number of specialist agents flagging suspicious before an ALLOW
+    # decision is escalated to REVIEW (1 = any agent, 2 = majority of three)
+    escalation_suspicious_votes: int = int(os.getenv("ESCALATION_SUSPICIOUS_VOTES", "2"))
+    # Fraction of BLOCK decisions routed to REVIEW instead, so compliance
+    # officers adjudicate them and the replay buffer gains labelled data
+    exploration_epsilon: float = float(os.getenv("EXPLORATION_EPSILON", "0.05"))
 
     # Logging
     log_path: str = "./logs"

@@ -60,7 +60,17 @@ class AgentReplayBufferEntry(Base):
     effective_reward: Mapped[float] = mapped_column(Float, nullable=False)
     reward_source: Mapped[str] = mapped_column(
         String(50), nullable=False, default="automated",
-        comment="automated | manual_review"
+        comment="automated | manual_review | counterfactual"
+    )
+
+    # ── Compliance officer feedback (ground truth for learning evidence) ──────
+    officer_decision: Mapped[Optional[str]] = mapped_column(
+        String(20), nullable=True, default=None,
+        comment="APPROVE | REJECT — set when a compliance officer reviews"
+    )
+    feedback_type: Mapped[Optional[str]] = mapped_column(
+        String(30), nullable=True, default=None,
+        comment="MANUAL_REVIEW | DECISION_OVERRIDE"
     )
 
     # ── Decision metadata ─────────────────────────────────────────────────────

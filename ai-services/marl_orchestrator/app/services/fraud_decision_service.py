@@ -6,6 +6,7 @@ Can be called from both REST endpoints and Kafka consumers.
 """
 
 import asyncio
+import random
 import time
 from datetime import datetime
 from typing import Dict, Any
@@ -106,6 +107,17 @@ class FraudDecisionService:
                     f"(confidence={decision['confidence']:.3f}, "
                     f"threshold={escalation_threshold:.3f}, "
                     f"suspicious_agents={suspicious_agents})"
+                )
+                decision['action'] = 'REVIEW'
+
+            # Step 3c: Exploration — route a small fraction of BLOCK decisions
+            # to human review instead.  The officer's verdict flows back as
+            # manual feedback, giving the replay buffer the labelled ALLOW/BLOCK
+            # evidence a deterministic always-block policy can never generate.
+            if self._should_explore(decision):
+                logger.warning(
+                    f"Exploration override for payment {payment_id}: "
+                    f"BLOCK → REVIEW (epsilon-driven, officer adjudicates)"
                 )
                 decision['action'] = 'REVIEW'
 
@@ -246,16 +258,21 @@ class FraudDecisionService:
 
         MADDPG only ever emits ALLOW or BLOCK.  This method catches the gap:
         payments where the network says ALLOW but either the model is uncertain
-        (confidence below threshold) or at least one specialist agent flagged
-        the payment as suspicious — a conflicted signal that warrants human eyes.
+        (confidence below threshold) or enough specialist agents flagged the
+        payment as suspicious — a conflicted signal that warrants human eyes.
+
+        The suspicious-agent condition is a configurable vote
+        (ESCALATION_SUSPICIOUS_VOTES, default 2 of 3) rather than any single
+        agent: one over-flagging specialist model must not be able to pin every
+        payment to REVIEW and starve the policy of ALLOW outcomes to learn from.
 
         Both conditions are OR-ed so that either one alone is enough to trigger
         escalation, and both are independently observable in the logs so
         compliance officers can understand the reason.
 
-        The threshold is read from the dynamic config service first so
-        compliance officers can raise/lower it at runtime without a deploy;
-        the pydantic settings value acts as an in-process fallback.
+        The threshold and vote count are read from the dynamic config service
+        first so compliance officers can adjust them at runtime without a
+        deploy; the pydantic settings values act as in-process fallbacks.
 
         Args:
             decision:     MADDPG decision dict (action, confidence, …).
@@ -271,14 +288,37 @@ class FraudDecisionService:
             "ESCALATION_CONFIDENCE_THRESHOLD",
             settings.escalation_confidence_threshold
         )
+        votes_required = dynamic_config.get_int(
+            "ESCALATION_SUSPICIOUS_VOTES",
+            settings.escalation_suspicious_votes
+        )
 
         # Condition 1: MADDPG is uncertain — confidence is below the threshold
         low_confidence = decision['confidence'] < threshold
 
-        # Condition 2: Conflicted signal — at least one specialist agent flagged
-        any_agent_suspicious = any(obs.is_suspicious for obs in observations.values())
+        # Condition 2: Conflicted signal — enough specialist agents flagged
+        suspicious_votes = sum(1 for obs in observations.values() if obs.is_suspicious)
+        agents_suspicious = suspicious_votes >= max(1, votes_required)
 
-        return low_confidence or any_agent_suspicious
+        return low_confidence or agents_suspicious
+
+    def _should_explore(self, decision: Dict[str, Any]) -> bool:
+        """
+        Decide whether this BLOCK decision is sacrificed to exploration.
+
+        With probability EXPLORATION_EPSILON a BLOCK is downgraded to REVIEW so
+        a compliance officer adjudicates it.  Exploration never auto-ALLOWs a
+        payment the policy wanted to block — the human stays in the loop — but
+        it breaks the feedback deadlock where an always-block policy only ever
+        generates BLOCK experiences and can never discover that ALLOW pays.
+        """
+        if decision['action'] != 'BLOCK':
+            return False
+
+        epsilon = dynamic_config.get_float(
+            "EXPLORATION_EPSILON", settings.exploration_epsilon
+        )
+        return epsilon > 0 and random.random() < epsilon
 
     def _build_decision_response(
         self,

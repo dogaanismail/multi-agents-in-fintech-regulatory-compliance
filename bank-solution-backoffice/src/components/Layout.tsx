@@ -64,6 +64,9 @@ export const Layout: React.FC = () => {
               <NavLink to="/replay-buffer" active={isActive('/replay-buffer')}>
                 Replay Buffer
               </NavLink>
+                <NavLink to="/model-learning" active={isActive('/model-learning')}>
+                    Model Learning
+                </NavLink>
               <NavLink to="/dashboard" active={isActive('/dashboard')}>
                 Dashboard
               </NavLink>

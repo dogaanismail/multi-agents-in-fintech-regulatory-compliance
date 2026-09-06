@@ -30,6 +30,7 @@ from app.services.reward_calculator_service import reward_calculator_service
 from app.infrastructure.database.models import AgentTrainingRun
 from app.repositories.training_run_repository import training_run_repository
 from app.services.experience_buffer_service import experience_buffer_service
+from app.services.learning_evidence_service import learning_evidence_service
 from app.services.maddpg_trainer_service import maddpg_trainer_service
 
 
@@ -296,14 +297,19 @@ class OfflineTrainerService:
             "SAVE_MODEL_AFTER_TRAINING", settings.save_model_after_training
         )
 
-        load_size = min(available_count, max_per_batch)
-
-        # ── 1. Sample experiences from DB ─────────────────────────────────────
-        entries = await experience_buffer_service.sample_batch(
-            batch_size=load_size, 
-            include_used=False
+        epochs = dynamic_config.get_int("TRAINING_EPOCHS", settings.training_epochs)
+        replay_used = dynamic_config.get_bool(
+            "TRAINING_REPLAY_USED_EXPERIENCES", settings.training_replay_used_experiences
         )
-        
+
+        load_size = min(max(available_count, batch_size), max_per_batch)
+
+        # ── 1. Sample experiences from DB (unused first, used top-up) ─────────
+        entries = await experience_buffer_service.sample_training_batch(
+            batch_size=load_size,
+            top_up_with_used=replay_used,
+        )
+
         if not entries:
             logger.warning("No entries returned from DB sample; skipping training")
             await training_run_repository.update(
@@ -320,9 +326,15 @@ class OfflineTrainerService:
         loaded = await maddpg_trainer_service.load_experiences_into_buffer(entries)
         logger.info(f"  In-memory buffer loaded: {loaded} entries")
 
+        # Several passes over the batch: with a small buffer, a single step per
+        # cycle (the old len // batch_size, usually 0 → 1) never converges.
+        effective_batch_size = min(batch_size, len(entries))
+        steps_per_epoch = max(1, -(-len(entries) // effective_batch_size))  # ceil
+        num_steps = max(1, epochs) * steps_per_epoch
+
         result = await maddpg_trainer_service.run_update_steps(
-            batch_size=batch_size,
-            num_steps=max(1, len(entries) // batch_size),
+            batch_size=effective_batch_size,
+            num_steps=num_steps,
         )
         steps_done = result["steps_done"]
         last_losses = result["losses"]
@@ -333,8 +345,18 @@ class OfflineTrainerService:
             model_saved = await maddpg_trainer_service.save_model_weights()
 
         # ── 5. Mark experiences as used ───────────────────────────────────────
-        entry_ids = [e.id for e in entries]
+        entry_ids = [e.id for e in entries if not e.is_used_in_training]
         await experience_buffer_service.mark_as_used(entry_ids, run_id)
+
+        # ── 5a. Probe-set evaluation (learning evidence) ──────────────────────
+        # Replays every officer-labelled state through the just-updated policy;
+        # the agreement rate per run forms the human-in-the-loop learning curve.
+        probe_metrics = None
+        if steps_done > 0:
+            try:
+                probe_metrics = await learning_evidence_service.evaluate_probe_set()
+            except Exception as exc:
+                logger.warning(f"⚠️  Probe-set evaluation failed: {exc}")
 
         # ── 5b. Evict expired experiences ─────────────────────────────────────
         # Removes replay buffer rows older than EXPERIENCE_RETENTION_DAYS so the
@@ -359,6 +381,9 @@ class OfflineTrainerService:
             actor_customer_loss=last_losses.get("actor_loss_customer"),
             actor_network_loss=last_losses.get("actor_loss_network"),
             model_saved=model_saved,
+            probe_agreement_rate=probe_metrics["agreement_rate"] if probe_metrics else None,
+            probe_count=probe_metrics["probe_count"] if probe_metrics else None,
+            probe_avg_q_gap=probe_metrics["avg_q_gap"] if probe_metrics else None,
             completed_at=datetime.now(timezone.utc),
         )
 

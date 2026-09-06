@@ -129,19 +129,25 @@ class ReplayBufferRepository:
         payment_id: str,
         manual_reward: float,
         reviewed_by: Optional[str] = None,
-    ) -> bool:
+            officer_decision: Optional[str] = None,
+            feedback_type: Optional[str] = None,
+    ) -> Optional[AgentReplayBufferEntry]:
         """
         Override the reward for a payment with a compliance officer's decision.
+
+        Counterfactual entries are excluded from the lookup so repeated feedback
+        for the same payment always updates the original decision entry.
 
         Resets is_used_in_training=False so the entry is re-sampled in the
         next training cycle with the corrected reward.
 
-        Returns True if the entry was found and updated, False otherwise.
+        Returns the updated entry, or None if no entry was found.
         """
         async with AsyncSessionLocal() as session:
             result = await session.execute(
                 select(AgentReplayBufferEntry)
                 .where(AgentReplayBufferEntry.payment_id == payment_id)
+                .where(AgentReplayBufferEntry.reward_source != "counterfactual")
                 .order_by(AgentReplayBufferEntry.created_at.desc())
                 .limit(1)
             )
@@ -149,21 +155,74 @@ class ReplayBufferRepository:
 
             if entry is None:
                 logger.warning(f"⚠️  No replay buffer entry for payment_id={payment_id}")
-                return False
+                return None
 
             entry.manual_reward = manual_reward
             entry.effective_reward = manual_reward
             entry.reward_source = "manual_review"
+            entry.officer_decision = officer_decision
+            entry.feedback_type = feedback_type
             entry.is_used_in_training = False
             entry.training_run_id = None
             entry.updated_at = datetime.now(timezone.utc)
             await session.commit()
+            await session.refresh(entry)
 
         logger.info(
             f"🧑‍⚖️  Manual reward applied: payment={payment_id} "
-            f"reward={manual_reward:.4f} reviewed_by={reviewed_by or 'unknown'}"
+            f"reward={manual_reward:.4f} officer={officer_decision} "
+            f"reviewed_by={reviewed_by or 'unknown'}"
         )
-        return True
+        return entry
+
+    async def find_officer_labeled(
+            self, limit: int = 500
+    ) -> List[AgentReplayBufferEntry]:
+        """
+        Return the probe set: original decision entries carrying a compliance
+        officer's verdict (counterfactual mirrors excluded), newest first.
+        """
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(AgentReplayBufferEntry)
+                .where(AgentReplayBufferEntry.officer_decision.isnot(None))
+                .where(AgentReplayBufferEntry.reward_source != "counterfactual")
+                .order_by(AgentReplayBufferEntry.updated_at.desc())
+                .limit(limit)
+            )
+            return list(result.scalars().all())
+
+    async def sample_training_batch(
+            self,
+            batch_size: int,
+            top_up_with_used: bool = True,
+    ) -> List[AgentReplayBufferEntry]:
+        """
+        Sample a training batch: all available unused entries first, then —
+        when fewer unused entries than *batch_size* exist and top-up is
+        enabled — randomly sampled used entries fill the remainder, so small
+        buffers are re-learned instead of seen exactly once.
+        """
+        unused = await self.sample_batch(batch_size, include_used=False)
+        remainder = batch_size - len(unused)
+        if remainder <= 0 or not top_up_with_used:
+            return unused
+
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(AgentReplayBufferEntry)
+                .where(AgentReplayBufferEntry.is_used_in_training == True)  # noqa: E712
+                .order_by(func.random())
+                .limit(remainder)
+            )
+            used_top_up = list(result.scalars().all())
+
+        if used_top_up:
+            logger.info(
+                f"♻️  Training batch topped up with {len(used_top_up)} "
+                f"recently-used experiences ({len(unused)} unused available)"
+            )
+        return unused + used_top_up
 
     async def list_recent(
         self,

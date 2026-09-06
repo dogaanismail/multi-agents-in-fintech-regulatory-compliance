@@ -39,8 +39,8 @@ def handler(mock_fraud_decision_service, mock_fraud_response_publisher):
 def sample_request():
     """Sample fraud analysis request (Avro format)"""
     return {
-        'requestId': 'req-12345',
-        'transactionId': 'txn-67890',
+        'riskCheckRequestId': 'req-12345',
+        'paymentId': 'txn-67890',
         'transactionFeatures': {
             'amount': 1500.0,
             'currency': 'USD',
@@ -64,7 +64,7 @@ def sample_request():
 def sample_decision_response():
     """Sample decision response from service"""
     return CoordinatedDecisionResponse(
-        transaction_id='txn-67890',
+        payment_id='txn-67890',
         action=ActionType.BLOCK,
         confidence=0.95,
         maddpg_q_value=0.89,
@@ -121,7 +121,7 @@ async def test_handle_success(handler, mock_fraud_decision_service, mock_fraud_r
     
     # Verify service was called with correct parameters
     call_kwargs = mock_fraud_decision_service.make_decision.call_args.kwargs
-    assert call_kwargs['transaction_id'] == 'txn-67890'
+    assert call_kwargs['payment_id'] == 'txn-67890'
     assert 'transaction_features' in call_kwargs
     assert 'customer_features' in call_kwargs
     assert 'network_features' in call_kwargs
@@ -141,9 +141,9 @@ async def test_handle_builds_correct_response(handler, mock_fraud_decision_servi
     
     # Assert - verify response structure
     published_response = mock_fraud_response_publisher.publish.call_args.kwargs['response']
-    
-    assert published_response['requestId'] == 'req-12345'
-    assert published_response['transactionId'] == 'txn-67890'
+
+    assert published_response['riskCheckRequestId'] == 'req-12345'
+    assert published_response['paymentId'] == 'txn-67890'
     assert published_response['action'] == 'BLOCK'
     assert published_response['confidence'] == 0.95
     assert published_response['maddpgQValue'] == 0.89

@@ -57,6 +57,21 @@ class AgentTrainingRun(Base):
     # ── Model persistence ─────────────────────────────────────────────────────
     model_saved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+    # ── Probe-set evaluation (learning evidence) ──────────────────────────────
+    # After each run, the current policy is replayed over all officer-labelled
+    # states; these metrics form the human-in-the-loop learning curve.
+    probe_agreement_rate: Mapped[Optional[float]] = mapped_column(
+        Float, nullable=True,
+        comment="Fraction of officer-labelled states where the policy now agrees"
+    )
+    probe_count: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, comment="Number of officer-labelled probe states"
+    )
+    probe_avg_q_gap: Mapped[Optional[float]] = mapped_column(
+        Float, nullable=True,
+        comment="Mean Q(correct action) - Q(other action) over the probe set"
+    )
+
     # ── Error info ────────────────────────────────────────────────────────────
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 

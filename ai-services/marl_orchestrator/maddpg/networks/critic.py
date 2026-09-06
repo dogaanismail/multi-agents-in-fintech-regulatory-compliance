@@ -53,13 +53,13 @@ class Critic(nn.Module):
         
         # Network architecture
         self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.bn1 = nn.BatchNorm1d(hidden_dim)
+        self.bn1 = nn.LayerNorm(hidden_dim)
         
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.bn2 = nn.BatchNorm1d(hidden_dim)
+        self.bn2 = nn.LayerNorm(hidden_dim)
         
         self.fc3 = nn.Linear(hidden_dim, hidden_dim // 2)
-        self.bn3 = nn.BatchNorm1d(hidden_dim // 2)
+        self.bn3 = nn.LayerNorm(hidden_dim // 2)
         
         self.fc4 = nn.Linear(hidden_dim // 2, 1)  # Output: Q-value
         
@@ -91,20 +91,17 @@ class Critic(nn.Module):
         
         # Layer 1
         x = self.fc1(x)
-        if x.size(0) > 1:  # Only use batch norm if batch size > 1
-            x = self.bn1(x)
+        x = self.bn1(x)
         x = F.relu(x)
         
         # Layer 2
         x = self.fc2(x)
-        if x.size(0) > 1:
-            x = self.bn2(x)
+        x = self.bn2(x)
         x = F.relu(x)
         
         # Layer 3
         x = self.fc3(x)
-        if x.size(0) > 1:
-            x = self.bn3(x)
+        x = self.bn3(x)
         x = F.relu(x)
         
         # Output layer (no activation, Q-value can be any real number)

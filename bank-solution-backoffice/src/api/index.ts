@@ -5,4 +5,5 @@ export * from './accountService';
 export * from './ledgerService';
 export * from './configurationService';
 export * from './marlTrainingService';
+export * from './learningEvidenceService';
 export * from './currencyConversionService';

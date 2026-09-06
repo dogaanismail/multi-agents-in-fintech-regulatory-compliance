@@ -80,7 +80,29 @@ class NetworkManager:
         logger.info(f"  - Actors: {len(self.actors)}")
         logger.info(f"  - State dim: {state_dim}, Action dim: {action_dim}")
         logger.info(f"  - Hidden dim: {hidden_dim}, Device: {device}")
-    
+
+    def train_mode(self):
+        """
+        Switch actors and critic to train mode (BatchNorm uses batch statistics).
+
+        Must be active during gradient updates and only then: the networks'
+        BatchNorm layers behave differently per mode, so inference through a
+        train-mode network is a different function from the one being trained.
+        """
+        for name in self.agent_names:
+            self.actors[name].train()
+            self.actor_targets[name].train()
+        self.critic.train()
+        self.critic_target.train()
+
+    def eval_mode(self):
+        """Switch actors and critic to eval mode (BatchNorm uses running statistics)."""
+        for name in self.agent_names:
+            self.actors[name].eval()
+            self.actor_targets[name].eval()
+        self.critic.eval()
+        self.critic_target.eval()
+
     def select_actions(
         self,
         state: torch.Tensor,

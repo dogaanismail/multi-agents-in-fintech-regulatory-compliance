@@ -451,3 +451,55 @@ export interface ExchangeRateResponse {
   rate: number;
   fetchedAt: string;
 }
+
+// ─── Learning Evidence (human-in-the-loop) ───────────────────────────────────
+
+export interface LearningCurvePoint {
+  training_run_id: string;
+  completed_at: string | null;
+  experiences_count: number;
+  train_steps_completed: number;
+  critic_loss: number | null;
+  probe_agreement_rate: number | null;
+  probe_count: number | null;
+  probe_avg_q_gap: number | null;
+}
+
+export interface LearningReceipt {
+  payment_id: string;
+  decided_at: string;
+  reviewed_at: string;
+  original_action: string;
+  original_confidence: number;
+  officer_decision: string;
+  feedback_type: string | null;
+  correct_action: string;
+  current_action: string;
+  current_confidence: number;
+  q_block: number;
+  q_allow: number;
+  policy_flipped: boolean;
+  agrees_with_officer: boolean;
+}
+
+export interface ProbeEvaluation {
+  agreement_rate: number;
+  probe_count: number;
+  avg_q_gap: number;
+}
+
+export interface LearningSummaryResponse {
+  buffer: {
+    total_experiences: number;
+    manual_review_count: number;
+    automated_count: number;
+    used_in_training_count: number;
+    avg_effective_reward: number | null;
+    avg_confidence: number | null;
+    avg_risk_score: number | null;
+    action_counts: Record<string, number>;
+  };
+  current_probe_evaluation: ProbeEvaluation | null;
+  completed_training_runs: number;
+  total_gradient_steps: number;
+}

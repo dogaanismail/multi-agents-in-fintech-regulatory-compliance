@@ -97,6 +97,16 @@ class ExperienceBufferService:
         """Sample a random mini-batch (PostgreSQL ORDER BY random())."""
         return await replay_buffer_repository.sample_batch(batch_size, include_used)
 
+    async def sample_training_batch(
+            self,
+            batch_size: int,
+            top_up_with_used: bool = True,
+    ) -> List[AgentReplayBufferEntry]:
+        """Sample unused entries, topped up with recently-used ones when short."""
+        return await replay_buffer_repository.sample_training_batch(
+            batch_size, top_up_with_used
+        )
+
     # ──────────────────────────────────────────────────────────────────────────
     # Write path: mark as used after training
     # ──────────────────────────────────────────────────────────────────────────
@@ -109,23 +119,74 @@ class ExperienceBufferService:
     # ──────────────────────────────────────────────────────────────────────────
     # Write path: manual reward override (Issue #54 hook)
     # ──────────────────────────────────────────────────────────────────────────
-    async def apply_manual_reward(
+    async def apply_manual_feedback(
         self,
         payment_id: str,
         manual_reward: float,
+            officer_decision: str,
+            feedback_type: str,
+            counterfactual_reward: float,
         reviewed_by: Optional[str] = None,
     ) -> bool:
         """
-        Override the reward with a compliance officer's decision.
+        Apply a compliance officer's verdict to the replay buffer.
 
-        Resets is_used_in_training=False so the entry is re-sampled in the
-        next training cycle with the corrected reward (Issue #54).
+        Two writes happen:
+          1. The original decision entry gets the manual reward (penalty or
+             confirmation) plus the officer's verdict, and is reset to unused
+             so the next training cycle re-samples it (Issue #54).
+          2. When the officer's correct action contradicts the recorded action,
+             a mirrored *counterfactual* entry is inserted — same state, the
+             corrected action, positive reward — so the critic finally sees
+             evidence that the correct action is good, not merely that the
+             taken action was bad.
 
-        Returns True if the entry was found and updated, False otherwise.
+        Returns True if the original entry was found and updated.
         """
-        return await replay_buffer_repository.apply_manual_reward(
-            payment_id, manual_reward, reviewed_by
+        entry = await replay_buffer_repository.apply_manual_reward(
+            payment_id=payment_id,
+            manual_reward=manual_reward,
+            reviewed_by=reviewed_by,
+            officer_decision=officer_decision,
+            feedback_type=feedback_type,
         )
+        if entry is None:
+            return False
+
+        correct_action = "ALLOW" if officer_decision == "APPROVE" else "BLOCK"
+        correct_action_int = 1 if correct_action == "ALLOW" else 0
+        recorded_action_int = 0 if entry.marl_action == "BLOCK" else 1
+
+        if correct_action_int == recorded_action_int:
+            return True  # Original entry already carries the corrective signal
+
+        counterfactual = AgentReplayBufferEntry(
+            id=uuid.uuid4(),
+            payment_id=payment_id,
+            state=entry.state,
+            actions={name: correct_action_int for name in entry.actions},
+            next_state=entry.next_state,
+            done=entry.done,
+            automated_reward=0.0,
+            manual_reward=counterfactual_reward,
+            effective_reward=counterfactual_reward,
+            reward_source="counterfactual",
+            officer_decision=officer_decision,
+            feedback_type=feedback_type,
+            marl_action=correct_action,
+            marl_confidence=entry.marl_confidence,
+            marl_q_value=entry.marl_q_value,
+            mean_risk_score=entry.mean_risk_score,
+            is_used_in_training=False,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        await replay_buffer_repository.save(counterfactual)
+        logger.info(
+            f"🪞 Counterfactual experience injected: payment={payment_id} "
+            f"{entry.marl_action} → {correct_action} reward={counterfactual_reward:.4f}"
+        )
+        return True
 
     # ──────────────────────────────────────────────────────────────────────────────
     # Write path: evict stale experiences

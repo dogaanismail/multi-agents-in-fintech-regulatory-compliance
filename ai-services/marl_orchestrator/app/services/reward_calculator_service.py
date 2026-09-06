@@ -194,6 +194,37 @@ class RewardCalculatorService:
             logger.warning(f"Unknown escalation_mode='{mode}', defaulting to 0")
             return 0.0
 
+    def calculate_counterfactual_reward(self, correct_action: str) -> float:
+        """
+        Positive reward for the action the compliance officer says was correct.
+
+        Used to build a mirrored replay-buffer entry when the officer's decision
+        contradicts the recorded MARL action: penalising the wrong action alone
+        never teaches the critic that the *other* action was good, because that
+        action never appears in the buffer.  The counterfactual entry supplies
+        exactly that missing (state, correct_action, positive reward) sample.
+
+        Args:
+            correct_action: "ALLOW" (officer approved) or "BLOCK" (officer rejected).
+
+        Returns:
+            Weighted scalar reward (already multiplied by manual_weight_multiplier).
+        """
+        if correct_action == "ALLOW":
+            base = self.config.manual_correct_allow
+        elif correct_action == "BLOCK":
+            base = self.config.manual_correct_block
+        else:
+            return 0.0
+
+        weighted_reward = base * self.config.manual_weight_multiplier
+        logger.info(
+            f"Counterfactual reward: correct_action={correct_action}, "
+            f"base={base:.3f}, multiplier={self.config.manual_weight_multiplier} "
+            f"→ weighted_reward={weighted_reward:.4f}"
+        )
+        return float(weighted_reward)
+
     def should_auto_escalate(self, confidence: float) -> bool:
         """
         Return True if the MARL decision confidence is below the configured
