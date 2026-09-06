@@ -230,6 +230,31 @@ public class PaymentAggregate {
     }
 
     @CommandHandler
+    public void handle(CompleteRiskAssessmentCommand completeRiskAssessmentCommand) {
+        log.info("Handling CompleteRiskAssessmentCommand for payment: {}", completeRiskAssessmentCommand.paymentId());
+
+        // The risk engine's completion is delivered at-least-once and may arrive after the
+        // timeout already decided the payment; both are ignored rather than rejected so the
+        // Kafka record is acknowledged instead of parked on the DLT.
+        if (this.status != PaymentStatus.FRAUD_CHECK_PENDING) {
+            log.info("Ignoring risk assessment completion for payment: {}, no assessment is pending, status: {}",
+                    completeRiskAssessmentCommand.paymentId(),
+                    this.status);
+            return;
+        }
+
+        if (this.riskAssessmentCompletedAt != null) {
+            log.info("Ignoring redelivered risk assessment completion for payment: {}",
+                    completeRiskAssessmentCommand.paymentId());
+            return;
+        }
+
+        apply(new RiskAssessmentCompletedEvent(
+                completeRiskAssessmentCommand.paymentId(),
+                completeRiskAssessmentCommand.riskAssessment()));
+    }
+
+    @CommandHandler
     public void handle(ApproveFraudCheckCommand approveFraudCheckCommand) {
         log.info("Handling ApproveFraudCheckCommand for payment: {}", approveFraudCheckCommand.paymentId());
 
@@ -358,6 +383,13 @@ public class PaymentAggregate {
         this.status = PaymentStatus.FRAUD_CHECK_PENDING;
         this.riskAssessmentRequestedAt = occurredAt;
         log.info("Risk assessment initiated event for payment: {}", riskAssessmentInitiatedEvent.paymentId());
+    }
+
+    @EventSourcingHandler
+    public void on(RiskAssessmentCompletedEvent riskAssessmentCompletedEvent, @Timestamp Instant occurredAt) {
+        this.riskAssessment = riskAssessmentCompletedEvent.riskAssessment();
+        this.riskAssessmentCompletedAt = occurredAt;
+        log.info("Risk assessment completed for payment: {}", riskAssessmentCompletedEvent.paymentId());
     }
 
     @EventSourcingHandler

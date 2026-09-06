@@ -23,27 +23,23 @@ public class PaymentSnapshotEventProducer {
     private final PaymentQueryService paymentQueryService;
 
     public void publish(PaymentId paymentId, PaymentEventTrigger paymentEventTrigger) {
-        try {
-            log.debug("Publishing payment snapshot for paymentId: {}, trigger: {}", paymentId, paymentEventTrigger);
+        log.debug("Publishing payment snapshot for paymentId: {}, trigger: {}", paymentId, paymentEventTrigger);
 
-            PaymentResponse paymentResponse = paymentQueryService.findPaymentById(paymentId);
-            PaymentSnapshotEvent paymentSnapshotEvent = PaymentAggregateSnapshotMapper.toSnapshot(paymentResponse, paymentEventTrigger.name());
+        PaymentResponse paymentResponse = paymentQueryService.findPaymentById(paymentId);
+        PaymentSnapshotEvent paymentSnapshotEvent = PaymentAggregateSnapshotMapper.toSnapshot(paymentResponse, paymentEventTrigger.name());
 
-            String paymentSnapshotTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentSnapshotEvents();
-            String messageKey = paymentSnapshotEvent.getPaymentId();
+        String paymentSnapshotTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentSnapshotEvents();
+        String messageKey = paymentSnapshotEvent.getPaymentId();
 
-            paymentSnapshotEventKafkaTemplate.send(paymentSnapshotTopic, messageKey, paymentSnapshotEvent);
+        KafkaDeliveryAwaiter.awaitDelivery(
+                paymentSnapshotEventKafkaTemplate.send(paymentSnapshotTopic, messageKey, paymentSnapshotEvent),
+                paymentSnapshotTopic,
+                messageKey);
 
-            log.info("Successfully published PaymentSnapshotEvent for paymentId: {}, status: {}, trigger: {}",
-                    paymentId,
-                    paymentResponse.status(),
-                    paymentEventTrigger);
-        } catch (Exception exception) {
-            log.error("Failed to publish payment snapshot for paymentId: {}, trigger: {}",
-                    paymentId,
-                    paymentEventTrigger,
-                    exception);
-        }
+        log.info("Successfully published PaymentSnapshotEvent for paymentId: {}, status: {}, trigger: {}",
+                paymentId,
+                paymentResponse.status(),
+                paymentEventTrigger);
     }
 }
 

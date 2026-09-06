@@ -25,24 +25,23 @@ public class ComplianceAgentManualFeedbackEventProducer {
             String reviewedBy,
             String notes
     ) {
-        try {
-            log.debug("Publishing ComplianceAgentManualFeedbackEvent for paymentId: {}", paymentId);
+        log.debug("Publishing ComplianceAgentManualFeedbackEvent for paymentId: {}", paymentId);
 
-            ComplianceAgentManualFeedbackEvent complianceAgentManualFeedbackEvent = ComplianceAgentManualFeedbackEventMapper.toAvroEvent(
-                    paymentId,
-                    feedbackType,
-                    originalMarlAction,
-                    officerDecision,
-                    reviewedBy,
-                    notes
-            );
+        ComplianceAgentManualFeedbackEvent complianceAgentManualFeedbackEvent = ComplianceAgentManualFeedbackEventMapper.toAvroEvent(
+                paymentId,
+                feedbackType,
+                originalMarlAction,
+                officerDecision,
+                reviewedBy,
+                notes
+        );
 
-            String agentManualFeedbackTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getAgentManualFeedback();
-            agentManualFeedbackEventKafkaTemplate.send(agentManualFeedbackTopic, paymentId, complianceAgentManualFeedbackEvent);
-            log.info("Successfully published ComplianceAgentManualFeedbackEvent: paymentId={}, feedbackType={}, officerDecision={}",
-                    paymentId, feedbackType, officerDecision);
-        } catch (Exception exception) {
-            log.error("Failed to publish ComplianceAgentManualFeedbackEvent for paymentId: {}", paymentId, exception);
-        }
+        String agentManualFeedbackTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getAgentManualFeedback();
+        KafkaDeliveryAwaiter.awaitDelivery(
+                agentManualFeedbackEventKafkaTemplate.send(agentManualFeedbackTopic, paymentId, complianceAgentManualFeedbackEvent),
+                agentManualFeedbackTopic,
+                paymentId);
+        log.info("Successfully published ComplianceAgentManualFeedbackEvent: paymentId={}, feedbackType={}, officerDecision={}",
+                paymentId, feedbackType, officerDecision);
     }
 }

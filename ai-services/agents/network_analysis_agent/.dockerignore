@@ -1,0 +1,5 @@
+training/.venv
+training/train_run.log
+training/catboost_info
+**/__pycache__
+logs/*.log

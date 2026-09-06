@@ -2,8 +2,6 @@ package org.banksolution.domain.payment.eventhandler;
 
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.GenericEventMessage;
-import org.axonframework.messaging.unitofwork.DefaultUnitOfWork;
-import org.axonframework.messaging.unitofwork.UnitOfWork;
 import org.banksolution.enums.PaymentEventTrigger;
 import org.banksolution.enums.PaymentStatus;
 import org.banksolution.infrastructure.messaging.kafka.producer.PaymentCompletedEventProducer;
@@ -16,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.banksolution.enums.PaymentEventTrigger.*;
 import static org.banksolution.fixtures.PaymentFixtures.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -83,17 +83,30 @@ class PaymentEventHandlerTest {
     }
 
     @Test
-    void shouldDeferPublishingUntilTheUnitOfWorkCommits() {
-        UnitOfWork<?> unitOfWork = DefaultUnitOfWork.startAndGet(EVENT_MESSAGE);
-
+    void shouldPublishSynchronouslySoTheProcessorSeesTheOutcome() {
         paymentEventHandler.on(createPaymentInitiatedEvent(), EVENT_MESSAGE);
-        paymentEventHandler.on(createPaymentCompletedEvent(PaymentStatus.COMPLETED, "done"), EVENT_MESSAGE);
-        verifyNoInteractions(paymentSnapshotEventProducer, paymentCompletedEventProducer);
-
-        unitOfWork.commit();
 
         verify(paymentSnapshotEventProducer).publish(createPaymentId(), PAYMENT_INITIATED);
-        verify(paymentSnapshotEventProducer).publish(createPaymentId(), PAYMENT_COMPLETED);
-        verify(paymentCompletedEventProducer).publish(createPaymentId());
+    }
+
+    @Test
+    void shouldLetAFailedSnapshotPublicationFailTheHandlerSoItIsRetriedOrDeadLettered() {
+        IllegalStateException brokerFailure = new IllegalStateException("broker unavailable");
+        doThrow(brokerFailure).when(paymentSnapshotEventProducer).publish(createPaymentId(), PAYMENT_INITIATED);
+
+        assertThatThrownBy(() -> paymentEventHandler.on(createPaymentInitiatedEvent(), EVENT_MESSAGE))
+                .isSameAs(brokerFailure);
+    }
+
+    @Test
+    void shouldNotPublishTheCompletedEventWhenItsSnapshotFailed() {
+        IllegalStateException brokerFailure = new IllegalStateException("broker unavailable");
+        doThrow(brokerFailure).when(paymentSnapshotEventProducer).publish(createPaymentId(), PAYMENT_COMPLETED);
+
+        assertThatThrownBy(() -> paymentEventHandler.on(
+                createPaymentCompletedEvent(PaymentStatus.COMPLETED, "done"), EVENT_MESSAGE))
+                .isSameAs(brokerFailure);
+
+        verifyNoInteractions(paymentCompletedEventProducer);
     }
 }

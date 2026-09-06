@@ -34,7 +34,12 @@ public class LedgerPostingRequestedEventProducer {
     private void publish(LedgerPostingRequestedEvent ledgerPostingRequestedEvent) {
         String ledgerPostingRequestedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getLedgerPostingRequested();
 
-        ledgerPostingRequestedEventKafkaTemplate.send(ledgerPostingRequestedTopic, ledgerPostingRequestedEvent.getClientTransactionId(), ledgerPostingRequestedEvent);
+        String messageKey = ledgerPostingRequestedEvent.getClientTransactionId();
+
+        KafkaDeliveryAwaiter.awaitDelivery(
+                ledgerPostingRequestedEventKafkaTemplate.send(ledgerPostingRequestedTopic, messageKey, ledgerPostingRequestedEvent),
+                ledgerPostingRequestedTopic,
+                messageKey);
 
         log.info("Published LedgerPostingRequestedEvent: clientTransactionId:{}, type:{}",
                 ledgerPostingRequestedEvent.getClientTransactionId(),

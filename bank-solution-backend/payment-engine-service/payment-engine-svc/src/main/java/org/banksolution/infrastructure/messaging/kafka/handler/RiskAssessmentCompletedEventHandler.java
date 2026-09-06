@@ -2,8 +2,8 @@ package org.banksolution.infrastructure.messaging.kafka.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.eventhandling.gateway.EventGateway;
-import org.banksolution.domain.payment.event.RiskAssessmentCompletedEvent;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.banksolution.domain.payment.command.CompleteRiskAssessmentCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.banksolution.domain.payment.valueobject.RiskAssessment;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import static org.banksolution.infrastructure.messaging.kafka.mapper.RiskAssessm
 @Slf4j
 public class RiskAssessmentCompletedEventHandler {
 
-    private final EventGateway eventGateway;
+    private final CommandGateway commandGateway;
 
     public void handle(com.aml.risk.RiskAssessmentCompletedEvent riskAssessmentCompletedAvroEvent) {
         log.info("Received risk assessment completed riskAssessmentCompletedAvroEvent for payment: {}, riskCheckRequestId: {}. action: {}",
@@ -28,8 +28,10 @@ public class RiskAssessmentCompletedEventHandler {
         PaymentId paymentId = new PaymentId(UUID.fromString(riskAssessmentCompletedAvroEvent.getPaymentId()));
         RiskAssessment riskAssessment = toRiskAssessment(riskAssessmentCompletedAvroEvent);
 
-        eventGateway.publish(new RiskAssessmentCompletedEvent(paymentId, riskAssessment));
+        // sendAndWait so a rejected command fails the Kafka record (retry, then DLT); the
+        // aggregate itself ignores redelivered and late completions, so those are acknowledged.
+        commandGateway.sendAndWait(new CompleteRiskAssessmentCommand(paymentId, riskAssessment));
 
-        log.info("RiskAssessmentCompletedEvent published for paymentId: {}, saga will handle workflow", paymentId);
+        log.info("Risk assessment completion recorded for paymentId: {}, saga will handle workflow", paymentId);
     }
 }

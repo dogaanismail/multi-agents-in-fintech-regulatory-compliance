@@ -34,6 +34,9 @@ class PaymentAggregateReplayTest {
         PaymentAggregate paymentAggregate = replayInitiatedAndAuthorisationPending();
 
         paymentAggregate.on(createRiskAssessmentInitiatedEvent(), FIRST_EVENT_AT.plusSeconds(2));
+        paymentAggregate.on(createRiskAssessmentCompletedEvent(createEscalateAssessment()), FIRST_EVENT_AT.plusSeconds(3));
+        assertThat(paymentAggregate.getRiskAssessmentCompletedAt()).isEqualTo(FIRST_EVENT_AT.plusSeconds(3));
+        assertThat(paymentAggregate.getRiskAssessment()).isEqualTo(createEscalateAssessment());
         paymentAggregate.on(createManualReviewRequestedEvent(createEscalateAssessment()), FIRST_EVENT_AT.plusSeconds(4));
         paymentAggregate.on(createLedgerSettlementInitiatedEvent(), FIRST_EVENT_AT.plusSeconds(5));
         paymentAggregate.on(createLedgerReleaseInitiatedEvent(), FIRST_EVENT_AT.plusSeconds(6));

@@ -13,7 +13,6 @@ import org.axonframework.common.jpa.EntityManagerProvider;
 import org.axonframework.common.jpa.SimpleEntityManagerProvider;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.ConfigurationScopeAwareProvider;
-import org.axonframework.config.EventProcessingConfigurer;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.DefaultDeadlineManagerSpanFactory;
 import org.axonframework.deadline.dbscheduler.DbSchedulerDeadlineManager;
@@ -38,9 +37,6 @@ import org.axonframework.spring.messaging.unitofwork.SpringTransactionManager;
 import org.axonframework.tracing.SpanFactory;
 import org.axonframework.eventsourcing.EventSourcingRepository;
 import org.banksolution.domain.payment.aggregate.PaymentAggregate;
-import org.banksolution.domain.payment.saga.LedgerPostingSaga;
-import org.banksolution.domain.payment.saga.PaymentRiskSaga;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,9 +59,8 @@ import java.util.concurrent.Executors;
  * - Prevents expensive event store reads for active aggregates
  * - Weak references allow GC when memory is needed
  * <p>
- * 3. Sagas:
- * - PaymentRiskSaga: Orchestrates payment risk workflow
- * Replaces previous "process manager" logic scattered across handlers
+ * 3. Sagas and Kafka publishers:
+ * - Registered on pooled streaming processors in AxonEventProcessingConfig
  * <p>
  * 4. Command Bus:
  * - Bean validation interceptor for command validation
@@ -85,8 +80,6 @@ public class AxonConfig {
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
-        // Sagas and the aggregate snapshot are plain classes without setters; without field
-        // access their state serialises as {} and every reload starts from nothing.
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
         return objectMapper;
@@ -208,25 +201,6 @@ public class AxonConfig {
                 .entityManagerProvider(entityManagerProvider)
                 .serializer(serializer)
                 .build();
-    }
-
-    @Autowired
-    public void configureSaga(EventProcessingConfigurer configurer) {
-        // Configure PaymentRiskSaga
-        configurer.registerSaga(PaymentRiskSaga.class);
-        configurer.assignHandlerTypesMatching(
-                "PaymentRiskSagaProcessor",
-                clazz -> clazz.equals(PaymentRiskSaga.class)
-        );
-        configurer.registerSubscribingEventProcessor("PaymentRiskSagaProcessor");
-
-        // Configure LedgerPostingSaga
-        configurer.registerSaga(LedgerPostingSaga.class);
-        configurer.assignHandlerTypesMatching(
-                "LedgerPostingSagaProcessor",
-                clazz -> clazz.equals(LedgerPostingSaga.class)
-        );
-        configurer.registerSubscribingEventProcessor("LedgerPostingSagaProcessor");
     }
 
     @Bean

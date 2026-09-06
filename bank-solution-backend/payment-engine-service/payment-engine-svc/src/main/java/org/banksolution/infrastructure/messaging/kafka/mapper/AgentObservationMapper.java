@@ -4,7 +4,9 @@ import lombok.experimental.UtilityClass;
 import org.banksolution.domain.payment.valueobject.AgentObservation;
 import org.banksolution.domain.payment.valueobject.FeatureContribution;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class AgentObservationMapper {
@@ -44,6 +46,8 @@ public class AgentObservationMapper {
                         featureContribution.getValue(),
                         featureContribution.getShapValue(),
                         featureContribution.getDirection()))
-                .toList();
+                // Stream.toList() yields a JDK-internal ImmutableCollections type, and the event
+                // serializer bakes the class name into the stored event; keep it a plain ArrayList.
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

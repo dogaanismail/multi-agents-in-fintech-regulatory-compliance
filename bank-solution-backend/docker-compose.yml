@@ -577,7 +577,7 @@ services:
       - bank-network
       - aml-multi-agent-network
     healthcheck:
-      test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/2020 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
+      test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/3030 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
       interval: 30s
       timeout: 10s
       retries: 3

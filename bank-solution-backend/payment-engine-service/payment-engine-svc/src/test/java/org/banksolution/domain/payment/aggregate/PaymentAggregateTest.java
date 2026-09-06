@@ -268,6 +268,66 @@ class PaymentAggregateTest {
     }
 
     @Test
+    void shouldRecordTheRiskAssessmentInTheStreamWhenTheEngineCompletesIt() {
+        RiskAssessment riskAssessment = createRiskAssessmentWithMarl("BLOCK", "HIGH", 0.95);
+
+        fixture.given(authorisedPayment())
+                .when(createCompleteRiskAssessmentCommand(riskAssessment))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(createRiskAssessmentCompletedEvent(riskAssessment))
+                .expectState(paymentAggregate -> {
+                    assertThat(paymentAggregate.getStatus()).isEqualTo(PaymentStatus.FRAUD_CHECK_PENDING);
+                    assertThat(paymentAggregate.getFraudStatus()).isEqualTo(FraudAnalysisStatus.PENDING);
+                    assertThat(paymentAggregate.getRiskAssessment()).isEqualTo(riskAssessment);
+                    assertThat(paymentAggregate.getRiskAssessmentCompletedAt()).isNotNull();
+                });
+    }
+
+    @Test
+    void shouldLeaveTheDecisionToTheSagaOnceTheCompletionIsRecorded() {
+        fixture.given(authorisedPayment())
+                .andGiven(createRiskAssessmentCompletedEvent(createProceedAssessment()))
+                .when(createApproveFraudCheckCommand(createProceedAssessment()))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(
+                        createFraudCheckApprovedEvent(createProceedAssessment()),
+                        createLedgerSettlementInitiatedEvent());
+    }
+
+    @Test
+    void shouldIgnoreARedeliveredRiskAssessmentCompletion() {
+        fixture.given(authorisedPayment())
+                .andGiven(createRiskAssessmentCompletedEvent(createProceedAssessment()))
+                .when(createCompleteRiskAssessmentCommand(createBlockAssessment()))
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents()
+                .expectState(paymentAggregate ->
+                        assertThat(paymentAggregate.getRiskAssessment()).isEqualTo(createProceedAssessment()));
+    }
+
+    @Test
+    void shouldIgnoreACompletionThatArrivesAfterTheAssessmentTimedOut() {
+        fixture.given(authorisedPayment())
+                .andGiven(createRiskAssessmentTimedOutEvent(), createLedgerReleaseInitiatedEvent())
+                .when(createCompleteRiskAssessmentCommand(createProceedAssessment()))
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
+    }
+
+    @Test
+    void shouldIgnoreACompletionWhenNoAssessmentIsPending() {
+        fixture.given(createPaymentInitiatedEvent(), createLedgerAuthorisationInitiatedEvent())
+                .when(createCompleteRiskAssessmentCommand(createProceedAssessment()))
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
+
+        fixture.given(settlementPendingPayment())
+                .when(createCompleteRiskAssessmentCommand(createProceedAssessment()))
+                .expectSuccessfulHandlerExecution()
+                .expectNoEvents();
+    }
+
+    @Test
     void shouldRejectAFraudApprovalUnlessTheAssessmentIsPending() {
         fixture.given(settlementPendingPayment())
                 .when(createApproveFraudCheckCommand(createProceedAssessment()))

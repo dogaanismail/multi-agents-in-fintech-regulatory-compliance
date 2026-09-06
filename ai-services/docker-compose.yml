@@ -131,8 +131,8 @@ services:
 
 networks:
   aml-multi-agent-network:
+    external: true
     name: aml-multi-agent-network
-    driver: bridge
   aml-network:
     external: true
     name: avro-schema-library_default

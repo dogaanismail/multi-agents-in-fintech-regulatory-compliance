@@ -7,14 +7,21 @@ import org.banksolution.config.KafkaConfigurationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.banksolution.exception.KafkaPublicationException;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.PaymentFixtures.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class ComplianceAgentManualFeedbackEventProducerTest {
 
@@ -29,6 +36,7 @@ class ComplianceAgentManualFeedbackEventProducerTest {
         KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
         kafkaConfigurationProperties.getTopics().getOutgoing().setAgentManualFeedback(TOPIC);
         agentManualFeedbackEventKafkaTemplate = mock(KafkaTemplate.class);
+        when(agentManualFeedbackEventKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
         complianceAgentManualFeedbackEventProducer =
                 new ComplianceAgentManualFeedbackEventProducer(kafkaConfigurationProperties, agentManualFeedbackEventKafkaTemplate);
     }
@@ -48,10 +56,25 @@ class ComplianceAgentManualFeedbackEventProducerTest {
     }
 
     @Test
-    void shouldSwallowAnInvalidDecisionInsteadOfFailingTheEventHandler() {
-        complianceAgentManualFeedbackEventProducer.publish(
-                PAYMENT_UUID.toString(), "MANUAL_REVIEW", "BLOCK", "MAYBE", OFFICER, null);
+    void shouldRejectAnInvalidDecisionBeforeAnythingReachesTheBroker() {
+        assertThatThrownBy(() -> complianceAgentManualFeedbackEventProducer.publish(
+                PAYMENT_UUID.toString(), "MANUAL_REVIEW", "BLOCK", "MAYBE", OFFICER, null))
+                .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(agentManualFeedbackEventKafkaTemplate);
+    }
+
+    @Test
+    void shouldFailTheHandlerWhenTheBrokerNeverAcknowledgesTheFeedback() {
+        IllegalStateException brokerFailure = new IllegalStateException("broker unavailable");
+        when(agentManualFeedbackEventKafkaTemplate.send(anyString(), anyString(), any()))
+                .thenReturn(CompletableFuture.failedFuture(brokerFailure));
+
+        assertThatThrownBy(() -> complianceAgentManualFeedbackEventProducer.publish(
+                PAYMENT_UUID.toString(), "DECISION_OVERRIDE", "BLOCK", "REJECT", OFFICER, OVERRIDE_REASON))
+                .isInstanceOf(KafkaPublicationException.class)
+                .hasMessageContaining(TOPIC)
+                .hasMessageContaining(PAYMENT_UUID.toString())
+                .hasCause(brokerFailure);
     }
 }

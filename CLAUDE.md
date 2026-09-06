@@ -130,9 +130,16 @@ reward signal for MADDPG training.
 Key consequences to keep in mind when changing anything:
 
 - **`payment-engine-service` is the only Axon service.** It owns the CQRS/event-sourced
-  `PaymentAggregate` and two sagas (`PaymentRiskSaga`, `AccountChargeSaga`) under
+  `PaymentAggregate` and two sagas (`PaymentRiskSaga`, `LedgerPostingSaga`) under
   `domain/payment/`. Sagas carry deadlines (e.g. a 1-minute risk-assessment timeout) — a
-  new terminal event must be handled there or the saga leaks. Every other service is a
+  new terminal event must be handled there or the saga leaks. **Everything that publishes
+  to Kafka runs on a pooled streaming processor**, never in the command's unit of work
+  (`config/AxonEventProcessingConfig`, groups in `domain/payment/PaymentEventProcessingGroups`):
+  producers block on the broker ack (`KafkaDeliveryAwaiter`) and let failures propagate, so
+  the token store retries them; the two publisher groups park failures in Axon's JPA
+  dead-letter queue and `DeadLetterRetryScheduler` drains it. A new Kafka-publishing
+  `@EventHandler` must get a `@ProcessingGroup` from that class — an unassigned one lands
+  on Axon's default processor with no dead-letter queue. Every other service is a
   plain Spring Boot + JPA service with `service/`, `repository/`, `entity/`, `integration/`
   (Feign clients), and `infrastructure/messaging/kafka/{producer,consumer}` packages.
 - **Message contracts live in one place.** `libraries/avro-schema-library/schemas/*.avsc`

@@ -56,9 +56,9 @@ class PaymentSnapshotVersionTest extends PaymentFlowSupport {
         assertThat(snapshotVersions).isSorted();
         assertThat(snapshotVersions.getFirst()).isGreaterThanOrEqualTo(1);
         assertThat(snapshotVersions.getLast()).isEqualTo((int) highestStoredSequenceNumber);
-        // 8 events: initiated, authorisation initiated, authorised, risk initiated, fraud approved,
-        // settlement initiated, settled, completed — sequence numbers start at 0
-        assertThat(highestStoredSequenceNumber).isEqualTo(7);
+        // 9 events: initiated, authorisation initiated, authorised, risk initiated, risk completed,
+        // fraud approved, settlement initiated, settled, completed — sequence numbers start at 0
+        assertThat(highestStoredSequenceNumber).isEqualTo(8);
 
         PaymentResponse paymentResponse = paymentQueryService.findPaymentById(new PaymentId(paymentId));
         assertThat(paymentResponse.version()).isEqualTo(highestStoredSequenceNumber);

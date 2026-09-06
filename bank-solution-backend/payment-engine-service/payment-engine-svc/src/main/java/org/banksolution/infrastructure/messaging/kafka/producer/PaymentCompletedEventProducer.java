@@ -22,24 +22,23 @@ public class PaymentCompletedEventProducer {
     private final PaymentQueryService paymentQueryService;
 
     public void publish(PaymentId paymentId) {
-        try {
-            log.debug("Publishing payment completed event for paymentId: {}", paymentId);
+        log.debug("Publishing payment completed event for paymentId: {}", paymentId);
 
-            PaymentResponse paymentResponse = paymentQueryService.findPaymentById(paymentId);
-            PaymentCompletedEvent paymentCompletedEvent = PaymentCompletedEventMapper.toAvroEvent(paymentResponse);
+        PaymentResponse paymentResponse = paymentQueryService.findPaymentById(paymentId);
+        PaymentCompletedEvent paymentCompletedEvent = PaymentCompletedEventMapper.toAvroEvent(paymentResponse);
 
-            String paymentCompletedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCompleted();
-            String messageKey = paymentCompletedEvent.getPaymentId();
+        String paymentCompletedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCompleted();
+        String messageKey = paymentCompletedEvent.getPaymentId();
 
-            paymentCompletedEventKafkaTemplate.send(paymentCompletedTopic, messageKey, paymentCompletedEvent);
+        KafkaDeliveryAwaiter.awaitDelivery(
+                paymentCompletedEventKafkaTemplate.send(paymentCompletedTopic, messageKey, paymentCompletedEvent),
+                paymentCompletedTopic,
+                messageKey);
 
-            log.info("Successfully published PaymentCompletedEvent: paymentId={}, customerId={}, amount={}, currency={}",
-                    paymentCompletedEvent.getPaymentId(),
-                    paymentCompletedEvent.getCustomerId(),
-                    paymentCompletedEvent.getAmount(),
-                    paymentCompletedEvent.getFromCurrency());
-        } catch (Exception exception) {
-            log.error("Failed to publish payment completed event for paymentId: {}", paymentId, exception);
-        }
+        log.info("Successfully published PaymentCompletedEvent: paymentId={}, customerId={}, amount={}, currency={}",
+                paymentCompletedEvent.getPaymentId(),
+                paymentCompletedEvent.getCustomerId(),
+                paymentCompletedEvent.getAmount(),
+                paymentCompletedEvent.getFromCurrency());
     }
 }

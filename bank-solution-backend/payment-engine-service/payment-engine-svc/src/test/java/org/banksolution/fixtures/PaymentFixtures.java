@@ -115,6 +115,10 @@ public final class PaymentFixtures {
         );
     }
 
+    public static CompleteRiskAssessmentCommand createCompleteRiskAssessmentCommand(RiskAssessment riskAssessment) {
+        return new CompleteRiskAssessmentCommand(createPaymentId(), riskAssessment);
+    }
+
     public static ApproveFraudCheckCommand createApproveFraudCheckCommand(RiskAssessment riskAssessment) {
         return new ApproveFraudCheckCommand(createPaymentId(), riskAssessment);
     }

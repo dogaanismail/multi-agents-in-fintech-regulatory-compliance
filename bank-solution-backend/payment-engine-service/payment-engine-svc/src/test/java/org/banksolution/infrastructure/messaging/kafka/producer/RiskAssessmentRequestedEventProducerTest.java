@@ -7,12 +7,16 @@ import org.banksolution.domain.payment.event.RiskAssessmentInitiatedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.banksolution.exception.KafkaPublicationException;
 import org.springframework.kafka.core.KafkaTemplate;
+
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.PaymentFixtures.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -31,6 +35,7 @@ class RiskAssessmentRequestedEventProducerTest {
         KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
         kafkaConfigurationProperties.getTopics().getOutgoing().setRiskAssessmentRequested(TOPIC);
         riskAssessmentRequestedEventKafkaTemplate = mock(KafkaTemplate.class);
+        when(riskAssessmentRequestedEventKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
         riskAssessmentRequestedEventProducer =
                 new RiskAssessmentRequestedEventProducer(kafkaConfigurationProperties, riskAssessmentRequestedEventKafkaTemplate);
     }
@@ -60,5 +65,19 @@ class RiskAssessmentRequestedEventProducerTest {
         assertThatThrownBy(() -> riskAssessmentRequestedEventProducer
                 .publishRiskAssessmentRequestedEvent(riskAssessmentInitiatedEvent))
                 .isSameAs(brokerFailure);
+    }
+
+    @Test
+    void shouldFailTheSagaWhenTheBrokerNeverAcknowledgesTheRequest() {
+        IllegalStateException brokerFailure = new IllegalStateException("broker unavailable");
+        when(riskAssessmentRequestedEventKafkaTemplate.send(anyString(), anyString(), any()))
+                .thenReturn(CompletableFuture.failedFuture(brokerFailure));
+
+        assertThatThrownBy(() -> riskAssessmentRequestedEventProducer
+                .publishRiskAssessmentRequestedEvent(createRiskAssessmentInitiatedEvent()))
+                .isInstanceOf(KafkaPublicationException.class)
+                .hasMessageContaining(TOPIC)
+                .hasMessageContaining(PAYMENT_UUID.toString())
+                .hasCause(brokerFailure);
     }
 }

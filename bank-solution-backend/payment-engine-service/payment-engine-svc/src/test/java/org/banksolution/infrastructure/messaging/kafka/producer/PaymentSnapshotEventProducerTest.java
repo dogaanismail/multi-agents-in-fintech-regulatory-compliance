@@ -10,10 +10,16 @@ import org.banksolution.exception.PaymentNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.banksolution.exception.KafkaPublicationException;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.PaymentFixtures.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,6 +40,7 @@ class PaymentSnapshotEventProducerTest {
         KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
         kafkaConfigurationProperties.getTopics().getOutgoing().setPaymentSnapshotEvents(TOPIC);
         paymentSnapshotEventKafkaTemplate = mock(KafkaTemplate.class);
+        when(paymentSnapshotEventKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
         paymentQueryService = mock(PaymentQueryService.class);
         paymentSnapshotEventProducer = new PaymentSnapshotEventProducer(
                 kafkaConfigurationProperties, paymentSnapshotEventKafkaTemplate, paymentQueryService);
@@ -53,12 +60,28 @@ class PaymentSnapshotEventProducerTest {
     }
 
     @Test
-    void shouldSwallowFailuresSoTheAfterCommitHookNeverBreaksTheUnitOfWork() {
-        when(paymentQueryService.findPaymentById(createPaymentId()))
-                .thenThrow(new PaymentNotFoundException("missing %s", null, PAYMENT_UUID));
+    void shouldFailTheHandlerWhenThePaymentCannotBeLoadedSoTheEventIsDeadLettered() {
+        PaymentNotFoundException paymentNotFoundException = new PaymentNotFoundException("missing %s", null, PAYMENT_UUID);
+        when(paymentQueryService.findPaymentById(createPaymentId())).thenThrow(paymentNotFoundException);
 
-        paymentSnapshotEventProducer.publish(createPaymentId(), PaymentEventTrigger.PAYMENT_INITIATED);
+        assertThatThrownBy(() -> paymentSnapshotEventProducer.publish(createPaymentId(), PaymentEventTrigger.PAYMENT_INITIATED))
+                .isSameAs(paymentNotFoundException);
 
         verifyNoInteractions(paymentSnapshotEventKafkaTemplate);
+    }
+
+    @Test
+    void shouldFailTheHandlerWhenTheBrokerNeverAcknowledgesTheSnapshot() {
+        when(paymentQueryService.findPaymentById(createPaymentId())).thenReturn(
+                createPaymentResponse(PaymentStatus.FRAUD_CHECK_PENDING, FraudAnalysisStatus.PENDING, null));
+        IllegalStateException brokerFailure = new IllegalStateException("broker unavailable");
+        when(paymentSnapshotEventKafkaTemplate.send(anyString(), anyString(), any()))
+                .thenReturn(CompletableFuture.failedFuture(brokerFailure));
+
+        assertThatThrownBy(() -> paymentSnapshotEventProducer.publish(createPaymentId(), PaymentEventTrigger.PAYMENT_INITIATED))
+                .isInstanceOf(KafkaPublicationException.class)
+                .hasMessageContaining(TOPIC)
+                .hasMessageContaining(PAYMENT_UUID.toString())
+                .hasCause(brokerFailure);
     }
 }

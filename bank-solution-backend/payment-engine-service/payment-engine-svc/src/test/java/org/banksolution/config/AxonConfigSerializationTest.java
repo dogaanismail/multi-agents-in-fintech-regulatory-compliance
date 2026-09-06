@@ -3,7 +3,10 @@ package org.banksolution.config;
 import org.axonframework.serialization.SerializedObject;
 import org.axonframework.serialization.Serializer;
 import org.banksolution.domain.payment.aggregate.PaymentAggregate;
+import com.aml.risk.RiskAction;
 import org.banksolution.domain.payment.event.PaymentBlockedEvent;
+import org.banksolution.domain.payment.event.RiskAssessmentCompletedEvent;
+import org.banksolution.infrastructure.messaging.kafka.mapper.RiskAssessmentMapper;
 import org.banksolution.domain.payment.saga.LedgerPostingSaga;
 import org.banksolution.domain.payment.saga.PaymentRiskSaga;
 import org.banksolution.enums.PaymentStatus;
@@ -13,6 +16,7 @@ import java.lang.reflect.Field;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.banksolution.fixtures.AvroEventFixtures.createRiskAssessmentCompletedEventWithMarl;
 import static org.banksolution.fixtures.PaymentFixtures.*;
 
 /**
@@ -82,6 +86,21 @@ class AxonConfigSerializationTest {
         assertThat(restoredPaymentAggregate.getRiskAssessment()).isEqualTo(paymentAggregate.getRiskAssessment());
         assertThat(restoredPaymentAggregate.getInitiatedAt()).isEqualTo(OCCURRED_AT);
         assertThat(restoredPaymentAggregate.getManualReviewRequestedAt()).isEqualTo(OCCURRED_AT.plusSeconds(3));
+    }
+
+    @Test
+    void shouldNotBakeJdkInternalCollectionTypesIntoStoredEvents() {
+        RiskAssessmentCompletedEvent riskAssessmentCompletedEvent = new RiskAssessmentCompletedEvent(
+                createPaymentId(),
+                RiskAssessmentMapper.toRiskAssessment(createRiskAssessmentCompletedEventWithMarl(RiskAction.BLOCK)));
+
+        String storedPayload = serializer.serialize(riskAssessmentCompletedEvent, String.class).getData();
+
+        assertThat(storedPayload)
+                .contains("featureContributions")
+                .doesNotContain("java.util.ImmutableCollections")
+                .doesNotContain("java.util.Collections$");
+        assertThat(roundTrip(riskAssessmentCompletedEvent)).isEqualTo(riskAssessmentCompletedEvent);
     }
 
     private <T> T roundTrip(T object) {

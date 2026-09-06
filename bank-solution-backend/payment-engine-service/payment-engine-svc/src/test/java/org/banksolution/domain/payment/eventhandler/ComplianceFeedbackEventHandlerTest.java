@@ -2,8 +2,6 @@ package org.banksolution.domain.payment.eventhandler;
 
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.GenericEventMessage;
-import org.axonframework.messaging.unitofwork.DefaultUnitOfWork;
-import org.axonframework.messaging.unitofwork.UnitOfWork;
 import org.banksolution.domain.payment.service.PaymentQueryService;
 import org.banksolution.enums.FraudAnalysisStatus;
 import org.banksolution.enums.PaymentStatus;
@@ -15,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.PaymentFixtures.*;
 import static org.mockito.Mockito.*;
 
@@ -72,11 +71,12 @@ class ComplianceFeedbackEventHandlerTest {
     }
 
     @Test
-    void shouldSwallowAFailureToLoadThePaymentSoTheEventHandlerNeverFails() {
-        when(paymentQueryService.findPaymentById(createPaymentId()))
-                .thenThrow(new PaymentNotFoundException("missing %s", null, PAYMENT_UUID));
+    void shouldFailTheHandlerWhenThePaymentCannotBeLoadedSoTheEventIsDeadLettered() {
+        PaymentNotFoundException paymentNotFoundException = new PaymentNotFoundException("missing %s", null, PAYMENT_UUID);
+        when(paymentQueryService.findPaymentById(createPaymentId())).thenThrow(paymentNotFoundException);
 
-        complianceFeedbackEventHandler.on(createManualReviewApprovedEvent(), EVENT_MESSAGE);
+        assertThatThrownBy(() -> complianceFeedbackEventHandler.on(createManualReviewApprovedEvent(), EVENT_MESSAGE))
+                .isSameAs(paymentNotFoundException);
 
         verifyNoInteractions(complianceAgentManualFeedbackEventProducer);
     }
@@ -96,27 +96,27 @@ class ComplianceFeedbackEventHandlerTest {
     }
 
     @Test
-    void shouldSwallowAPublishingFailureForAnOverride() {
-        doThrow(new IllegalStateException("kafka down"))
+    void shouldLetAFailedOverridePublicationFailTheHandlerSoItIsRetriedOrDeadLettered() {
+        IllegalStateException brokerFailure = new IllegalStateException("kafka down");
+        doThrow(brokerFailure)
                 .when(complianceAgentManualFeedbackEventProducer)
                 .publish(PAYMENT_UUID.toString(), "DECISION_OVERRIDE", "BLOCK", "APPROVE", OFFICER, OVERRIDE_REASON);
 
-        complianceFeedbackEventHandler.on(createDecisionOverriddenEvent(true, "BLOCKED"), EVENT_MESSAGE);
-
-        verify(complianceAgentManualFeedbackEventProducer).publish(
-                PAYMENT_UUID.toString(), "DECISION_OVERRIDE", "BLOCK", "APPROVE", OFFICER, OVERRIDE_REASON);
+        assertThatThrownBy(() -> complianceFeedbackEventHandler.on(
+                createDecisionOverriddenEvent(true, "BLOCKED"), EVENT_MESSAGE))
+                .isSameAs(brokerFailure);
     }
 
     @Test
-    void shouldDeferFeedbackUntilTheUnitOfWorkCommits() {
-        UnitOfWork<?> unitOfWork = DefaultUnitOfWork.startAndGet(EVENT_MESSAGE);
+    void shouldLetAFailedManualReviewPublicationFailTheHandlerSoItIsRetriedOrDeadLettered() {
+        when(paymentQueryService.findPaymentById(createPaymentId())).thenReturn(
+                createPaymentResponse(PaymentStatus.RELEASE_PENDING, FraudAnalysisStatus.BLOCKED, createEscalateAssessment()));
+        IllegalStateException brokerFailure = new IllegalStateException("kafka down");
+        doThrow(brokerFailure)
+                .when(complianceAgentManualFeedbackEventProducer)
+                .publish(PAYMENT_UUID.toString(), "MANUAL_REVIEW", "UNKNOWN", "REJECT", OFFICER, REJECTION_REASON);
 
-        complianceFeedbackEventHandler.on(createDecisionOverriddenEvent(true, "BLOCKED"), EVENT_MESSAGE);
-        verifyNoInteractions(complianceAgentManualFeedbackEventProducer);
-
-        unitOfWork.commit();
-
-        verify(complianceAgentManualFeedbackEventProducer).publish(
-                PAYMENT_UUID.toString(), "DECISION_OVERRIDE", "BLOCK", "APPROVE", OFFICER, OVERRIDE_REASON);
+        assertThatThrownBy(() -> complianceFeedbackEventHandler.on(createManualReviewRejectedEvent(), EVENT_MESSAGE))
+                .isSameAs(brokerFailure);
     }
 }
