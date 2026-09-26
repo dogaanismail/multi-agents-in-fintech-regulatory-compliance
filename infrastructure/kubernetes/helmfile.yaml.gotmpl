@@ -249,3 +249,11 @@ releases:
       - template: service
     labels:
       tier: ai
+
+  - name: network-analysis-agent
+    namespace: ai
+    chart: charts/service-types/ai-agent
+    inherit:
+      - template: service
+    labels:
+      tier: ai

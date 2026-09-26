@@ -1,0 +1,11 @@
+image:
+  repository: network-analysis-agent
+
+containerPort: 1003
+
+env:
+  PORT: 1003
+  MODEL_PATH: /app/trained_models
+
+writablePaths:
+  - /app/logs
