@@ -19,3 +19,6 @@ databases:
   - service: configuration-service
     database: configuration_service_db
     role: configuration_service
+  - service: risk-engine-service
+    database: risk_engine_db
+    role: risk_engine

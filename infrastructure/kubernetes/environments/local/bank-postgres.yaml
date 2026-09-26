@@ -1,3 +1,4 @@
 createCredentialsSecrets: true
 credentials:
   configuration-service: local-configuration-service
+  risk-engine-service: local-risk-engine-service

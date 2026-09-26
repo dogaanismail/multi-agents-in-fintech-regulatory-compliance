@@ -55,6 +55,10 @@ datasource:
   port: 5432
   database: ""
   credentialsSecret: ""
+messaging:
+  enabled: false
+  bootstrapServers: bank-kafka-kafka-bootstrap.platform:9092
+  schemaRegistryUrl: http://schema-registry.platform:8081
 migration:
   enabled: false
   image:

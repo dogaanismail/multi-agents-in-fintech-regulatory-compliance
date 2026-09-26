@@ -1,0 +1,28 @@
+image:
+  repository: risk-engine-svc-api
+
+containerPort: 5006
+
+env:
+  SERVER_PORT: 5006
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+  JAVA_OPTS: -Xmx256m
+  OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
+  ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
+  NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-service:5007/api/v1/networks
+  CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-service:5008/api/v1/customer-profiles
+
+datasource:
+  enabled: true
+  host: bank-postgres-rw
+  database: risk_engine_db
+  credentialsSecret: risk-engine-service-db-credentials
+
+messaging:
+  enabled: true
+
+migration:
+  enabled: true
+  image:
+    repository: risk-svc-db-migration-app

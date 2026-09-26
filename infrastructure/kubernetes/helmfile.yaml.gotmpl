@@ -90,3 +90,14 @@ releases:
       tier: banking
     needs:
       - banking/bank-postgres
+
+  - name: risk-engine-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/risk-engine-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry

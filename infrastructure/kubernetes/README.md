@@ -8,7 +8,7 @@ integration, scaling and failure testing, and is what EKS/AKS will run later.
 ```bash
 brew install kind helm helmfile kubectl
 ./scripts/cluster-up.sh       # kind cluster "banksolution"
-./scripts/build-images.sh     # bootJar -> docker build -> kind load (tag: local)
+./scripts/build-images.sh     # bootJar -> docker build -> kind load (tag: local); filter: build-images.sh risk
 ./scripts/deploy.sh           # helmfile sync, environment "local"
 ./scripts/deploy.sh --selector name=configuration-service    # one release
 ./scripts/cluster-down.sh
@@ -38,8 +38,8 @@ single source of truth. Subjects to register are listed in that chart's `values.
 1. `charts/banking/bank-postgres/values.yaml`: add `{service, database, role}` to `databases`; add its password under
    `credentials` in `environments/local/bank-postgres.yaml`. This creates the role, the database and the
    `<service>-db-credentials` secret.
-2. Copy `charts/banking/configuration-service`, then set `image.repository`, `containerPort`, `env`, `datasource` and
-   `migration.image.repository`.
+2. Copy `charts/banking/risk-engine-service`, then set `image.repository`, `containerPort`, `env`, `datasource` and
+   `migration.image.repository`. `messaging.enabled: true` injects `KAFKA_BOOTSTRAP_SERVERS` and `SCHEMA_REGISTRY_URL`.
 3. Add its images to `JAVA_IMAGES` in `scripts/build-images.sh` and a release to `helmfile.yaml.gotmpl`.
 
 Kafka bootstrap for services: `bank-kafka-kafka-bootstrap.platform:9092`; Schema Registry:
