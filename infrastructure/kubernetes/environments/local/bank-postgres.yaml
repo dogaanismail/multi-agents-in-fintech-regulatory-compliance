@@ -8,3 +8,4 @@ credentials:
   payment-history-service: local-payment-history-service
   payment-service: local-payment-service
   payment-engine-service: local-payment-engine-service
+  network-topology-service: local-network-topology-service

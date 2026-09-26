@@ -1,0 +1,10 @@
+apiVersion: v2
+name: neo4j
+description: Neo4j Enterprise with Graph Data Science for the payment network graph, wrapping the official chart
+type: application
+version: 0.1.0
+appVersion: 5.26.31
+dependencies:
+  - name: neo4j
+    version: 5.26.31
+    repository: https://helm.neo4j.com/neo4j

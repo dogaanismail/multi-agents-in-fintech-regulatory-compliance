@@ -1,0 +1,2 @@
+createCredentialsSecret: true
+password: local-neo4j-password

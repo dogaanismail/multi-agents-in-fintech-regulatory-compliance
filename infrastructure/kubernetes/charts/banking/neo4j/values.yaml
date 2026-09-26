@@ -1,0 +1,29 @@
+credentialsSecret: neo4j-credentials
+createCredentialsSecret: false
+password: ""
+
+neo4j:
+  disableLookups: true
+  neo4j:
+    name: bank-neo4j
+    edition: enterprise
+    acceptLicenseAgreement: "yes"
+    passwordFromSecret: neo4j-credentials
+    resources:
+      cpu: "0.5"
+      memory: 2Gi
+  volumes:
+    data:
+      mode: defaultStorageClass
+      defaultStorageClass:
+        requests:
+          storage: 5Gi
+  services:
+    neo4j:
+      enabled: false
+  config:
+    server.memory.heap.initial_size: 256m
+    server.memory.heap.max_size: 512m
+    server.memory.pagecache.size: 128m
+  env:
+    NEO4J_PLUGINS: '["graph-data-science"]'

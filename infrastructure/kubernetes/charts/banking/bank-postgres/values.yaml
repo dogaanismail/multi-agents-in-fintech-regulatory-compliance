@@ -43,3 +43,6 @@ databases:
   - service: payment-engine-service
     database: payment_engine_db
     role: payment_engine
+  - service: network-topology-service
+    database: network_topology_db
+    role: network_topology

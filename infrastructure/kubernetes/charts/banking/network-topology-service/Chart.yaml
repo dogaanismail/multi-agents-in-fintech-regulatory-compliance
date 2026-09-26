@@ -1,0 +1,10 @@
+apiVersion: v2
+name: network-topology-service
+description: Payment network graph in Neo4j with scheduled GDS centrality and community algorithms
+type: application
+version: 0.1.0
+appVersion: 0.0.1-SNAPSHOT
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common
