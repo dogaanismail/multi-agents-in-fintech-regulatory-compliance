@@ -1,0 +1,10 @@
+apiVersion: v2
+name: schema-registry
+description: Confluent Schema Registry with the Avro contracts from libraries/avro-schema-library registered on install
+type: application
+version: 0.1.0
+appVersion: 7.5.0
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

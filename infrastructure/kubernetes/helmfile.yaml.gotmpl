@@ -1,0 +1,92 @@
+environments:
+  local:
+    values:
+      - environments/local/environment.yaml
+---
+helmDefaults:
+  kubeContext: {{ .Values.kubeContext }}
+  wait: true
+  timeout: 600
+  createNamespace: true
+
+repositories:
+  - name: strimzi
+    url: quay.io/strimzi-helm
+    oci: true
+  - name: cnpg
+    url: https://cloudnative-pg.github.io/charts
+
+templates:
+  release:
+    missingFileHandler: Info
+    values:
+      - environments/{{`{{ .Environment.Name }}`}}/{{`{{ .Release.Name }}`}}.yaml
+
+releases:
+  - name: strimzi-operator
+    namespace: platform
+    chart: strimzi/strimzi-kafka-operator
+    version: 1.2.0
+    labels:
+      tier: operators
+    values:
+      - platform/strimzi/values.yaml
+
+  - name: cloudnative-pg
+    namespace: cnpg-system
+    chart: cnpg/cloudnative-pg
+    version: 0.29.1
+    labels:
+      tier: operators
+    values:
+      - platform/cloudnative-pg/values.yaml
+
+  - name: kafka
+    namespace: platform
+    inherit:
+      - template: release
+    chart: charts/platform/kafka
+    labels:
+      tier: platform
+    needs:
+      - platform/strimzi-operator
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: kubectl
+        args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "platform", "wait", "kafka/bank-kafka", "--for=condition=Ready", "--timeout=600s"]
+
+  - name: schema-registry
+    namespace: platform
+    inherit:
+      - template: release
+    chart: charts/platform/schema-registry
+    labels:
+      tier: platform
+    needs:
+      - platform/kafka
+
+  - name: bank-postgres
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/bank-postgres
+    labels:
+      tier: data
+    needs:
+      - cnpg-system/cloudnative-pg
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: kubectl
+        args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "banking", "wait", "cluster/bank-postgres", "--for=condition=Ready", "--timeout=600s"]
+
+  - name: configuration-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/configuration-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres

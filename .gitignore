@@ -94,3 +94,5 @@ Secrets & Credentials (NEVER COMMIT THESE)
 *.key
 credentials.json
 secrets.yml
+
+infrastructure/kubernetes/charts/**/charts/

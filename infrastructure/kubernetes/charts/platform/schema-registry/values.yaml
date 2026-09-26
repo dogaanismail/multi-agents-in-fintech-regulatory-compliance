@@ -1,0 +1,57 @@
+image:
+  repository: confluentinc/cp-schema-registry
+  tag: 7.5.0
+
+containerPort: 8081
+
+env:
+  SCHEMA_REGISTRY_HOST_NAME: schema-registry
+  SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: bank-kafka-kafka-bootstrap:9092
+  SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: full
+  SCHEMA_REGISTRY_HEAP_OPTS: -Xms128m -Xmx256m
+
+probes:
+  startup:
+    httpGet:
+      path: /
+  liveness:
+    httpGet:
+      path: /
+  readiness:
+    httpGet:
+      path: /subjects
+
+schemaRegistration:
+  image: python:3.11-slim
+  subjects:
+    - subject: risk.assessment.requested-value
+      schema: RiskAssessmentRequestedEvent.avsc
+    - subject: risk.assessment.completed-value
+      schema: RiskAssessmentCompletedEvent.avsc
+    - subject: fraud.analysis.requested-value
+      schema: FraudAnalysisRequestedEvent.avsc
+    - subject: fraud.analysis.completed-value
+      schema: FraudAnalysisCompletedEvent.avsc
+    - subject: payment-created-event-value
+      schema: PaymentCreatedEvent.avsc
+    - subject: payment-snapshot-event-value
+      schema: PaymentSnapshotEvent.avsc
+    - subject: payment-completed-event-value
+      schema: PaymentCompletedEvent.avsc
+    - subject: payment-blocked-event-value
+      schema: PaymentBlockedEvent.avsc
+    - subject: payment-review-required-event-value
+      schema: PaymentReviewRequiredEvent.avsc
+    - subject: ledger.posting.requested-value
+      schema: LedgerPostingRequestedEvent.avsc
+    - subject: ledger.posting.completed-value
+      schema: LedgerPostingCompletedEvent.avsc
+    - subject: ledger.wallet.balance.changed-value
+      schema: WalletBalanceChangedEvent.avsc
+    - subject: agent.observation-value
+      schema: AgentObservation.avsc
+    - subject: customer.features-value
+      schema: CustomerFeatures.avsc
+    - subject: agent.manual.feedback-value
+      schema: ComplianceAgentManualFeedbackEvent.avsc

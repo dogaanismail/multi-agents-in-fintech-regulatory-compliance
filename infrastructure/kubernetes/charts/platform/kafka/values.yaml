@@ -1,0 +1,57 @@
+clusterName: bank-kafka
+version: 4.3.1
+
+nodePool:
+  name: dual-role
+  replicas: 1
+  roles:
+    - controller
+    - broker
+  storageSize: 5Gi
+  jvmOptions:
+    -Xms: 512m
+    -Xmx: 768m
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 1536Mi
+
+config:
+  offsets.topic.replication.factor: 1
+  transaction.state.log.replication.factor: 1
+  transaction.state.log.min.isr: 1
+  default.replication.factor: 1
+  min.insync.replicas: 1
+  auto.create.topics.enable: true
+  group.initial.rebalance.delay.ms: 0
+
+topicDefaults:
+  partitions: 3
+  replicas: 1
+
+topics:
+  - payment-created-events
+  - payment-completed-events
+  - risk.assessment.requested
+  - risk.assessment.completed
+  - fraud.analysis.requested
+  - fraud.analysis.completed
+  - agent.manual.feedback
+  - ledger.posting.requested
+  - ledger.posting.completed
+  - ledger.wallet.balance.changed
+  - payment-events
+  - payment-snapshots
+  - payment-created-events.DLT
+  - risk.assessment.completed.DLT
+  - risk.assessment.requested.DLT
+  - fraud.analysis.completed.DLT
+  - payment-completed-events.DLT
+  - payment-snapshot-events.DLT
+  - fraud.analysis.requested.DLT
+  - agent.manual.feedback.DLT
+  - ledger.posting.requested.DLT
+  - ledger.posting.completed.DLT
+  - ledger.wallet.balance.changed.DLT

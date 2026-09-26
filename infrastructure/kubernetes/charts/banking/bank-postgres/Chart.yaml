@@ -1,0 +1,6 @@
+apiVersion: v2
+name: bank-postgres
+description: CloudNativePG cluster holding one database and one login role per banking service
+type: application
+version: 0.1.0
+appVersion: "16"

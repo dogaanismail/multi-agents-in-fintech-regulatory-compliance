@@ -1,0 +1,5 @@
+apiVersion: v2
+name: banksolution-common
+description: Shared templates for every bank-solution workload chart
+type: library
+version: 0.1.0

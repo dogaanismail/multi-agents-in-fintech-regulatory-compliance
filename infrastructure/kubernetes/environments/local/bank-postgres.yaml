@@ -1,0 +1,3 @@
+createCredentialsSecrets: true
+credentials:
+  configuration-service: local-configuration-service

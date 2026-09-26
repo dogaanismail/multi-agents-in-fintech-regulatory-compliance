@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kafka
+description: Strimzi-managed KRaft Kafka cluster and the topics every service relies on
+type: application
+version: 0.1.0
+appVersion: 4.3.1

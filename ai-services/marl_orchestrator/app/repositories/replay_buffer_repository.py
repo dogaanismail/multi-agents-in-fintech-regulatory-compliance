@@ -131,6 +131,7 @@ class ReplayBufferRepository:
         reviewed_by: Optional[str] = None,
             officer_decision: Optional[str] = None,
             feedback_type: Optional[str] = None,
+            officer_notes: Optional[str] = None,
     ) -> Optional[AgentReplayBufferEntry]:
         """
         Override the reward for a payment with a compliance officer's decision.

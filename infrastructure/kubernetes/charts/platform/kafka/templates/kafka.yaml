@@ -1,0 +1,16 @@
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: {{ .Values.clusterName }}
+spec:
+  kafka:
+    version: {{ .Values.version }}
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      {{- toYaml .Values.config | nindent 6 }}
+  entityOperator:
+    topicOperator: { }

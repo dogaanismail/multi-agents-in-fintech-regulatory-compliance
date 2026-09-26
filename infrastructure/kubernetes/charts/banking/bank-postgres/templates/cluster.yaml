@@ -1,0 +1,20 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.clusterName }}
+spec:
+  instances: {{ .Values.instances }}
+  imageName: {{ .Values.imageName }}
+  storage:
+    size: {{ .Values.storage.size }}
+  resources:
+    {{ toYaml .Values.resources | nindent 4 }}
+  managed:
+    roles:
+      {{- range .Values.databases }}
+      - name: {{ .role }}
+        ensure: present
+        login: true
+        passwordSecret:
+          name: {{ .service }}-db-credentials
+      {{- end }}

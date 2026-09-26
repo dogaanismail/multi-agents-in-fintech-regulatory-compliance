@@ -1,0 +1,22 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: {{ .Values.nodePool.name }}
+  labels:
+    strimzi.io/cluster: {{ .Values.clusterName }}
+spec:
+  replicas: {{ .Values.nodePool.replicas }}
+  roles:
+    {{- toYaml .Values.nodePool.roles | nindent 4 }}
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodePool.storageSize }}
+        deleteClaim: false
+        kraftMetadata: shared
+  jvmOptions:
+    {{- toYaml .Values.nodePool.jvmOptions | nindent 4 }}
+  resources:
+    {{- toYaml .Values.nodePool.resources | nindent 4 }}
