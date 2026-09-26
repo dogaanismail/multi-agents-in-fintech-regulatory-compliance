@@ -15,6 +15,8 @@ JAVA_IMAGES=(
     "account-svc-db-migration-app|account-service/account-svc-db-migration"
     "customer-svc-api|customer-service/customer-svc"
     "customer-svc-db-migration-app|customer-service/customer-svc-db-migration"
+    "customer-profile-svc-api|customer-profile-service/customer-profile-svc"
+    "customer-profile-svc-db-migration-app|customer-profile-service/customer-profile-svc-db-migration"
 )
 
 selected_images=()

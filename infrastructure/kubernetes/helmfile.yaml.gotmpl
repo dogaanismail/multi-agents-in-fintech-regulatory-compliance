@@ -122,3 +122,14 @@ releases:
       tier: banking
     needs:
       - banking/bank-postgres
+
+  - name: customer-profile-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/customer-profile-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry

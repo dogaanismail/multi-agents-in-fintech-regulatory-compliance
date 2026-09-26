@@ -20,6 +20,8 @@ datasource:
 
 messaging:
   enabled: true
+  consumes:
+    wallet-balance-changed: ledger.wallet.balance.changed
 
 migration:
   enabled: true

@@ -59,6 +59,8 @@ messaging:
   enabled: false
   bootstrapServers: bank-kafka-kafka-bootstrap.platform:9092
   schemaRegistryUrl: http://schema-registry.platform:8081
+  consumes: {}
+  produces: {}
 migration:
   enabled: false
   image:

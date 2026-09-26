@@ -4,3 +4,4 @@ credentials:
   risk-engine-service: local-risk-engine-service
   account-service: local-account-service
   customer-service: local-customer-service
+  customer-profile-service: local-customer-profile-service

@@ -45,3 +45,7 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
       key: {{ .key }}
 {{- end }}
 {{- end -}}
+
+{{- define "banksolution-common.topicEnvName" -}}
+{{- printf "SPRING_KAFKA_TOPICS_%s_%s" (index . 0) (index . 1) | upper | replace "-" "_" | replace "." "_" -}}
+{{- end -}}

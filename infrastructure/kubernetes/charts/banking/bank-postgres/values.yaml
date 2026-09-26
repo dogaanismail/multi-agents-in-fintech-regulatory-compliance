@@ -28,3 +28,6 @@ databases:
   - service: customer-service
     database: customer_service_db
     role: customer_service
+  - service: customer-profile-service
+    database: customer_profile_db
+    role: customer_profile
