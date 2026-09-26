@@ -5,67 +5,62 @@ image:
   tag: local
   pullPolicy: IfNotPresent
 
-containerPort: 8080
-
-jvm:
-  enabled: true
-  options: -Xms32m -Xmx192m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
-  extraOptions: ""
+containerPort: 8000
 
 env:
-  LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
-  OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
+  LOG_LEVEL: info
+  DEBUG: "false"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo.observability:4318
 
-secretEnv: []
+secretEnv: [ ]
 
 datasource:
   enabled: false
-  driver: spring
-  host: bank-postgres-rw
+  driver: sqlalchemy-asyncpg
+  host: ai-postgres-rw
   port: 5432
   database: ""
   credentialsSecret: ""
-  maxPoolSize: 5
 
 messaging:
   enabled: false
   bootstrapServers: bank-kafka-kafka-bootstrap.platform:9092
   schemaRegistryUrl: http://schema-registry.platform:8081
-  topicEnvFormat: SPRING_KAFKA_TOPICS_%s_%s
+  topicEnvFormat: "%[2]s_TOPIC"
   consumes: { }
   produces: { }
 
 migration:
   enabled: false
-  image:
-    repository: ""
-    tag: local
-    pullPolicy: IfNotPresent
+  command: [ ]
   backoffLimit: 6
   activeDeadlineSeconds: 600
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
-    limits:
       memory: 256Mi
+    limits:
+      memory: 768Mi
+
+writablePaths: [ ]
+persistentPaths: [ ]
 
 probes:
   startup:
     httpGet:
-      path: /actuator/health/liveness
+      path: /api/v1/health
       port: http
     periodSeconds: 5
-    failureThreshold: 36
+    failureThreshold: 60
   liveness:
     httpGet:
-      path: /actuator/health/liveness
+      path: /api/v1/health
       port: http
     periodSeconds: 10
     failureThreshold: 3
   readiness:
     httpGet:
-      path: /actuator/health/readiness
+      path: /api/v1/health
       port: http
     periodSeconds: 10
     failureThreshold: 3
@@ -73,11 +68,11 @@ probes:
 resources:
   requests:
     cpu: 100m
-    memory: 256Mi
-  limits:
     memory: 512Mi
+  limits:
+    memory: 1Gi
 
-terminationGracePeriodSeconds: 45
+terminationGracePeriodSeconds: 30
 
 podSecurityContext:
   runAsNonRoot: true

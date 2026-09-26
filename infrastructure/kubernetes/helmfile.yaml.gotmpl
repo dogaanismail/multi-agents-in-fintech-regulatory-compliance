@@ -20,6 +20,7 @@ templates:
   data:
     missingFileHandler: Info
     values:
+      - data/{{`{{ .Release.Namespace }}`}}/{{`{{ .Release.Name }}`}}.yaml
       - environments/{{`{{ .Environment.Name }}`}}/{{`{{ .Release.Name }}`}}.yaml
 
   service:
@@ -74,7 +75,7 @@ releases:
 
   - name: bank-postgres
     namespace: banking
-    chart: charts/data/bank-postgres
+    chart: charts/data/postgres
     inherit:
       - template: data
     labels:
@@ -90,6 +91,25 @@ releases:
         showlogs: true
         command: kubectl
         args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "banking", "wait", "database", "--all", "--for=jsonpath={.status.applied}=true", "--timeout=300s"]
+
+  - name: ai-postgres
+    namespace: ai
+    chart: charts/data/postgres
+    inherit:
+      - template: data
+    labels:
+      tier: data
+    needs:
+      - cnpg-system/cloudnative-pg
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: kubectl
+        args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "ai", "wait", "cluster/ai-postgres", "--for=condition=Ready", "--timeout=600s"]
+      - events: ["postsync"]
+        showlogs: true
+        command: kubectl
+        args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "ai", "wait", "database", "--all", "--for=jsonpath={.status.applied}=true", "--timeout=300s"]
 
   - name: neo4j
     namespace: banking
@@ -257,3 +277,17 @@ releases:
       - template: service
     labels:
       tier: ai
+
+  - name: marl-orchestrator
+    namespace: ai
+    chart: charts/service-types/ai-service
+    inherit:
+      - template: service
+    labels:
+      tier: ai
+    needs:
+      - ai/ai-postgres
+      - platform/schema-registry
+      - ai/transaction-pattern-agent
+      - ai/customer-risk-agent
+      - ai/network-analysis-agent

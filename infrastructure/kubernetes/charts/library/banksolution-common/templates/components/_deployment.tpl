@@ -7,6 +7,10 @@ metadata:
     {{- include "banksolution-common.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  {{- if .Values.persistentPaths }}
+  strategy:
+    type: Recreate
+  {{- end }}
   selector:
     matchLabels:
       {{- include "banksolution-common.selectorLabels" . | nindent 6 }}
@@ -50,18 +54,11 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          {{- with .Values.writablePaths }}
+          {{- $volumeMounts := include "banksolution-common.volumeMounts" (dict "context" . "includePersistent" true) | trim }}
+          {{- if $volumeMounts }}
           volumeMounts:
-            {{- range $index, $path := . }}
-            - name: writable-{{ $index }}
-              mountPath: {{ $path }}
-            {{- end }}
-          {{- end }}
-      {{- with .Values.writablePaths }}
+            {{- $volumeMounts | nindent 12 }}
       volumes:
-        {{- range $index, $path := . }}
-        - name: writable-{{ $index }}
-          emptyDir: {}
-        {{- end }}
-      {{- end }}
+        {{- include "banksolution-common.volumes" (dict "context" . "includePersistent" true) | trim | nindent 8 }}
+          {{- end }}
 {{- end -}}

@@ -1,0 +1,4 @@
+databases:
+  - service: marl-orchestrator
+    database: marl_orchestrator_db
+    role: marl_orchestrator

@@ -6,7 +6,7 @@ metadata:
   name: {{ .service }}
 spec:
   cluster:
-    name: {{ $.Values.clusterName }}
+    name: {{ $.Release.Name }}
   name: {{ .database }}
   owner: {{ .role }}
   ensure: present

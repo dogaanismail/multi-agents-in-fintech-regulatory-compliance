@@ -1,0 +1,40 @@
+image:
+  repository: marl-orchestrator
+
+containerPort: 1004
+
+env:
+  PORT: 1004
+  MADDPG_MODE: inference
+  MODEL_PATH: /app/trained_models
+  TRANSACTION_AGENT_URL: http://transaction-pattern-agent:1001
+  CUSTOMER_AGENT_URL: http://customer-risk-agent:1002
+  NETWORK_AGENT_URL: http://network-analysis-agent:1003
+  CONFIGURATION_SERVICE_URL: http://configuration-service.banking:5009
+
+datasource:
+  enabled: true
+  database: marl_orchestrator_db
+  credentialsSecret: marl-orchestrator-db-credentials
+
+messaging:
+  enabled: true
+  consumes:
+    fraud-analysis-requested: fraud.analysis.requested
+    agent-manual-feedback: agent.manual.feedback
+  produces:
+    fraud-analysis-completed: fraud.analysis.completed
+
+migration:
+  enabled: true
+  command:
+    - alembic
+    - upgrade
+    - head
+
+writablePaths:
+  - /app/logs
+
+persistentPaths:
+  - path: /app/trained_models
+    size: 1Gi

@@ -24,11 +24,12 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 {{- end -}}
 
 {{- define "banksolution-common.topicEnvName" -}}
-{{- printf "SPRING_KAFKA_TOPICS_%s_%s" (index . 0) (index . 1) | upper | replace "-" "_" | replace "." "_" -}}
+{{- printf (index . 0) (index . 1) (index . 2) | upper | replace "-" "_" | replace "." "_" -}}
 {{- end -}}
 
 {{- define "banksolution-common.datasourceEnv" -}}
 {{- if include "banksolution-common.enabled" .Values.datasource }}
+{{- if eq .Values.datasource.driver "spring" }}
 - name: SPRING_DATASOURCE_URL
   value: {{ printf "jdbc:postgresql://%s:%v/%s" .Values.datasource.host .Values.datasource.port .Values.datasource.database | quote }}
 - name: SPRING_DATASOURCE_USERNAME
@@ -43,6 +44,22 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
       key: password
 - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
   value: {{ .Values.datasource.maxPoolSize | quote }}
+{{- else if eq .Values.datasource.driver "sqlalchemy-asyncpg" }}
+- name: DATABASE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.datasource.credentialsSecret }}
+      key: username
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.datasource.credentialsSecret }}
+      key: password
+- name: DATABASE_URL
+  value: {{ printf "postgresql+asyncpg://$(DATABASE_USERNAME):$(DATABASE_PASSWORD)@%s:%v/%s" .Values.datasource.host .Values.datasource.port .Values.datasource.database | quote }}
+{{- else }}
+{{- fail (printf "unsupported datasource.driver %q" .Values.datasource.driver) }}
+{{- end }}
 {{- end }}
 {{- end -}}
 
@@ -53,5 +70,36 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
     secretKeyRef:
       name: {{ .secretName }}
       key: {{ .key }}
+{{- end }}
+{{- end -}}
+
+{{- define "banksolution-common.persistentVolumeClaimName" -}}
+{{- printf "%s-%s" (include "banksolution-common.name" .context) (base .path | lower | replace "_" "-") -}}
+{{- end -}}
+
+{{- define "banksolution-common.volumeMounts" -}}
+{{- range $index, $path := .context.Values.writablePaths }}
+- name: writable-{{ $index }}
+  mountPath: {{ $path }}
+{{- end }}
+{{- if .includePersistent }}
+{{- range $index, $volume := .context.Values.persistentPaths }}
+- name: persistent-{{ $index }}
+  mountPath: {{ $volume.path }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "banksolution-common.volumes" -}}
+{{- range $index, $path := .context.Values.writablePaths }}
+- name: writable-{{ $index }}
+  emptyDir: {}
+{{- end }}
+{{- if .includePersistent }}
+{{- range $index, $volume := .context.Values.persistentPaths }}
+- name: persistent-{{ $index }}
+  persistentVolumeClaim:
+    claimName: {{ include "banksolution-common.persistentVolumeClaimName" (dict "context" $.context "path" $volume.path) }}
+{{- end }}
 {{- end }}
 {{- end -}}

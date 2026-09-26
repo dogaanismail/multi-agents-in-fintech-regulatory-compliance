@@ -1,0 +1,6 @@
+apiVersion: v2
+name: postgres
+description: CloudNativePG cluster with one database and one login role per service listed in databases
+type: application
+version: 0.1.0
+appVersion: "16"

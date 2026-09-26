@@ -26,7 +26,8 @@ crash-loops ("Not enough disk space" on the CNPG cluster).
 | `charts/service-types/*`              | One chart per kind of service; its `values.yaml` is the complete definition of the type |
 | `services/<namespace>/<release>.yaml` | One file per service: only what differs from its type                                   |
 | `charts/library/banksolution-common`  | Building blocks the types assemble: ConfigMap, Deployment, Service, migration Job       |
-| `charts/data/*`                       | Stateful stores: `bank-postgres` (CNPG), `neo4j` (official chart), `tigerbeetle`        |
+| `charts/data/*`                       | Stateful stores: `postgres` (CNPG), `neo4j` (official chart), `tigerbeetle`             |
+| `data/<namespace>/<release>.yaml`     | One file per store instance: `bank-postgres`, `ai-postgres` (their databases)           |
 | `charts/platform/*`                   | `kafka` (Strimzi KRaft + topics), `schema-registry` (+ schema registration Job)         |
 | `platform/*`                          | Values for third-party operator charts (Strimzi, CloudNativePG)                         |
 | `environments/<env>/services.yaml`    | Overrides applied to every service in that environment                                  |
@@ -35,12 +36,13 @@ crash-loops ("Not enough disk space" on the CNPG cluster).
 
 ### Service types
 
-| Type                | Gives you                                                                   | Services            |
-|---------------------|-----------------------------------------------------------------------------|---------------------|
-| `java-microservice` | Tuned JVM, Actuator probes, optional `datasource`, `messaging`, `migration` | 10 banking services |
-| `gateway`           | Tuned JVM, Actuator probes; routes as env vars                              | backoffice-gateway  |
-| `frontend`          | nginx on :80, probes on `/`, 64 Mi                                          | backoffice-ui       |
-| `ai-agent`          | Python, probes on `/api/v1/health`, non-root                                | ML agents           |
+| Type                | Gives you                                                                                           | Services            |
+|---------------------|-----------------------------------------------------------------------------------------------------|---------------------|
+| `java-microservice` | Tuned JVM, Actuator probes, optional `datasource`, `messaging`, `migration`                         | 10 banking services |
+| `gateway`           | Tuned JVM, Actuator probes; routes as env vars                                                      | backoffice-gateway  |
+| `frontend`          | nginx on :80, probes on `/`, 64 Mi                                                                  | backoffice-ui       |
+| `ai-service`        | Python with optional SQLAlchemy `datasource`, Kafka, Alembic `migration.command`, `persistentPaths` | marl-orchestrator   |
+| `ai-agent`          | Python, probes on `/api/v1/health`, non-root                                                        | ML agents           |
 
 A block that a type does not declare is off. Anything in a type can be overridden per service (e.g. `ledger-service`
 adds `jvm.extraOptions` and an `Unconfined` seccomp profile; `schema-registry` uses `extraEnv` for a Downward API
@@ -54,7 +56,7 @@ single source of truth. Subjects to register are listed in that chart's `values.
 ## Adding a service
 
 1. Write `services/<namespace>/<name>.yaml`: image, `containerPort`, `env`, and the blocks it needs.
-   - `datasource`: also add `{service, database, role}` to `charts/data/bank-postgres/values.yaml` and its password
+   - `datasource`: also add `{service, database, role}` to `data/banking/bank-postgres.yaml` and its password
      to `environments/local/bank-postgres.yaml`. That creates the role, the database and `<name>-db-credentials`.
    - `messaging`: list every topic under `consumes` / `produces`, keyed like the service's
      `spring.kafka.topics.incoming.<key>` / `outgoing.<key>`. They become `SPRING_KAFKA_TOPICS_*` env vars, so this

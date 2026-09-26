@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: {{ .Values.clusterName }}
+  name: {{ .Release.Name }}
 spec:
   instances: {{ .Values.instances }}
   imageName: {{ .Values.imageName }}

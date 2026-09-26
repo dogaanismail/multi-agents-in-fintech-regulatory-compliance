@@ -1,0 +1,9 @@
+apiVersion: v2
+name: ai-service
+description: "Stateful Python service: optional PostgreSQL (SQLAlchemy), Kafka, Alembic migration Job and persistent paths"
+type: application
+version: 0.1.0
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common
