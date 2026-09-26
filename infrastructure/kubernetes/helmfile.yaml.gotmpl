@@ -144,3 +144,14 @@ releases:
     needs:
       - banking/bank-postgres
       - platform/schema-registry
+
+  - name: payment-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/payment-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry

@@ -34,3 +34,6 @@ databases:
   - service: payment-history-service
     database: payment_history_db
     role: payment_history
+  - service: payment-service
+    database: payment_service_db
+    role: payment_service

@@ -19,6 +19,8 @@ JAVA_IMAGES=(
     "customer-profile-svc-db-migration-app|customer-profile-service/customer-profile-svc-db-migration"
     "payment-history-svc-api|payment-history-service/payment-history-svc"
     "payment-history-svc-db-migration-app|payment-history-service/payment-history-svc-db-migration"
+    "payment-svc-api|payment-service/payment-svc"
+    "payment-svc-db-migration-app|payment-service/payment-svc-db-migration"
 )
 
 selected_images=()

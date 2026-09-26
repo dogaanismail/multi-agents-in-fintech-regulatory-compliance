@@ -6,3 +6,4 @@ credentials:
   customer-service: local-customer-service
   customer-profile-service: local-customer-profile-service
   payment-history-service: local-payment-history-service
+  payment-service: local-payment-service
