@@ -9,14 +9,25 @@ nodePool:
     - broker
   storageSize: 5Gi
   jvmOptions:
-    -Xms: 512m
-    -Xmx: 768m
+    -Xms: 256m
+    -Xmx: 512m
   resources:
     requests:
       cpu: 250m
-      memory: 1Gi
+      memory: 768Mi
     limits:
-      memory: 1536Mi
+      memory: 1Gi
+
+topicOperator:
+  jvmOptions:
+    -Xms: 64m
+    -Xmx: 128m
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      memory: 256Mi
 
 config:
   offsets.topic.replication.factor: 1
@@ -45,6 +56,7 @@ topics:
   - payment-events
   - payment-snapshots
   - payment-snapshot-events
+  - payment-domain-events
   - payment-created-events.DLT
   - risk.assessment.completed.DLT
   - risk.assessment.requested.DLT

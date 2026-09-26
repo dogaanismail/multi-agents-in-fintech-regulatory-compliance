@@ -7,7 +7,6 @@ env:
   SERVER_PORT: 5002
   SPRING_JPA_HIBERNATE_DDL_AUTO: validate
   LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
-  JAVA_OPTS: -Xmx256m
   OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
   CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
   LEDGER_SERVICE_URL: http://ledger-service:5013/api/v1/ledger/accounts

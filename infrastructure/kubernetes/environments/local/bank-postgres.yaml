@@ -7,3 +7,4 @@ credentials:
   customer-profile-service: local-customer-profile-service
   payment-history-service: local-payment-history-service
   payment-service: local-payment-service
+  payment-engine-service: local-payment-engine-service

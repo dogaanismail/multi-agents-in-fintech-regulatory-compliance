@@ -13,4 +13,8 @@ spec:
     config:
       {{- toYaml .Values.config | nindent 6 }}
   entityOperator:
-    topicOperator: { }
+    topicOperator:
+      jvmOptions:
+        {{- toYaml .Values.topicOperator.jvmOptions | nindent 8 }}
+      resources:
+        {{- toYaml .Values.topicOperator.resources | nindent 8 }}

@@ -7,7 +7,6 @@ env:
   SERVER_PORT: 5006
   SPRING_JPA_HIBERNATE_DDL_AUTO: validate
   LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
-  JAVA_OPTS: -Xmx256m
   OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
   ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
   NETWORK_TOPOLOGY_SERVICE_URL: http://network-topology-service:5007/api/v1/networks

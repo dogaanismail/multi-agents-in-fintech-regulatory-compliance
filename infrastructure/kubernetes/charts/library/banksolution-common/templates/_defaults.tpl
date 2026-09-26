@@ -9,6 +9,9 @@ containerPort: 8080
 service:
   type: ClusterIP
   port: null
+jvm:
+  enabled: true
+  options: -Xms32m -Xmx192m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
 env: {}
 secretEnv: []
 resources:
@@ -55,6 +58,7 @@ datasource:
   port: 5432
   database: ""
   credentialsSecret: ""
+  maxPoolSize: 5
 messaging:
   enabled: false
   bootstrapServers: bank-kafka-kafka-bootstrap.platform:9092

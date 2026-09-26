@@ -80,6 +80,10 @@ releases:
         showlogs: true
         command: kubectl
         args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "banking", "wait", "cluster/bank-postgres", "--for=condition=Ready", "--timeout=600s"]
+      - events: ["postsync"]
+        showlogs: true
+        command: kubectl
+        args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "banking", "wait", "database", "--all", "--for=jsonpath={.status.applied}=true", "--timeout=300s"]
 
   - name: configuration-service
     namespace: banking
@@ -150,6 +154,17 @@ releases:
     inherit:
       - template: release
     chart: charts/banking/payment-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry
+
+  - name: payment-engine-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/payment-engine-service
     labels:
       tier: banking
     needs:

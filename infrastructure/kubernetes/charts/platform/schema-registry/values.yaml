@@ -4,6 +4,9 @@ image:
 
 containerPort: 8081
 
+jvm:
+  enabled: false
+
 env:
   SCHEMA_REGISTRY_HOST_NAME: schema-registry
   SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081

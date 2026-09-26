@@ -33,6 +33,8 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
     secretKeyRef:
       name: {{ .Values.datasource.credentialsSecret }}
       key: password
+- name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+  value: {{ .Values.datasource.maxPoolSize | quote }}
 {{- end }}
 {{- end -}}
 

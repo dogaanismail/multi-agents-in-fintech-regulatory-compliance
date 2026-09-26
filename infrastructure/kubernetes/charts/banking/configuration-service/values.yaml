@@ -7,7 +7,6 @@ env:
   SERVER_PORT: 5009
   SPRING_JPA_HIBERNATE_DDL_AUTO: validate
   LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
-  JAVA_OPTS: -Xmx256m
   OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
 
 datasource:

@@ -7,6 +7,9 @@ spec:
   imageName: {{ .Values.imageName }}
   storage:
     size: {{ .Values.storage.size }}
+  postgresql:
+    parameters:
+      {{- toYaml .Values.parameters | nindent 6 }}
   resources:
     {{ toYaml .Values.resources | nindent 4 }}
   managed:

@@ -6,6 +6,10 @@ metadata:
   labels:
     {{- include "banksolution-common.labels" . | nindent 4 }}
 data:
+  {{- if .Values.jvm.enabled }}
+  JAVA_OPTS: {{ .Values.jvm.options | quote }}
+  MALLOC_ARENA_MAX: "2"
+  {{- end }}
   {{- if .Values.messaging.enabled }}
   KAFKA_BOOTSTRAP_SERVERS: {{ .Values.messaging.bootstrapServers | quote }}
   SCHEMA_REGISTRY_URL: {{ .Values.messaging.schemaRegistryUrl | quote }}

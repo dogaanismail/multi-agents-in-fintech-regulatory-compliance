@@ -5,6 +5,9 @@ imageName: ghcr.io/cloudnative-pg/postgresql:16
 storage:
   size: 5Gi
 
+parameters:
+  max_connections: "200"
+
 resources:
   requests:
     cpu: 100m
@@ -37,3 +40,6 @@ databases:
   - service: payment-service
     database: payment_service_db
     role: payment_service
+  - service: payment-engine-service
+    database: payment_engine_db
+    role: payment_engine
