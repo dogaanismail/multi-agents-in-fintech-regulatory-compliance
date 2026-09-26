@@ -11,6 +11,8 @@ JAVA_IMAGES=(
     "configuration-svc-db-migration-app|configuration-service/configuration-svc-db-migration"
     "risk-engine-svc-api|risk-engine-service/risk-engine-svc"
     "risk-svc-db-migration-app|risk-engine-service/risk-engine-svc-db-migration"
+    "account-svc-api|account-service/account-svc"
+    "account-svc-db-migration-app|account-service/account-svc-db-migration"
 )
 
 selected_images=()
