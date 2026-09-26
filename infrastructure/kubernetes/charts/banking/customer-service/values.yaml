@@ -1,0 +1,22 @@
+image:
+  repository: customer-svc-api
+
+containerPort: 5001
+
+env:
+  SERVER_PORT: 5001
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+  JAVA_OPTS: -Xmx256m
+  OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
+
+datasource:
+  enabled: true
+  host: bank-postgres-rw
+  database: customer_service_db
+  credentialsSecret: customer-service-db-credentials
+
+migration:
+  enabled: true
+  image:
+    repository: customer-svc-db-migration-app

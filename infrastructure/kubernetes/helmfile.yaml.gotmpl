@@ -112,3 +112,13 @@ releases:
     needs:
       - banking/bank-postgres
       - platform/schema-registry
+
+  - name: customer-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/customer-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres

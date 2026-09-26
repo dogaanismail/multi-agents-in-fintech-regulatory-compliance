@@ -25,3 +25,6 @@ databases:
   - service: account-service
     database: account_service_db
     role: account_service
+  - service: customer-service
+    database: customer_service_db
+    role: customer_service

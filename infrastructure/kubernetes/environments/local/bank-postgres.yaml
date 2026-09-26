@@ -3,3 +3,4 @@ credentials:
   configuration-service: local-configuration-service
   risk-engine-service: local-risk-engine-service
   account-service: local-account-service
+  customer-service: local-customer-service
