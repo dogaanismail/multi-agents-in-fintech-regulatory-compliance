@@ -31,3 +31,6 @@ databases:
   - service: customer-profile-service
     database: customer_profile_db
     role: customer_profile
+  - service: payment-history-service
+    database: payment_history_db
+    role: payment_history

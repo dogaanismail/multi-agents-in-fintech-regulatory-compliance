@@ -1,0 +1,10 @@
+apiVersion: v2
+name: payment-history-service
+description: Queryable payment history projected from payment snapshot events
+type: application
+version: 0.1.0
+appVersion: 0.0.1-SNAPSHOT
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

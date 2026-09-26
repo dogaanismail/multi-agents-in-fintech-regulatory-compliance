@@ -133,3 +133,14 @@ releases:
     needs:
       - banking/bank-postgres
       - platform/schema-registry
+
+  - name: payment-history-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/payment-history-service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry

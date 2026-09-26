@@ -44,6 +44,7 @@ topics:
   - ledger.wallet.balance.changed
   - payment-events
   - payment-snapshots
+  - payment-snapshot-events
   - payment-created-events.DLT
   - risk.assessment.completed.DLT
   - risk.assessment.requested.DLT
