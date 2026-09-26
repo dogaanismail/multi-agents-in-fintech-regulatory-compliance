@@ -25,6 +25,11 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- $initContainers := include "banksolution-common.waitForDatabaseInitContainer" . | trim }}
+      {{- if $initContainers }}
+      initContainers:
+        {{- $initContainers | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "banksolution-common.name" . }}
           image: {{ include "banksolution-common.image" .Values.image }}

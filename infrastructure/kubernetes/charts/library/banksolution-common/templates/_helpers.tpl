@@ -103,3 +103,42 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 {{- end }}
 {{- end }}
 {{- end -}}
+
+{{- define "banksolution-common.waitForDatabaseInitContainer" -}}
+{{- if and (include "banksolution-common.enabled" .Values.datasource) (include "banksolution-common.enabled" .Values.datasource.waitForDatabase) }}
+- name: wait-for-database
+  image: {{ .Values.datasource.waitForDatabase.image }}
+  imagePullPolicy: IfNotPresent
+  command:
+    - sh
+    - -c
+    - until psql --no-psqlrc --quiet --command "select 1" >/dev/null 2>&1; do echo "waiting for database $PGDATABASE on $PGHOST"; sleep 2; done
+  env:
+    - name: PGHOST
+      value: {{ .Values.datasource.host | quote }}
+    - name: PGPORT
+      value: {{ .Values.datasource.port | quote }}
+    - name: PGDATABASE
+      value: {{ .Values.datasource.database | quote }}
+    - name: PGCONNECT_TIMEOUT
+      value: "3"
+    - name: PGUSER
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.datasource.credentialsSecret }}
+          key: username
+    - name: PGPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.datasource.credentialsSecret }}
+          key: password
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      memory: 64Mi
+  securityContext:
+    {{- toYaml .Values.securityContext | nindent 4 }}
+{{- end }}
+{{- end -}}

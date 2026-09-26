@@ -20,6 +20,13 @@ every ~60 s; "Refresh" in the UI is instant). `selfHeal` is off, so `kubectl sca
 OutOfSync instead of being reverted. Rebuilding an image under the same `local` tag does not change the manifest:
 `kubectl rollout restart deploy/<name>` picks it up.
 
+Before pushing, run `./scripts/validate.sh` (needs `helm`, `kubeconform`, Python with PyYAML). It renders every app
+exactly as ArgoCD will and checks all resources against the Kubernetes and CRD schemas in strict mode; the
+`Kubernetes Validate` workflow runs the same script on every push touching `infrastructure/kubernetes/**`.
+
+Services with a `datasource` get a `wait-for-database` init container (Deployment and migration Job) that loops
+until the service's own login can query its own database, so a fresh sync never races the store it depends on.
+
 In the UI each service is one app: Deployment → Pod, ConfigMap, Service, PVC, and its last `db-migration` Job (kept
 after success, replaced by the next run).
 

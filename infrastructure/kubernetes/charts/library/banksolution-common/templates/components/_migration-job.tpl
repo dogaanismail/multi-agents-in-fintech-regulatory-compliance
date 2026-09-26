@@ -23,6 +23,11 @@ spec:
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- $initContainers := include "banksolution-common.waitForDatabaseInitContainer" . | trim }}
+      {{- if $initContainers }}
+      initContainers:
+        {{- $initContainers | nindent 8 }}
+      {{- end }}
       containers:
         - name: db-migration
           {{- if .Values.migration.command }}

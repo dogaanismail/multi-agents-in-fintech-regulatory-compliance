@@ -21,6 +21,9 @@ datasource:
   port: 5432
   database: ""
   credentialsSecret: ""
+  waitForDatabase:
+    enabled: true
+    image: ghcr.io/cloudnative-pg/postgresql:16
 
 messaging:
   enabled: false
