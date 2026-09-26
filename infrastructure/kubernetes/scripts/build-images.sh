@@ -29,6 +29,7 @@ JAVA_IMAGES=(
 
 DOCKERFILE_IMAGES=(
     "backoffice-ui|bank-solution-backoffice"
+    "transaction-pattern-agent|ai-services/agents/transaction_pattern_agent"
 )
 
 matches_filter() {

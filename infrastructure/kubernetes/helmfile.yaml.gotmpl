@@ -227,3 +227,11 @@ releases:
       tier: banking
     needs:
       - banking/backoffice-gateway
+
+  - name: transaction-pattern-agent
+    namespace: ai
+    inherit:
+      - template: release
+    chart: charts/ai/transaction-pattern-agent
+    labels:
+      tier: ai
