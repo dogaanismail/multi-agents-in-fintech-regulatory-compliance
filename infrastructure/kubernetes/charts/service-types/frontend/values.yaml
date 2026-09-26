@@ -9,6 +9,12 @@ containerPort: 80
 
 env: { }
 
+networkPolicy:
+  enabled: true
+  baseline:
+    - dns
+  egress: [ ]
+
 probes:
   startup:
     httpGet:

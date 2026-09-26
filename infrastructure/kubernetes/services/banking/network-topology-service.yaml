@@ -27,3 +27,7 @@ messaging:
   enabled: true
   consumes:
     payment-completed: payment-completed-events
+
+networkPolicy:
+  egress:
+    - neo4j

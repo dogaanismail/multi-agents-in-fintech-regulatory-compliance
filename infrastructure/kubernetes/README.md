@@ -69,6 +69,22 @@ Namespaces: `platform`, `cnpg-system`, `argocd`, `banking`, `ai`, later `observa
 `schema-registry/schemas` is a symlink to `libraries/avro-schema-library/schemas`, so the `.avsc` files stay the
 single source of truth. Subjects to register are listed in that chart's `values.yaml`.
 
+## Network policies
+
+Every service gets an egress-only NetworkPolicy: it may open connections to exactly what it declares, nothing else.
+Ingress is left open so kubelet probes are never affected.
+
+- `networkPolicy.egress` in the service file lists what it calls: `account-service` (same namespace),
+  `banking/configuration-service` (another namespace), or a peer name.
+- Peers (`dns`, `kafka`, `schema-registry`, `bank-postgres`, `ai-postgres`, `neo4j`, `tigerbeetle`, `internet-https`)
+  are defined per environment under `networkPeers` in `environments/<env>/services.yaml`, so a cloud environment can
+  point `kafka` at a managed broker's CIDR instead of in-cluster pods.
+- Added automatically: `dns` (type `baseline`), the database peer when `datasource` is on, `kafka` and
+  `schema-registry` when `messaging` is on.
+
+`./scripts/verify-network-policies.sh` probes real connections from inside the pods (e.g. `marl-orchestrator` →
+`bank-postgres` must be refused) against a running cluster.
+
 ## Adding a service
 
 1. Write `services/<namespace>/<name>.yaml`, starting with `serviceType: <type>`, then image, `containerPort`, `env`,
@@ -79,6 +95,7 @@ single source of truth. Subjects to register are listed in that chart's `values.
      `spring.kafka.topics.incoming.<key>` / `outgoing.<key>`. They become `SPRING_KAFKA_TOPICS_*` env vars, so this
      file is what the pod actually uses.
    - `migration`: the Liquibase image, run as a pre-install/pre-upgrade Job.
+   - `networkPolicy.egress`: every other service or peer it calls; anything not listed is blocked.
 2. Add the image to `scripts/build-images.sh` (`JAVA_IMAGES` for Gradle modules, `DOCKERFILE_IMAGES` otherwise).
 
 After editing the library chart, run `helm dependency update` on each type chart and on `schema-registry`: they

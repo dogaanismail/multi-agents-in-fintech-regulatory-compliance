@@ -21,6 +21,7 @@ datasource:
   port: 5432
   database: ""
   credentialsSecret: ""
+  networkPeer: ai-postgres
   waitForDatabase:
     enabled: true
     image: ghcr.io/cloudnative-pg/postgresql:16
@@ -32,6 +33,9 @@ messaging:
   topicEnvFormat: "%[2]s_TOPIC"
   consumes: { }
   produces: { }
+  networkPeers:
+    - kafka
+    - schema-registry
 
 migration:
   enabled: false
@@ -47,6 +51,12 @@ migration:
 
 writablePaths: [ ]
 persistentPaths: [ ]
+
+networkPolicy:
+  enabled: true
+  baseline:
+    - dns
+  egress: [ ]
 
 probes:
   startup:

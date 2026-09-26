@@ -30,3 +30,9 @@ migration:
   enabled: true
   image:
     repository: risk-svc-db-migration-app
+
+networkPolicy:
+  egress:
+    - account-service
+    - network-topology-service
+    - customer-profile-service

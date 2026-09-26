@@ -17,6 +17,12 @@ env:
   OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
 
 
+networkPolicy:
+  enabled: true
+  baseline:
+    - dns
+  egress: [ ]
+
 probes:
   startup:
     httpGet:

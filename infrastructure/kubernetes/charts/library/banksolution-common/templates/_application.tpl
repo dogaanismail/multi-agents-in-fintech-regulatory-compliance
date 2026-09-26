@@ -4,6 +4,10 @@
 {{ include "banksolution-common.deployment" . }}
 ---
 {{ include "banksolution-common.service" . }}
+{{- if include "banksolution-common.enabled" .Values.networkPolicy }}
+---
+{{ include "banksolution-common.networkPolicy" . }}
+{{- end }}
 {{- if .Values.persistentPaths }}
 {{ include "banksolution-common.persistentVolumeClaims" . }}
 {{- end }}

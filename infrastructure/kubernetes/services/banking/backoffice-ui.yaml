@@ -5,3 +5,7 @@ image:
 
 env:
   BACKEND_URL: http://backoffice-gateway.banking.svc.cluster.local:3030
+
+networkPolicy:
+  egress:
+    - backoffice-gateway

@@ -19,3 +19,17 @@ env:
   CONFIGURATION_SERVICE_URL: http://configuration-service:5009
   LEDGER_SERVICE_URL: http://ledger-service:5013
   MARL_ORCHESTRATOR_URL: http://marl-orchestrator.ai:1004
+
+networkPolicy:
+  egress:
+    - customer-service
+    - account-service
+    - payment-service
+    - payment-engine-service
+    - payment-history-service
+    - risk-engine-service
+    - network-topology-service
+    - customer-profile-service
+    - configuration-service
+    - ledger-service
+    - ai/marl-orchestrator

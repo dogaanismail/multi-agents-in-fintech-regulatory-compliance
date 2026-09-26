@@ -11,6 +11,12 @@ env:
   LOG_LEVEL: info
   OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo.observability:4318
 
+networkPolicy:
+  enabled: true
+  baseline:
+    - dns
+  egress: [ ]
+
 probes:
   startup:
     httpGet:

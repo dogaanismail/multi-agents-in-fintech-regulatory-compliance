@@ -25,3 +25,8 @@ migration:
   enabled: true
   image:
     repository: payment-svc-db-migration-app
+
+networkPolicy:
+  egress:
+    - account-service
+    - internet-https

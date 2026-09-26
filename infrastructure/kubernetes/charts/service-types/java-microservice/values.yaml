@@ -25,6 +25,7 @@ datasource:
   port: 5432
   database: ""
   credentialsSecret: ""
+  networkPeer: bank-postgres
   waitForDatabase:
     enabled: true
     image: ghcr.io/cloudnative-pg/postgresql:16
@@ -37,6 +38,9 @@ messaging:
   topicEnvFormat: SPRING_KAFKA_TOPICS_%s_%s
   consumes: { }
   produces: { }
+  networkPeers:
+    - kafka
+    - schema-registry
 
 migration:
   enabled: false
@@ -52,6 +56,12 @@ migration:
       memory: 128Mi
     limits:
       memory: 256Mi
+
+networkPolicy:
+  enabled: true
+  baseline:
+    - dns
+  egress: [ ]
 
 probes:
   startup:

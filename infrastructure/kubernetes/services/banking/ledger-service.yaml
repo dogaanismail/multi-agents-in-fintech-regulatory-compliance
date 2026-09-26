@@ -24,3 +24,7 @@ messaging:
   produces:
     ledger-posting-completed: ledger.posting.completed
     wallet-balance-changed: ledger.wallet.balance.changed
+
+networkPolicy:
+  egress:
+    - tigerbeetle

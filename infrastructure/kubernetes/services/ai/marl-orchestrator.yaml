@@ -40,3 +40,10 @@ writablePaths:
 persistentPaths:
   - path: /app/trained_models
     size: 1Gi
+
+networkPolicy:
+  egress:
+    - transaction-pattern-agent
+    - customer-risk-agent
+    - network-analysis-agent
+    - banking/configuration-service
