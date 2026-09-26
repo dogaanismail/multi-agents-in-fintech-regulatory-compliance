@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Beneficiaries")
 @RequestMapping("/api/v1/beneficiaries")
 @RequiredArgsConstructor
 @Validated
@@ -36,6 +39,7 @@ public class BeneficiaryController {
 
     private final BeneficiaryService beneficiaryService;
 
+    @Operation(summary = "Create a beneficiary")
     @PostMapping
     public ResponseEntity<@NonNull BeneficiaryResponse> createBeneficiary(
             @Valid @RequestBody BeneficiaryCreateRequest beneficiaryCreateRequest) {
@@ -45,18 +49,21 @@ public class BeneficiaryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(beneficiaryResponse);
     }
 
+    @Operation(summary = "Get a beneficiary by id")
     @GetMapping("/{beneficiaryId}")
     public ResponseEntity<@NonNull BeneficiaryResponse> getBeneficiaryById(@PathVariable UUID beneficiaryId) {
         log.info("GET /api/v1/beneficiaries/{} - Fetching beneficiary", beneficiaryId);
         return ResponseEntity.ok(beneficiaryService.getBeneficiaryById(beneficiaryId));
     }
 
+    @Operation(summary = "List a customer's beneficiaries")
     @GetMapping
     public ResponseEntity<@NonNull List<BeneficiaryResponse>> getBeneficiariesByCustomerId(@RequestParam UUID customerId) {
         log.info("GET /api/v1/beneficiaries?customerId={} - Fetching beneficiaries", customerId);
         return ResponseEntity.ok(beneficiaryService.getBeneficiariesByCustomerId(customerId));
     }
 
+    @Operation(summary = "Update a beneficiary")
     @PutMapping("/{beneficiaryId}")
     public ResponseEntity<@NonNull BeneficiaryResponse> updateBeneficiary(
             @PathVariable UUID beneficiaryId,
@@ -66,6 +73,7 @@ public class BeneficiaryController {
         return ResponseEntity.ok(beneficiaryService.updateBeneficiary(beneficiaryId, beneficiaryUpdateRequest));
     }
 
+    @Operation(summary = "Soft delete a beneficiary")
     @DeleteMapping("/{beneficiaryId}")
     public ResponseEntity<@NonNull Void> deleteBeneficiary(
             @PathVariable UUID beneficiaryId,
@@ -77,6 +85,7 @@ public class BeneficiaryController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Add a coordinate to a beneficiary")
     @PostMapping("/{beneficiaryId}/coordinates")
     public ResponseEntity<@NonNull BeneficiaryResponse> addBeneficiaryCoordinate(
             @PathVariable UUID beneficiaryId,
@@ -87,6 +96,7 @@ public class BeneficiaryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(beneficiaryResponse);
     }
 
+    @Operation(summary = "Soft delete a beneficiary coordinate")
     @DeleteMapping("/{beneficiaryId}/coordinates/{beneficiaryCoordinateId}")
     public ResponseEntity<@NonNull Void> deleteBeneficiaryCoordinate(
             @PathVariable UUID beneficiaryId,

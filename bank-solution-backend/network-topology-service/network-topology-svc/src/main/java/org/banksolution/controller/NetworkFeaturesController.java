@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.dto.NetworkFeaturesDto;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Network Features")
 @RestController
 @RequestMapping("/api/v1/networks")
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class NetworkFeaturesController {
 
     private final NetworkFeatureService networkFeatureService;
 
+    @Operation(summary = "Get network features for an account")
     @GetMapping("/features/{accountId}")
     public ResponseEntity<NetworkFeaturesDto> getNetworkFeatures(@PathVariable String accountId) {
         log.info("REST request to get network features for account: {}", accountId);

@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Configurations")
 @RequestMapping("/api/v1/configurations")
 @RequiredArgsConstructor
 @Slf4j
@@ -25,6 +28,7 @@ public class ConfigurationController {
 
     private final ConfigurationService configurationService;
 
+    @Operation(summary = "Create a configuration")
     @PostMapping
     public ResponseEntity<@NonNull ConfigurationResponse> createConfiguration(@Valid @RequestBody CreateConfigRequest request) {
         log.info("POST /api/v1/configurations - Creating configuration with key: {}", request.getConfigKey());
@@ -32,30 +36,35 @@ public class ConfigurationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "List all configurations")
     @GetMapping
     public ResponseEntity<@NonNull List<ConfigurationResponse>> getAllConfigurations() {
         log.info("GET /api/v1/configurations - Fetching all configurations");
         return ResponseEntity.ok(configurationService.getAllConfigurations());
     }
 
+    @Operation(summary = "Get a configuration by id")
     @GetMapping("/{id}")
     public ResponseEntity<@NonNull ConfigurationResponse> getConfigurationById(@PathVariable UUID id) {
         log.info("GET /api/v1/configurations/{} - Fetching configuration", id);
         return ResponseEntity.ok(configurationService.getConfigurationById(id));
     }
 
+    @Operation(summary = "Get a configuration by key")
     @GetMapping("/key/{key}")
     public ResponseEntity<@NonNull ConfigurationResponse> getConfigurationByKey(@PathVariable String key) {
         log.info("GET /api/v1/configurations/key/{} - Fetching configuration", key);
         return ResponseEntity.ok(configurationService.getConfigurationByKey(key));
     }
 
+    @Operation(summary = "List configurations by category")
     @GetMapping("/category/{category}")
     public ResponseEntity<@NonNull List<ConfigurationResponse>> getConfigurationsByCategory(@PathVariable ConfigCategory category) {
         log.info("GET /api/v1/configurations/category/{} - Fetching configurations", category);
         return ResponseEntity.ok(configurationService.getConfigurationsByCategory(category));
     }
 
+    @Operation(summary = "Update a configuration")
     @PutMapping("/{id}")
     public ResponseEntity<@NonNull ConfigurationResponse> updateConfiguration(
             @PathVariable UUID id,
@@ -64,6 +73,7 @@ public class ConfigurationController {
         return ResponseEntity.ok(configurationService.updateConfiguration(id, request));
     }
 
+    @Operation(summary = "Delete a configuration")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteConfiguration(@PathVariable UUID id) {
         log.info("DELETE /api/v1/configurations/{} - Deleting configuration", id);
@@ -71,6 +81,7 @@ public class ConfigurationController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Get the audit log for a key")
     @GetMapping("/key/{key}/audit-log")
     public ResponseEntity<@NonNull List<ConfigAuditLogResponse>> getAuditLogByKey(@PathVariable String key) {
         log.info("GET /api/v1/configurations/key/{}/audit-log - Fetching audit log", key);

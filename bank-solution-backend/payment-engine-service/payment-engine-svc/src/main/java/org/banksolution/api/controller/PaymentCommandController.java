@@ -1,5 +1,7 @@
 package org.banksolution.api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.banksolution.api.dto.ApproveManualReviewRequest;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Payment Commands")
 @RestController
 @RequestMapping("/api/v1/payment-engine/payments")
 @RequiredArgsConstructor
@@ -21,11 +24,13 @@ public class PaymentCommandController {
 
     private final PaymentCommandService paymentCommandService;
 
+    @Operation(summary = "Initiate a payment")
     @PostMapping
     public ResponseEntity<@NonNull InitiatePaymentResponse> initiatePayment(@RequestBody InitiatePaymentRequest initiatePaymentRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentCommandService.initiatePayment(initiatePaymentRequest));
     }
 
+    @Operation(summary = "Approve a manual review")
     @PostMapping("/{paymentId}/manual-review/approve")
     public ResponseEntity<@NonNull ManualReviewResponse> approveManualReview(
             @PathVariable String paymentId,
@@ -33,6 +38,7 @@ public class PaymentCommandController {
         return ResponseEntity.ok(paymentCommandService.approveManualReview(paymentId, approveManualReviewRequest));
     }
 
+    @Operation(summary = "Reject a manual review")
     @PostMapping("/{paymentId}/manual-review/reject")
     public ResponseEntity<@NonNull ManualReviewResponse> rejectManualReview(
             @PathVariable String paymentId,
@@ -40,6 +46,7 @@ public class PaymentCommandController {
         return ResponseEntity.ok(paymentCommandService.rejectManualReview(paymentId, rejectManualReviewRequest));
     }
 
+    @Operation(summary = "Override a compliance decision")
     @PostMapping("/{paymentId}/decision/override")
     public ResponseEntity<@NonNull OverrideDecisionResponse> overrideDecision(
             @PathVariable String paymentId,

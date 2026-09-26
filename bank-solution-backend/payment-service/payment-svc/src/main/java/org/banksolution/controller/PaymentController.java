@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Payments")
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Slf4j
@@ -22,6 +25,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+    @Operation(summary = "Request a payment")
     @PostMapping("/request")
     public ResponseEntity<@NonNull PaymentRequestResponse> requestPayment(
             @Valid @RequestBody PaymentRequest paymentRequest) {
@@ -36,6 +40,7 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentRequestResponse);
     }
 
+    @Operation(summary = "List payments by customer")
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<@NonNull List<PaymentRequestResponse>> getPaymentsByCustomerId(
             @PathVariable UUID customerId) {

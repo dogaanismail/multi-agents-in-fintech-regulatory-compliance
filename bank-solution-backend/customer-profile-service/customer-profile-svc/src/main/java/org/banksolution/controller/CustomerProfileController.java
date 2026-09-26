@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.dto.CustomerFeaturesResponse;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Customer Profiles")
 @RestController
 @RequestMapping("/api/v1/customer-profiles")
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class CustomerProfileController {
 
     private final CustomerProfileService customerProfileService;
 
+    @Operation(summary = "Get behavioural features for a customer")
     @GetMapping("/customer/{customerId}/features")
     public ResponseEntity<CustomerFeaturesResponse> getCustomerFeatures(@PathVariable String customerId) {
         log.info("REST request to get customer features for customerId: {}", customerId);
@@ -25,6 +29,7 @@ public class CustomerProfileController {
         return ResponseEntity.ok(features);
     }
 
+    @Operation(summary = "Get behavioural features for an account")
     @GetMapping("/account/{accountId}/features")
     public ResponseEntity<CustomerFeaturesResponse> getFeaturesByAccountId(@PathVariable String accountId) {
         log.info("REST request to get customer features for accountId: {}", accountId);

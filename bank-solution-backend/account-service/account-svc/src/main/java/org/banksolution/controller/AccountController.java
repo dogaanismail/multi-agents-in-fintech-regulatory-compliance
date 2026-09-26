@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Accounts")
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
 @Slf4j
@@ -26,6 +29,7 @@ public class AccountController {
     private final AccountService accountService;
     private final AccountWalletService accountWalletService;
 
+    @Operation(summary = "Open an account")
     @PostMapping("open-account")
     public ResponseEntity<@NonNull AccountResponse> openAccount(@Valid @RequestBody OpenAccountRequest openAccountRequest) {
         log.info("POST /api/v1/accounts - Opening account for customer: {}", openAccountRequest.getCustomerId());
@@ -33,6 +37,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(accountResponse);
     }
 
+    @Operation(summary = "Get an account by id")
     @GetMapping("/{id}")
     public ResponseEntity<@NonNull AccountResponse> getAccountById(@PathVariable("id") UUID accountId) {
         log.info("GET /api/v1/accounts/{} - Fetching account", accountId);
@@ -40,6 +45,7 @@ public class AccountController {
         return ResponseEntity.ok(accountResponse);
     }
 
+    @Operation(summary = "Get accounts by ids")
     @GetMapping("/ids")
     public ResponseEntity<@NonNull List<AccountResponse>> getByAccountIds(@RequestParam("ids") List<UUID> accountIds) {
         log.info("GET /api/v1/accounts - Fetching accounts with ids: {}", accountIds);
@@ -47,6 +53,7 @@ public class AccountController {
         return ResponseEntity.ok(accountResponses);
     }
 
+    @Operation(summary = "List a customer's accounts")
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<@NonNull List<AccountResponse>> getAccountsByCustomerId(@PathVariable UUID customerId) {
         log.info("GET /api/v1/accounts/customer/{} - Fetching accounts for customer", customerId);
@@ -54,6 +61,7 @@ public class AccountController {
         return ResponseEntity.ok(accountResponses);
     }
 
+    @Operation(summary = "List an account's wallets")
     @GetMapping("/{id}/wallets")
     public ResponseEntity<@NonNull List<AccountWalletResponse>> getWalletsByAccountId(@PathVariable("id") UUID accountId) {
         log.info("GET /api/v1/accounts/{}/wallets - Fetching wallets", accountId);
@@ -61,6 +69,7 @@ public class AccountController {
         return ResponseEntity.ok(accountWalletResponses);
     }
 
+    @Operation(summary = "Get an account wallet by currency")
     @GetMapping("/{id}/wallets/{currency}")
     public ResponseEntity<@NonNull AccountWalletResponse> getWalletByCurrency(
             @PathVariable("id") UUID accountId,
