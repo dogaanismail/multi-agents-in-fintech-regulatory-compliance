@@ -40,6 +40,9 @@ single source of truth. Subjects to register are listed in that chart's `values.
    `<service>-db-credentials` secret.
 2. Copy `charts/banking/risk-engine-service`, then set `image.repository`, `containerPort`, `env`, `datasource` and
    `migration.image.repository`. `messaging.enabled: true` injects `KAFKA_BOOTSTRAP_SERVERS` and `SCHEMA_REGISTRY_URL`.
+   Declare every topic the service touches under `messaging.consumes` / `messaging.produces`, keyed like its
+   `spring.kafka.topics.incoming.<key>` / `outgoing.<key>` properties. These become
+   `SPRING_KAFKA_TOPICS_INCOMING_<KEY>` env vars, so the values file is what the pod actually uses.
 3. Add its images to `JAVA_IMAGES` in `scripts/build-images.sh` and a release to `helmfile.yaml.gotmpl`.
 
 Kafka bootstrap for services: `bank-kafka-kafka-bootstrap.platform:9092`; Schema Registry:
