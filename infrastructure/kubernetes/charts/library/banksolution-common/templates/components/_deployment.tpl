@@ -50,4 +50,18 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- with .Values.writablePaths }}
+          volumeMounts:
+            {{- range $index, $path := . }}
+            - name: writable-{{ $index }}
+              mountPath: {{ $path }}
+            {{- end }}
+          {{- end }}
+      {{- with .Values.writablePaths }}
+      volumes:
+        {{- range $index, $path := . }}
+        - name: writable-{{ $index }}
+          emptyDir: {}
+        {{- end }}
+      {{- end }}
 {{- end -}}

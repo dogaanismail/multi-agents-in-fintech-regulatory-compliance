@@ -1,0 +1,11 @@
+image:
+  repository: customer-risk-agent
+
+containerPort: 1002
+
+env:
+  PORT: 1002
+  MODEL_PATH: /app/trained_models
+
+writablePaths:
+  - /app/logs
