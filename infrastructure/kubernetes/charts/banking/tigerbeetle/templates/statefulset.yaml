@@ -1,0 +1,77 @@
+{{- $dataFile := "/data/0_0.tigerbeetle" }}
+{{- $developmentFlag := ternary "--development" "" .Values.development }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: bank-solution
+spec:
+  serviceName: {{ .Release.Name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/part-of: bank-solution
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        seccompProfile:
+          type: Unconfined
+      initContainers:
+        - name: format
+          image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - test -f {{ $dataFile }} || /tigerbeetle format --cluster={{ .Values.clusterId }} --replica=0 --replica-count=1 {{ $developmentFlag }} {{ $dataFile }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: tigerbeetle
+          image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - start
+            - --addresses=0.0.0.0: {{ .Values.port }}
+            - --cache-grid={{ .Values.cacheGrid }}
+            {{- if .Values.development }}
+            - --development
+            {{- end }}
+            - {{ $dataFile }}
+          ports:
+            - name: tigerbeetle
+              containerPort: {{ .Values.port }}
+          readinessProbe:
+            tcpSocket:
+              port: tigerbeetle
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: tigerbeetle
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}

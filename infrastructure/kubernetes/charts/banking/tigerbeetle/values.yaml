@@ -1,0 +1,19 @@
+image:
+  repository: ghcr.io/tigerbeetle/tigerbeetle
+  tag: 0.17.9
+  pullPolicy: IfNotPresent
+
+clusterId: 0
+port: 3000
+cacheGrid: 128MiB
+development: true
+
+storage:
+  size: 2Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 1664Mi
+  limits:
+    memory: 2Gi

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ledger-service
+description: Double-entry ledger over TigerBeetle; applies posting instructions and publishes wallet balance changes
+type: application
+version: 0.1.0
+appVersion: 0.0.1-SNAPSHOT
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

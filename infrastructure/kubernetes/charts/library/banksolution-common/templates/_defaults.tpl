@@ -12,6 +12,7 @@ service:
 jvm:
   enabled: true
   options: -Xms32m -Xmx192m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
+  extraOptions: ""
 env: {}
 secretEnv: []
 resources:

@@ -190,3 +190,22 @@ releases:
       - banking/bank-postgres
       - banking/neo4j
       - platform/schema-registry
+
+  - name: tigerbeetle
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/tigerbeetle
+    labels:
+      tier: data
+
+  - name: ledger-service
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/ledger-service
+    labels:
+      tier: banking
+    needs:
+      - banking/tigerbeetle
+      - platform/schema-registry

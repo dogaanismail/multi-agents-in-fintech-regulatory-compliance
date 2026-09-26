@@ -23,6 +23,7 @@ JAVA_IMAGES=(
     "payment-svc-db-migration-app|payment-service/payment-svc-db-migration"
     "payment-engine-svc-api|payment-engine-service/payment-engine-svc"
     "network-topology-svc|network-topology-service/network-topology-svc"
+    "ledger-svc|ledger-service/ledger-svc"
 )
 
 selected_images=()

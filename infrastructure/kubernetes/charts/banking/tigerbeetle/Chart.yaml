@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tigerbeetle
+description: Single-replica TigerBeetle cluster, the double-entry source of truth behind ledger-service
+type: application
+version: 0.1.0
+appVersion: 0.17.9

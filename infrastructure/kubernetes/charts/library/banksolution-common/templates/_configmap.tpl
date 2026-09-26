@@ -7,7 +7,7 @@ metadata:
     {{- include "banksolution-common.labels" . | nindent 4 }}
 data:
   {{- if .Values.jvm.enabled }}
-  JAVA_OPTS: {{ .Values.jvm.options | quote }}
+  JAVA_OPTS: {{ trim (printf "%s %s" .Values.jvm.options .Values.jvm.extraOptions) | quote }}
   MALLOC_ARENA_MAX: "2"
   {{- end }}
   {{- if .Values.messaging.enabled }}
