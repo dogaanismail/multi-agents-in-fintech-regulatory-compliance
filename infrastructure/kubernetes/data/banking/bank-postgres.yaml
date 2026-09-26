@@ -26,3 +26,6 @@ databases:
   - service: network-topology-service
     database: network_topology_db
     role: network_topology
+  - service: beneficiary-service
+    database: beneficiary_service_db
+    role: beneficiary_service

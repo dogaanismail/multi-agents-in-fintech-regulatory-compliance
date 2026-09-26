@@ -1,0 +1,25 @@
+serviceType: java-microservice
+
+image:
+  repository: beneficiary-svc-api
+
+containerPort: 5014
+
+env:
+  SERVER_PORT: 5014
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+  CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
+
+datasource:
+  enabled: true
+  database: beneficiary_service_db
+  credentialsSecret: beneficiary-service-db-credentials
+
+migration:
+  enabled: true
+  image:
+    repository: beneficiary-svc-db-migration-app
+
+networkPolicy:
+  egress:
+    - customer-service

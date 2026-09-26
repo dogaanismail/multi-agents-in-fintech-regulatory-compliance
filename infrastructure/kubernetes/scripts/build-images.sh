@@ -25,6 +25,8 @@ JAVA_IMAGES=(
     "network-topology-svc|network-topology-service/network-topology-svc"
     "ledger-svc|ledger-service/ledger-svc"
     "backoffice-gateway-svc|backoffice-gateway/backoffice-gateway-svc"
+    "beneficiary-svc-api|beneficiary-service/beneficiary-svc"
+    "beneficiary-svc-db-migration-app|beneficiary-service/beneficiary-svc-db-migration"
 )
 
 DOCKERFILE_IMAGES=(

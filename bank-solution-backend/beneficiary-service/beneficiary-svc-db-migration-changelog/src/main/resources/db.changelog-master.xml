@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="2026-09-27-01-00" author="Ismail Dogan">
+        <comment>Add beneficiary table</comment>
+        <sqlFile path="changelog/add_beneficiary_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-09-27-01-05" author="Ismail Dogan">
+        <comment>Add beneficiary_coordinate table</comment>
+        <sqlFile path="changelog/add_beneficiary_coordinate_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>

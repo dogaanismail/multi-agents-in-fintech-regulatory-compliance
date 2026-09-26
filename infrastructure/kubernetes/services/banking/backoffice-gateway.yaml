@@ -18,6 +18,7 @@ env:
   CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-service:5008
   CONFIGURATION_SERVICE_URL: http://configuration-service:5009
   LEDGER_SERVICE_URL: http://ledger-service:5013
+  BENEFICIARY_SERVICE_URL: http://beneficiary-service:5014
   MARL_ORCHESTRATOR_URL: http://marl-orchestrator.ai:1004
 
 networkPolicy:
@@ -32,4 +33,5 @@ networkPolicy:
     - customer-profile-service
     - configuration-service
     - ledger-service
+    - beneficiary-service
     - ai/marl-orchestrator

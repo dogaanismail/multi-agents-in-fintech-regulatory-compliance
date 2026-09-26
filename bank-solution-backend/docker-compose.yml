@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: default
       POSTGRES_PASSWORD: default
-      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db,customer_profile_db,configuration_service_db
+      POSTGRES_MULTIPLE_DATABASES: customer_service_db,payment_service_db,account_service_db,risk_engine_db,network_topology_db,payment_history_db,payment_engine_db,customer_profile_db,configuration_service_db,beneficiary_service_db
     ports:
       - "5433:5432"
     volumes:
@@ -64,6 +64,58 @@ services:
       - aml-network
     healthcheck:
       test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/5001 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Beneficiary Service Database Migration
+  beneficiary-db-migration:
+    image: beneficiary-svc-db-migration-app:latest
+    container_name: beneficiary-svc-db-migration-service
+    build:
+      context: ./beneficiary-service/beneficiary-svc-db-migration
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/beneficiary_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_LIQUIBASE_ENABLED: "true"
+    depends_on:
+      bank-solution-postgres:
+        condition: service_healthy
+    networks:
+      - bank-network
+    restart: on-failure
+
+  # Beneficiary Service
+  beneficiary-service:
+    image: beneficiary-svc-api:latest
+    container_name: beneficiary-svc-app
+    build:
+      context: ./beneficiary-service/beneficiary-svc
+      dockerfile: Dockerfile
+    ports:
+      - "5014:5014"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/beneficiary_service_db
+      SPRING_DATASOURCE_USERNAME: default
+      SPRING_DATASOURCE_PASSWORD: default
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
+      SERVER_PORT: 5014
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    depends_on:
+      beneficiary-db-migration:
+        condition: service_completed_successfully
+      customer-service:
+        condition: service_started
+    networks:
+      - bank-network
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/5014 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -569,6 +621,7 @@ services:
       CUSTOMER_PROFILE_SERVICE_URL: http://customer-profile-svc:5008
       CONFIGURATION_SERVICE_URL: http://configuration-service:5009
       LEDGER_SERVICE_URL: http://ledger-service:5013
+      BENEFICIARY_SERVICE_URL: http://beneficiary-service:5014
       MARL_ORCHESTRATOR_URL: http://marl-orchestrator:1004
       CORS_ORIGINS: http://localhost:6060
       OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces

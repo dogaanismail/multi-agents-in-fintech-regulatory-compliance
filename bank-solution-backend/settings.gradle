@@ -21,6 +21,12 @@ include 'customer-service:customer-svc'
 include 'customer-service:customer-svc-db-migration'
 include 'customer-service:customer-svc-db-migration-changelog'
 
+// beneficiary service modules
+include 'beneficiary-service'
+include 'beneficiary-service:beneficiary-svc'
+include 'beneficiary-service:beneficiary-svc-db-migration'
+include 'beneficiary-service:beneficiary-svc-db-migration-changelog'
+
 // account service modules
 include 'account-service'
 include 'account-service:account-svc'
