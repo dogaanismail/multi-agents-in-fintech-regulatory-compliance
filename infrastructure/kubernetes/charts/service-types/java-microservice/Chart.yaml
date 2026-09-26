@@ -1,0 +1,9 @@
+apiVersion: v2
+name: java-microservice
+description: "Spring Boot service: tuned JVM, Actuator probes, optional PostgreSQL, Kafka and Liquibase migration Job"
+type: application
+version: 0.1.0
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

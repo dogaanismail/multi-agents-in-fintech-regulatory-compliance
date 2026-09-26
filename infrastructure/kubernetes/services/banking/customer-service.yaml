@@ -1,0 +1,18 @@
+image:
+  repository: customer-svc-api
+
+containerPort: 5001
+
+env:
+  SERVER_PORT: 5001
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+
+datasource:
+  enabled: true
+  database: customer_service_db
+  credentialsSecret: customer-service-db-credentials
+
+migration:
+  enabled: true
+  image:
+    repository: customer-svc-db-migration-app

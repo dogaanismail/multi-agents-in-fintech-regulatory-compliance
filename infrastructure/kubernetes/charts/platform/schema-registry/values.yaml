@@ -1,29 +1,66 @@
+replicaCount: 1
+
 image:
   repository: confluentinc/cp-schema-registry
   tag: 7.5.0
+  pullPolicy: IfNotPresent
 
 containerPort: 8081
 
-jvm:
-  enabled: false
-
 env:
-  SCHEMA_REGISTRY_HOST_NAME: schema-registry
   SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
   SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: bank-kafka-kafka-bootstrap:9092
   SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: full
   SCHEMA_REGISTRY_HEAP_OPTS: -Xms128m -Xmx256m
 
+extraEnv:
+  - name: SCHEMA_REGISTRY_HOST_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+
 probes:
   startup:
     httpGet:
       path: /
+      port: http
+    periodSeconds: 5
+    failureThreshold: 36
   liveness:
     httpGet:
       path: /
+      port: http
+    periodSeconds: 10
+    failureThreshold: 3
   readiness:
     httpGet:
       path: /subjects
+      port: http
+    periodSeconds: 10
+    failureThreshold: 3
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+terminationGracePeriodSeconds: 45
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
 
 schemaRegistration:
   image: python:3.11-slim

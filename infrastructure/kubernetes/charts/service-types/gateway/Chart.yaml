@@ -1,0 +1,9 @@
+apiVersion: v2
+name: gateway
+description: "Spring Cloud Gateway: tuned JVM and Actuator probes; routes are plain env vars"
+type: application
+version: 0.1.0
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

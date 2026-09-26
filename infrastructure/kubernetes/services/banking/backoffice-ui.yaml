@@ -1,0 +1,5 @@
+image:
+  repository: backoffice-ui
+
+env:
+  BACKEND_URL: http://backoffice-gateway.banking.svc.cluster.local:3030

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: ai-agent
+description: "Python FastAPI model service with a /api/v1/health endpoint"
+type: application
+version: 0.1.0
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

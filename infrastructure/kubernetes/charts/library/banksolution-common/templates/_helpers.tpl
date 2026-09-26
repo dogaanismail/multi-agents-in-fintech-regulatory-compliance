@@ -1,5 +1,9 @@
+{{- define "banksolution-common.enabled" -}}
+{{- if and . .enabled }}true{{ end -}}
+{{- end -}}
+
 {{- define "banksolution-common.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- default .Release.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "banksolution-common.selectorLabels" -}}
@@ -19,8 +23,12 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 {{- printf "%s:%s" .repository .tag -}}
 {{- end -}}
 
+{{- define "banksolution-common.topicEnvName" -}}
+{{- printf "SPRING_KAFKA_TOPICS_%s_%s" (index . 0) (index . 1) | upper | replace "-" "_" | replace "." "_" -}}
+{{- end -}}
+
 {{- define "banksolution-common.datasourceEnv" -}}
-{{- if .Values.datasource.enabled }}
+{{- if include "banksolution-common.enabled" .Values.datasource }}
 - name: SPRING_DATASOURCE_URL
   value: {{ printf "jdbc:postgresql://%s:%v/%s" .Values.datasource.host .Values.datasource.port .Values.datasource.database | quote }}
 - name: SPRING_DATASOURCE_USERNAME
@@ -46,8 +54,4 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
       name: {{ .secretName }}
       key: {{ .key }}
 {{- end }}
-{{- end -}}
-
-{{- define "banksolution-common.topicEnvName" -}}
-{{- printf "SPRING_KAFKA_TOPICS_%s_%s" (index . 0) (index . 1) | upper | replace "-" "_" | replace "." "_" -}}
 {{- end -}}

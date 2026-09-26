@@ -7,43 +7,63 @@ integration, scaling and failure testing, and is what EKS/AKS will run later.
 
 ```bash
 brew install kind helm helmfile kubectl
-./scripts/cluster-up.sh       # kind cluster "banksolution"
-./scripts/build-images.sh     # bootJar -> docker build -> kind load (tag: local); filter: build-images.sh risk
-./scripts/deploy.sh           # helmfile sync, environment "local"
-./scripts/deploy.sh --selector name=configuration-service    # one release
+./scripts/cluster-up.sh                      # kind cluster "banksolution"
+./scripts/build-images.sh                    # build + kind load every image (tag: local); filter: build-images.sh risk
+./scripts/deploy.sh --concurrency 2          # helmfile sync, environment "local"
+./scripts/deploy.sh --selector name=payment-service
 ./scripts/cluster-down.sh
 ```
 
-Needs roughly 5 GB of Docker memory and free Docker disk; a full Docker VM disk shows up as Kafka/PostgreSQL
+Keep `--concurrency` low for full syncs: a rolling update briefly runs old and new pods side by side.
+
+Needs about 13 GB of Docker memory and free Docker disk; a full Docker VM disk shows up as Kafka/PostgreSQL
 crash-loops ("Not enough disk space" on the CNPG cluster).
 
 ## Layout
 
-| Path                                 | Holds                                                                                                        |
-|--------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| `charts/library/banksolution-common` | Library chart: ConfigMap, Deployment, Service, Liquibase migration Job, defaults                             |
-| `charts/platform/*`                  | Our platform charts: `kafka` (Strimzi KRaft cluster + topics), `schema-registry` (+ schema registration Job) |
-| `charts/banking/*`, `charts/ai/*`    | One thin chart per service: `Chart.yaml`, `values.yaml`, `templates/resources.yaml`                          |
-| `platform/*`                         | Values for third-party operator charts (Strimzi, CloudNativePG)                                              |
-| `environments/<env>/<release>.yaml`  | Per-environment overrides, picked up automatically by release name; optional                                 |
-| `helmfile.yaml.gotmpl`               | Releases, order (`needs`) and readiness waits                                                                |
+| Path                                  | Holds                                                                                   |
+|---------------------------------------|-----------------------------------------------------------------------------------------|
+| `charts/service-types/*`              | One chart per kind of service; its `values.yaml` is the complete definition of the type |
+| `services/<namespace>/<release>.yaml` | One file per service: only what differs from its type                                   |
+| `charts/library/banksolution-common`  | Building blocks the types assemble: ConfigMap, Deployment, Service, migration Job       |
+| `charts/data/*`                       | Stateful stores: `bank-postgres` (CNPG), `neo4j` (official chart), `tigerbeetle`        |
+| `charts/platform/*`                   | `kafka` (Strimzi KRaft + topics), `schema-registry` (+ schema registration Job)         |
+| `platform/*`                          | Values for third-party operator charts (Strimzi, CloudNativePG)                         |
+| `environments/<env>/services.yaml`    | Overrides applied to every service in that environment                                  |
+| `environments/<env>/<release>.yaml`   | Overrides for one data/platform release (credentials, sizes); optional                  |
+| `helmfile.yaml.gotmpl`                | Releases: which type each service is, order (`needs`), readiness waits                  |
 
-Namespaces: `platform` (Kafka, Schema Registry), `cnpg-system` (operator), `banking`, later `ai` and `observability`.
+### Service types
+
+| Type                | Gives you                                                                   | Services            |
+|---------------------|-----------------------------------------------------------------------------|---------------------|
+| `java-microservice` | Tuned JVM, Actuator probes, optional `datasource`, `messaging`, `migration` | 10 banking services |
+| `gateway`           | Tuned JVM, Actuator probes; routes as env vars                              | backoffice-gateway  |
+| `frontend`          | nginx on :80, probes on `/`, 64 Mi                                          | backoffice-ui       |
+| `ai-agent`          | Python, probes on `/api/v1/health`, non-root                                | ML agents           |
+
+A block that a type does not declare is off. Anything in a type can be overridden per service (e.g. `ledger-service`
+adds `jvm.extraOptions` and an `Unconfined` seccomp profile; `schema-registry` uses `extraEnv` for a Downward API
+host name).
+
+Namespaces: `platform`, `cnpg-system`, `banking`, `ai`, later `observability`.
 
 `schema-registry/schemas` is a symlink to `libraries/avro-schema-library/schemas`, so the `.avsc` files stay the
 single source of truth. Subjects to register are listed in that chart's `values.yaml`.
 
-## Adding a PostgreSQL-backed Java service
+## Adding a service
 
-1. `charts/banking/bank-postgres/values.yaml`: add `{service, database, role}` to `databases`; add its password under
-   `credentials` in `environments/local/bank-postgres.yaml`. This creates the role, the database and the
-   `<service>-db-credentials` secret.
-2. Copy `charts/banking/risk-engine-service`, then set `image.repository`, `containerPort`, `env`, `datasource` and
-   `migration.image.repository`. `messaging.enabled: true` injects `KAFKA_BOOTSTRAP_SERVERS` and `SCHEMA_REGISTRY_URL`.
-   Declare every topic the service touches under `messaging.consumes` / `messaging.produces`, keyed like its
-   `spring.kafka.topics.incoming.<key>` / `outgoing.<key>` properties. These become
-   `SPRING_KAFKA_TOPICS_INCOMING_<KEY>` env vars, so the values file is what the pod actually uses.
-3. Add its images to `JAVA_IMAGES` in `scripts/build-images.sh` and a release to `helmfile.yaml.gotmpl`.
+1. Write `services/<namespace>/<name>.yaml`: image, `containerPort`, `env`, and the blocks it needs.
+   - `datasource`: also add `{service, database, role}` to `charts/data/bank-postgres/values.yaml` and its password
+     to `environments/local/bank-postgres.yaml`. That creates the role, the database and `<name>-db-credentials`.
+   - `messaging`: list every topic under `consumes` / `produces`, keyed like the service's
+     `spring.kafka.topics.incoming.<key>` / `outgoing.<key>`. They become `SPRING_KAFKA_TOPICS_*` env vars, so this
+     file is what the pod actually uses.
+   - `migration`: the Liquibase image, run as a pre-install/pre-upgrade Job.
+2. Add a release to `helmfile.yaml.gotmpl` with `chart: charts/service-types/<type>` and `inherit: [template: service]`.
+3. Add the image to `scripts/build-images.sh` (`JAVA_IMAGES` for Gradle modules, `DOCKERFILE_IMAGES` otherwise).
 
-Kafka bootstrap for services: `bank-kafka-kafka-bootstrap.platform:9092`; Schema Registry:
-`http://schema-registry.platform:8081`.
+After editing the library chart, run `helm dependency update` on each type chart and on `schema-registry`: they
+vendor a packaged copy of it.
+
+Kafka bootstrap: `bank-kafka-kafka-bootstrap.platform:9092`. Schema Registry: `http://schema-registry.platform:8081`.

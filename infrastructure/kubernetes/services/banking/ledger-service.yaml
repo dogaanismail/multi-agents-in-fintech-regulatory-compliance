@@ -1,0 +1,24 @@
+image:
+  repository: ledger-svc
+
+containerPort: 5013
+
+jvm:
+  extraOptions: --enable-native-access=ALL-UNNAMED
+
+podSecurityContext:
+  seccompProfile:
+    type: Unconfined
+
+env:
+  SERVER_PORT: 5013
+  TIGERBEETLE_CLUSTER_ID: 0
+  TIGERBEETLE_ADDRESSES: tigerbeetle:3000
+
+messaging:
+  enabled: true
+  consumes:
+    ledger-posting-requested: ledger.posting.requested
+  produces:
+    ledger-posting-completed: ledger.posting.completed
+    wallet-balance-changed: ledger.wallet.balance.changed

@@ -17,10 +17,16 @@ repositories:
     url: https://cloudnative-pg.github.io/charts
 
 templates:
-  release:
+  data:
     missingFileHandler: Info
     values:
       - environments/{{`{{ .Environment.Name }}`}}/{{`{{ .Release.Name }}`}}.yaml
+
+  service:
+    missingFileHandler: Error
+    values:
+      - services/{{`{{ .Release.Namespace }}`}}/{{`{{ .Release.Name }}`}}.yaml
+      - environments/{{`{{ .Environment.Name }}`}}/services.yaml
 
 releases:
   - name: strimzi-operator
@@ -43,9 +49,9 @@ releases:
 
   - name: kafka
     namespace: platform
-    inherit:
-      - template: release
     chart: charts/platform/kafka
+    inherit:
+      - template: data
     labels:
       tier: platform
     needs:
@@ -58,9 +64,9 @@ releases:
 
   - name: schema-registry
     namespace: platform
-    inherit:
-      - template: release
     chart: charts/platform/schema-registry
+    inherit:
+      - template: data
     labels:
       tier: platform
     needs:
@@ -68,9 +74,9 @@ releases:
 
   - name: bank-postgres
     namespace: banking
+    chart: charts/data/bank-postgres
     inherit:
-      - template: release
-    chart: charts/banking/bank-postgres
+      - template: data
     labels:
       tier: data
     needs:
@@ -85,64 +91,58 @@ releases:
         command: kubectl
         args: ["--context", "{{ .Values.kubeContext }}", "--namespace", "banking", "wait", "database", "--all", "--for=jsonpath={.status.applied}=true", "--timeout=300s"]
 
+  - name: neo4j
+    namespace: banking
+    chart: charts/data/neo4j
+    inherit:
+      - template: data
+    labels:
+      tier: data
+
+  - name: tigerbeetle
+    namespace: banking
+    chart: charts/data/tigerbeetle
+    inherit:
+      - template: data
+    labels:
+      tier: data
+
   - name: configuration-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/configuration-service
+      - template: service
     labels:
       tier: banking
     needs:
       - banking/bank-postgres
-
-  - name: risk-engine-service
-    namespace: banking
-    inherit:
-      - template: release
-    chart: charts/banking/risk-engine-service
-    labels:
-      tier: banking
-    needs:
-      - banking/bank-postgres
-      - platform/schema-registry
-
-  - name: account-service
-    namespace: banking
-    inherit:
-      - template: release
-    chart: charts/banking/account-service
-    labels:
-      tier: banking
-    needs:
-      - banking/bank-postgres
-      - platform/schema-registry
 
   - name: customer-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/customer-service
+      - template: service
     labels:
       tier: banking
     needs:
       - banking/bank-postgres
 
-  - name: customer-profile-service
+  - name: account-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/customer-profile-service
+      - template: service
     labels:
       tier: banking
     needs:
       - banking/bank-postgres
       - platform/schema-registry
 
-  - name: payment-history-service
+  - name: customer-profile-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/payment-history-service
+      - template: service
     labels:
       tier: banking
     needs:
@@ -151,9 +151,20 @@ releases:
 
   - name: payment-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/payment-service
+      - template: service
+    labels:
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry
+
+  - name: payment-history-service
+    namespace: banking
+    chart: charts/service-types/java-microservice
+    inherit:
+      - template: service
     labels:
       tier: banking
     needs:
@@ -162,28 +173,31 @@ releases:
 
   - name: payment-engine-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/payment-engine-service
+      - template: service
     labels:
       tier: banking
     needs:
       - banking/bank-postgres
       - platform/schema-registry
 
-  - name: neo4j
+  - name: risk-engine-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/neo4j
+      - template: service
     labels:
-      tier: data
+      tier: banking
+    needs:
+      - banking/bank-postgres
+      - platform/schema-registry
 
   - name: network-topology-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/network-topology-service
+      - template: service
     labels:
       tier: banking
     needs:
@@ -191,19 +205,11 @@ releases:
       - banking/neo4j
       - platform/schema-registry
 
-  - name: tigerbeetle
-    namespace: banking
-    inherit:
-      - template: release
-    chart: charts/banking/tigerbeetle
-    labels:
-      tier: data
-
   - name: ledger-service
     namespace: banking
+    chart: charts/service-types/java-microservice
     inherit:
-      - template: release
-    chart: charts/banking/ledger-service
+      - template: service
     labels:
       tier: banking
     needs:
@@ -212,17 +218,17 @@ releases:
 
   - name: backoffice-gateway
     namespace: banking
+    chart: charts/service-types/gateway
     inherit:
-      - template: release
-    chart: charts/banking/backoffice-gateway
+      - template: service
     labels:
       tier: banking
 
   - name: backoffice-ui
     namespace: banking
+    chart: charts/service-types/frontend
     inherit:
-      - template: release
-    chart: charts/banking/backoffice-ui
+      - template: service
     labels:
       tier: banking
     needs:
@@ -230,8 +236,8 @@ releases:
 
   - name: transaction-pattern-agent
     namespace: ai
+    chart: charts/service-types/ai-agent
     inherit:
-      - template: release
-    chart: charts/ai/transaction-pattern-agent
+      - template: service
     labels:
       tier: ai

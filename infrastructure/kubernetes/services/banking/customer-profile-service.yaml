@@ -1,0 +1,23 @@
+image:
+  repository: customer-profile-svc-api
+
+containerPort: 5008
+
+env:
+  SERVER_PORT: 5008
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+
+datasource:
+  enabled: true
+  database: customer_profile_db
+  credentialsSecret: customer-profile-service-db-credentials
+
+messaging:
+  enabled: true
+  consumes:
+    payment-completed: payment-completed-events
+
+migration:
+  enabled: true
+  image:
+    repository: customer-profile-svc-db-migration-app

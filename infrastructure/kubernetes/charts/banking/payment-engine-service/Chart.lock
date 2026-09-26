@@ -1,6 +1,0 @@
-dependencies:
-- name: banksolution-common
-  repository: file://../../library/banksolution-common
-  version: 0.1.0
-digest: sha256:48fb336e48ec89940b2a749e8d1dd2264dcb5ab49eeba398906ca90de80c2347
-generated: "2026-09-26T05:18:54.327192+03:00"

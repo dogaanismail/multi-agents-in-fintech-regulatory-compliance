@@ -1,0 +1,25 @@
+image:
+  repository: account-svc-api
+
+containerPort: 5002
+
+env:
+  SERVER_PORT: 5002
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+  CUSTOMER_SERVICE_URL: http://customer-service:5001/api/v1/customers
+  LEDGER_SERVICE_URL: http://ledger-service:5013/api/v1/ledger/accounts
+
+datasource:
+  enabled: true
+  database: account_service_db
+  credentialsSecret: account-service-db-credentials
+
+messaging:
+  enabled: true
+  consumes:
+    wallet-balance-changed: ledger.wallet.balance.changed
+
+migration:
+  enabled: true
+  image:
+    repository: account-svc-db-migration-app

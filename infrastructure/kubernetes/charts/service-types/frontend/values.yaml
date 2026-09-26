@@ -1,0 +1,52 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: local
+  pullPolicy: IfNotPresent
+
+containerPort: 80
+
+env: { }
+
+probes:
+  startup:
+    httpGet:
+      path: /
+      port: http
+    periodSeconds: 5
+    failureThreshold: 12
+  liveness:
+    httpGet:
+      path: /
+      port: http
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    httpGet:
+      path: /
+      port: http
+    periodSeconds: 10
+    failureThreshold: 3
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 16Mi
+  limits:
+    memory: 64Mi
+
+terminationGracePeriodSeconds: 10
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ ]

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: frontend
+description: "Static single-page app served by nginx, proxying /api to the gateway"
+type: application
+version: 0.1.0
+dependencies:
+  - name: banksolution-common
+    version: 0.1.0
+    repository: file://../../library/banksolution-common

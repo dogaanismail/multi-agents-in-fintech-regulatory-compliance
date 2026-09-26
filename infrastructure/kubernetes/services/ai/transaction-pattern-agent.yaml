@@ -1,0 +1,8 @@
+image:
+  repository: transaction-pattern-agent
+
+containerPort: 1001
+
+env:
+  PORT: 1001
+  MODEL_PATH: /app/trained_models

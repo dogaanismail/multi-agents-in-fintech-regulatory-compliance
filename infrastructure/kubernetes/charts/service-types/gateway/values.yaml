@@ -1,0 +1,61 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: local
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+jvm:
+  enabled: true
+  options: -Xms32m -Xmx192m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
+  extraOptions: ""
+
+env:
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+  OTLP_TRACING_ENDPOINT: http://tempo.observability:4318/v1/traces
+
+
+probes:
+  startup:
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+    periodSeconds: 5
+    failureThreshold: 36
+  liveness:
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    httpGet:
+      path: /actuator/health/readiness
+      port: http
+    periodSeconds: 10
+    failureThreshold: 3
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+terminationGracePeriodSeconds: 45
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL

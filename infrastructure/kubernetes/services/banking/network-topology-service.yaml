@@ -1,0 +1,27 @@
+image:
+  repository: network-topology-svc
+
+containerPort: 5007
+
+env:
+  SERVER_PORT: 5007
+  NEO4J_URI: bolt://neo4j:7687
+  APP_GRAPH_ALGORITHM_INTERVAL_MS: 600000
+
+secretEnv:
+  - name: NEO4J_USERNAME
+    secretName: neo4j-credentials
+    key: username
+  - name: NEO4J_PASSWORD
+    secretName: neo4j-credentials
+    key: password
+
+datasource:
+  enabled: true
+  database: network_topology_db
+  credentialsSecret: network-topology-service-db-credentials
+
+messaging:
+  enabled: true
+  consumes:
+    payment-completed: payment-completed-events

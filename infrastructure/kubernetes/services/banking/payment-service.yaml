@@ -1,0 +1,25 @@
+image:
+  repository: payment-svc-api
+
+containerPort: 5003
+
+env:
+  SERVER_PORT: 5003
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+  ACCOUNT_SERVICE_URL: http://account-service:5002/api/v1/accounts
+  EXCHANGE_RATE_API_BASE_URL: https://api.exchangerate-api.com/v4/latest
+
+datasource:
+  enabled: true
+  database: payment_service_db
+  credentialsSecret: payment-service-db-credentials
+
+messaging:
+  enabled: true
+  produces:
+    payment-created: payment-created-events
+
+migration:
+  enabled: true
+  image:
+    repository: payment-svc-db-migration-app

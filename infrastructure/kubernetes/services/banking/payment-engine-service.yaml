@@ -1,0 +1,32 @@
+image:
+  repository: payment-engine-svc-api
+
+containerPort: 5004
+
+env:
+  SERVER_PORT: 5004
+  AXON_KAFKA_DEFAULT_TOPIC: payment-domain-events
+
+datasource:
+  enabled: true
+  database: payment_engine_db
+  credentialsSecret: payment-engine-service-db-credentials
+
+messaging:
+  enabled: true
+  consumes:
+    payment-created: payment-created-events
+    risk-assessment-completed: risk.assessment.completed
+    ledger-posting-completed: ledger.posting.completed
+  produces:
+    risk-assessment-requested: risk.assessment.requested
+    payment-snapshot-events: payment-snapshot-events
+    ledger-posting-requested: ledger.posting.requested
+    payment-completed: payment-completed-events
+    agent-manual-feedback: agent.manual.feedback
+
+resources:
+  requests:
+    memory: 384Mi
+  limits:
+    memory: 640Mi
