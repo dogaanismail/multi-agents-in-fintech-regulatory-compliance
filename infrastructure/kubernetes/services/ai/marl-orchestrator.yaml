@@ -1,3 +1,5 @@
+serviceType: ai-service
+
 image:
   repository: marl-orchestrator
 

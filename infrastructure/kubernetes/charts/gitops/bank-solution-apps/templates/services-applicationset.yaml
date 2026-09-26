@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: services
+  namespace: {{ .Release.Namespace }}
+spec:
+  goTemplate: true
+  goTemplateOptions: [ "missingkey=error" ]
+  generators:
+    - git:
+        repoURL: {{ .Values.repoURL }}
+        revision: {{ .Values.targetRevision }}
+        files:
+          - path: {{ printf "%s/services/*/*.yaml" .Values.basePath | quote }}
+  template:
+    metadata:
+      name: {{ "'{{ trimSuffix \".yaml\" .path.filename }}'" }}
+      labels:
+        bank-solution/kind: service
+        bank-solution/service-type: {{ "'{{ .serviceType }}'" }}
+    spec:
+      project: {{ .Values.project }}
+      sources:
+        - repoURL: {{ .Values.repoURL }}
+          targetRevision: {{ .Values.targetRevision }}
+          path: {{ printf "%s/charts/service-types/{{ .serviceType }}" .Values.basePath | squote }}
+          helm:
+            releaseName: {{ "'{{ trimSuffix \".yaml\" .path.filename }}'" }}
+            ignoreMissingValueFiles: true
+            valueFiles:
+              - {{ printf "$values/%s/services/{{ .path.basename }}/{{ .path.filename }}" .Values.basePath | squote }}
+              - {{ printf "$values/%s/environments/%s/services.yaml" .Values.basePath .Values.environment | squote }}
+        - repoURL: {{ .Values.repoURL }}
+          targetRevision: {{ .Values.targetRevision }}
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: {{ "'{{ .path.basename }}'" }}
+      syncPolicy:
+        {{- toYaml .Values.syncPolicy | nindent 8 }}

@@ -1,3 +1,5 @@
+serviceType: java-microservice
+
 image:
   repository: customer-profile-svc-api
 

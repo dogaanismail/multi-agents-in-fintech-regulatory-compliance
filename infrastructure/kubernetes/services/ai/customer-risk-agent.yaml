@@ -1,3 +1,5 @@
+serviceType: ai-agent
+
 image:
   repository: customer-risk-agent
 

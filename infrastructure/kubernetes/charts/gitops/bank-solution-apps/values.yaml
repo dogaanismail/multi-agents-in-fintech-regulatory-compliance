@@ -1,0 +1,43 @@
+project: bank-solution
+repoURL: https://github.com/dogaanismail/multi-agents-in-fintech-regulatory-compliance.git
+targetRevision: main
+basePath: infrastructure/kubernetes
+environment: local
+
+namespaces:
+  - platform
+  - banking
+  - ai
+
+stores:
+  - name: kafka
+    namespace: platform
+    chart: charts/platform/kafka
+  - name: schema-registry
+    namespace: platform
+    chart: charts/platform/schema-registry
+  - name: bank-postgres
+    namespace: banking
+    chart: charts/data/postgres
+  - name: ai-postgres
+    namespace: ai
+    chart: charts/data/postgres
+  - name: neo4j
+    namespace: banking
+    chart: charts/data/neo4j
+  - name: tigerbeetle
+    namespace: banking
+    chart: charts/data/tigerbeetle
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: false
+  syncOptions:
+    - CreateNamespace=true
+  retry:
+    limit: 20
+    backoff:
+      duration: 15s
+      factor: 2
+      maxDuration: 5m

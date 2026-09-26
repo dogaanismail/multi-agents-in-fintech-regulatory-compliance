@@ -1,7 +1,8 @@
 # Kubernetes (local: kind)
 
-Helm charts for the whole platform, orchestrated by helmfile. Compose stays the day-to-day dev loop; this is for
-integration, scaling and failure testing, and is what EKS/AKS will run later.
+Helm charts for the whole platform, deployed by ArgoCD from this Git repository. helmfile only bootstraps the
+cluster (operators + ArgoCD + the app definitions). Compose stays the day-to-day dev loop; this is for integration,
+scaling and failure testing, and is what EKS/AKS will run later.
 
 ## Run it
 
@@ -9,12 +10,18 @@ integration, scaling and failure testing, and is what EKS/AKS will run later.
 brew install kind helm helmfile kubectl
 ./scripts/cluster-up.sh                      # kind cluster "banksolution"
 ./scripts/build-images.sh                    # build + kind load every image (tag: local); filter: build-images.sh risk
-./scripts/deploy.sh --concurrency 2          # helmfile sync, environment "local"
-./scripts/deploy.sh --selector name=payment-service
+./scripts/deploy.sh                          # bootstrap: Strimzi, CloudNativePG, ArgoCD, ApplicationSets
+./scripts/argocd-ui.sh                       # http://localhost:8443, prints the admin password
 ./scripts/cluster-down.sh
 ```
 
-Keep `--concurrency` low for full syncs: a rolling update briefly runs old and new pods side by side.
+ArgoCD then syncs every store and service from `main`. Changes go live by **commit → push → sync** (ArgoCD polls
+every ~60 s; "Refresh" in the UI is instant). `selfHeal` is off, so `kubectl scale` experiments are shown as
+OutOfSync instead of being reverted. Rebuilding an image under the same `local` tag does not change the manifest:
+`kubectl rollout restart deploy/<name>` picks it up.
+
+In the UI each service is one app: Deployment → Pod, ConfigMap, Service, PVC, and its last `db-migration` Job (kept
+after success, replaced by the next run).
 
 Needs about 13 GB of Docker memory and free Docker disk; a full Docker VM disk shows up as Kafka/PostgreSQL
 crash-loops ("Not enough disk space" on the CNPG cluster).
@@ -29,10 +36,11 @@ crash-loops ("Not enough disk space" on the CNPG cluster).
 | `charts/data/*`                       | Stateful stores: `postgres` (CNPG), `neo4j` (official chart), `tigerbeetle`             |
 | `data/<namespace>/<release>.yaml`     | One file per store instance: `bank-postgres`, `ai-postgres` (their databases)           |
 | `charts/platform/*`                   | `kafka` (Strimzi KRaft + topics), `schema-registry` (+ schema registration Job)         |
-| `platform/*`                          | Values for third-party operator charts (Strimzi, CloudNativePG)                         |
+| `platform/*`                          | Values for third-party charts (Strimzi, CloudNativePG, ArgoCD)                          |
 | `environments/<env>/services.yaml`    | Overrides applied to every service in that environment                                  |
 | `environments/<env>/<release>.yaml`   | Overrides for one data/platform release (credentials, sizes); optional                  |
-| `helmfile.yaml.gotmpl`                | Releases: which type each service is, order (`needs`), readiness waits                  |
+| `charts/gitops/bank-solution-apps`    | ArgoCD project + ApplicationSets: `stores` (list) and `services` (one app per file)     |
+| `helmfile.yaml.gotmpl`                | Bootstrap only: operators, ArgoCD, `bank-solution-apps`                                 |
 
 ### Service types
 
@@ -48,22 +56,23 @@ A block that a type does not declare is off. Anything in a type can be overridde
 adds `jvm.extraOptions` and an `Unconfined` seccomp profile; `schema-registry` uses `extraEnv` for a Downward API
 host name).
 
-Namespaces: `platform`, `cnpg-system`, `banking`, `ai`, later `observability`.
+Namespaces: `platform`, `cnpg-system`, `argocd`, `banking`, `ai`, later `observability`. A new store goes in the
+`stores` list of `charts/gitops/bank-solution-apps/values.yaml`.
 
 `schema-registry/schemas` is a symlink to `libraries/avro-schema-library/schemas`, so the `.avsc` files stay the
 single source of truth. Subjects to register are listed in that chart's `values.yaml`.
 
 ## Adding a service
 
-1. Write `services/<namespace>/<name>.yaml`: image, `containerPort`, `env`, and the blocks it needs.
+1. Write `services/<namespace>/<name>.yaml`, starting with `serviceType: <type>`, then image, `containerPort`, `env`,
+   and the blocks it needs. ArgoCD creates the app from the file on the next sync.
    - `datasource`: also add `{service, database, role}` to `data/banking/bank-postgres.yaml` and its password
      to `environments/local/bank-postgres.yaml`. That creates the role, the database and `<name>-db-credentials`.
    - `messaging`: list every topic under `consumes` / `produces`, keyed like the service's
      `spring.kafka.topics.incoming.<key>` / `outgoing.<key>`. They become `SPRING_KAFKA_TOPICS_*` env vars, so this
      file is what the pod actually uses.
    - `migration`: the Liquibase image, run as a pre-install/pre-upgrade Job.
-2. Add a release to `helmfile.yaml.gotmpl` with `chart: charts/service-types/<type>` and `inherit: [template: service]`.
-3. Add the image to `scripts/build-images.sh` (`JAVA_IMAGES` for Gradle modules, `DOCKERFILE_IMAGES` otherwise).
+2. Add the image to `scripts/build-images.sh` (`JAVA_IMAGES` for Gradle modules, `DOCKERFILE_IMAGES` otherwise).
 
 After editing the library chart, run `helm dependency update` on each type chart and on `schema-registry`: they
 vendor a packaged copy of it.

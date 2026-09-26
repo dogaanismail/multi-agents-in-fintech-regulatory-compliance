@@ -1,3 +1,5 @@
+serviceType: frontend
+
 image:
   repository: backoffice-ui
 

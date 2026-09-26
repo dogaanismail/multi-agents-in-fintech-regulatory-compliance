@@ -1,0 +1,5 @@
+apiVersion: v2
+name: bank-solution-apps
+description: ArgoCD project and ApplicationSets that deploy every store and service from Git
+type: application
+version: 0.1.0

@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.project }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: Banking cluster, AI cluster and the stores they depend on
+  sourceRepos:
+    - {{ .Values.repoURL }}
+  destinations:
+    {{- range .Values.namespaces }}
+    - server: https://kubernetes.default.svc
+      namespace: {{ . }}
+    {{- end }}
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

@@ -1,3 +1,5 @@
+serviceType: gateway
+
 image:
   repository: backoffice-gateway-svc
 

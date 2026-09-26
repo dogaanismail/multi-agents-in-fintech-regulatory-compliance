@@ -1,0 +1,69 @@
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    timeout.reconciliation: 60s
+    resource.customizations.health.postgresql.cnpg.io_Cluster: |
+      hs = { status = "Progressing", message = "Waiting for the cluster" }
+      if obj.status ~= nil and obj.status.phase ~= nil then
+        hs.message = obj.status.phase
+        if obj.status.phase == "Cluster in healthy state" then
+          hs.status = "Healthy"
+        end
+      end
+      return hs
+    resource.customizations.health.postgresql.cnpg.io_Database: |
+      hs = { status = "Progressing", message = "Waiting for the database" }
+      if obj.status ~= nil and obj.status.applied == true then
+        hs.status = "Healthy"
+        hs.message = "Applied"
+      elseif obj.status ~= nil and obj.status.message ~= nil then
+        hs.message = obj.status.message
+      end
+      return hs
+
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+server:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+applicationSet:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
