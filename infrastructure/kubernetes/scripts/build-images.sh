@@ -27,21 +27,31 @@ JAVA_IMAGES=(
     "backoffice-gateway-svc|backoffice-gateway/backoffice-gateway-svc"
 )
 
+DOCKERFILE_IMAGES=(
+    "backoffice-ui|bank-solution-backoffice"
+)
+
+matches_filter() {
+    local image_name="$1"
+    shift
+    [[ $# -eq 0 ]] && return 0
+    for filter in "$@"; do
+        [[ "$image_name" == *"$filter"* ]] && return 0
+    done
+    return 1
+}
+
 selected_images=()
 for image in "${JAVA_IMAGES[@]}"; do
-    if [[ $# -eq 0 ]]; then
-        selected_images+=("$image")
-        continue
-    fi
-    for filter in "$@"; do
-        if [[ "${image%%|*}" == *"$filter"* ]]; then
-            selected_images+=("$image")
-            break
-        fi
-    done
+    matches_filter "${image%%|*}" "$@" && selected_images+=("$image")
 done
 
-if [[ ${#selected_images[@]} -eq 0 ]]; then
+selected_dockerfile_images=()
+for image in "${DOCKERFILE_IMAGES[@]}"; do
+    matches_filter "${image%%|*}" "$@" && selected_dockerfile_images+=("$image")
+done
+
+if [[ ${#selected_images[@]} -eq 0 && ${#selected_dockerfile_images[@]} -eq 0 ]]; then
     echo "No image matches: $*" >&2
     exit 1
 fi
@@ -51,14 +61,22 @@ gradle_task_for() {
 }
 
 gradle_tasks=()
-for image in "${selected_images[@]}"; do
+for image in ${selected_images[@]+"${selected_images[@]}"}; do
     gradle_tasks+=("$(gradle_task_for "${image#*|}")")
 done
-(cd "$BACKEND_DIRECTORY" && ./gradlew "${gradle_tasks[@]}")
+if [[ ${#gradle_tasks[@]} -gt 0 ]]; then
+    (cd "$BACKEND_DIRECTORY" && ./gradlew "${gradle_tasks[@]}")
+fi
 
-for image in "${selected_images[@]}"; do
+for image in ${selected_images[@]+"${selected_images[@]}"}; do
     image_name="${image%%|*}"
     module_directory="$BACKEND_DIRECTORY/${image#*|}"
     docker build --tag "$image_name:$IMAGE_TAG" "$module_directory"
+    kind load docker-image "$image_name:$IMAGE_TAG" --name "$CLUSTER_NAME"
+done
+
+for image in ${selected_dockerfile_images[@]+"${selected_dockerfile_images[@]}"}; do
+    image_name="${image%%|*}"
+    docker build --tag "$image_name:$IMAGE_TAG" "$REPOSITORY_ROOT/${image#*|}"
     kind load docker-image "$image_name:$IMAGE_TAG" --name "$CLUSTER_NAME"
 done

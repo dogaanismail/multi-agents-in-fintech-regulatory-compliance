@@ -217,3 +217,13 @@ releases:
     chart: charts/banking/backoffice-gateway
     labels:
       tier: banking
+
+  - name: backoffice-ui
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/backoffice-ui
+    labels:
+      tier: banking
+    needs:
+      - banking/backoffice-gateway

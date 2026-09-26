@@ -27,6 +27,7 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # Set default backend URL if not provided
 ENV BACKEND_URL=http://backoffice-gateway:3030
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
 
 EXPOSE 80
 

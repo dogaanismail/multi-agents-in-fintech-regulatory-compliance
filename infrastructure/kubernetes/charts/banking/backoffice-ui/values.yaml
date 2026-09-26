@@ -1,0 +1,41 @@
+image:
+  repository: backoffice-ui
+
+containerPort: 80
+
+jvm:
+  enabled: false
+
+env:
+  BACKEND_URL: http://backoffice-gateway.banking.svc.cluster.local:3030
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+
+securityContext:
+  capabilities:
+    drop: [ ]
+
+terminationGracePeriodSeconds: 10
+
+probes:
+  startup:
+    httpGet:
+      path: /
+    failureThreshold: 12
+  liveness:
+    httpGet:
+      path: /
+  readiness:
+    httpGet:
+      path: /
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 16Mi
+  limits:
+    memory: 64Mi
