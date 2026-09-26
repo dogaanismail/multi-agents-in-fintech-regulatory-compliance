@@ -209,3 +209,11 @@ releases:
     needs:
       - banking/tigerbeetle
       - platform/schema-registry
+
+  - name: backoffice-gateway
+    namespace: banking
+    inherit:
+      - template: release
+    chart: charts/banking/backoffice-gateway
+    labels:
+      tier: banking

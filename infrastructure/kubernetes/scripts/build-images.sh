@@ -24,6 +24,7 @@ JAVA_IMAGES=(
     "payment-engine-svc-api|payment-engine-service/payment-engine-svc"
     "network-topology-svc|network-topology-service/network-topology-svc"
     "ledger-svc|ledger-service/ledger-svc"
+    "backoffice-gateway-svc|backoffice-gateway/backoffice-gateway-svc"
 )
 
 selected_images=()
