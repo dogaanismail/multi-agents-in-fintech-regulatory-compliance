@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,6 +33,16 @@ public class AccountWalletBalanceService {
         }
 
         AccountWalletEntity accountWalletEntity = optionalAccountWalletEntity.get();
+        Instant balanceChangedAt = Instant.ofEpochMilli(walletBalanceChangedEvent.getTimestamp());
+        if (isOlderThanTheProjectedBalance(accountWalletEntity, balanceChangedAt)) {
+            log.info("Ignoring wallet balance from {} for wallet {}: projected balance is already as of {}",
+                    balanceChangedAt,
+                    accountWalletEntity.getId(),
+                    accountWalletEntity.getBalanceAsOf());
+            return;
+        }
+
+        accountWalletEntity.setBalanceAsOf(balanceChangedAt);
         accountWalletEntity.setBalance(new BigDecimal(walletBalanceChangedEvent.getPostedBalance()));
         accountWalletEntity.setAvailableBalance(new BigDecimal(walletBalanceChangedEvent.getAvailableBalance()));
         accountWalletRepository.save(accountWalletEntity);
@@ -40,5 +51,9 @@ public class AccountWalletBalanceService {
                 accountWalletEntity.getId(),
                 walletBalanceChangedEvent.getPostedBalance(),
                 walletBalanceChangedEvent.getAvailableBalance());
+    }
+
+    private static boolean isOlderThanTheProjectedBalance(AccountWalletEntity accountWalletEntity, Instant balanceChangedAt) {
+        return accountWalletEntity.getBalanceAsOf() != null && balanceChangedAt.isBefore(accountWalletEntity.getBalanceAsOf());
     }
 }

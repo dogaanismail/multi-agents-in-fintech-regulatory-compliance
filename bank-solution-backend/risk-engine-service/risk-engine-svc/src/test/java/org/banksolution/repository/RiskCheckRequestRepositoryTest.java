@@ -6,11 +6,13 @@ import org.banksolution.enums.PaymentType;
 import org.banksolution.enums.RiskCheckStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.RiskCheckRequestFixtures.createRiskCheckRequestEntity;
 import static org.banksolution.fixtures.RiskCheckRequestFixtures.createTransferRiskCheckRequestEntity;
 
@@ -97,6 +99,19 @@ class RiskCheckRequestRepositoryTest extends BaseIntegrationTest {
         assertThat(updated.getStatus()).isEqualTo(RiskCheckStatus.COMPLETED);
         assertThat(updated.getVersion()).isEqualTo((short) (versionBefore + 1));
         assertThat(updated.getUpdatedAt()).isAfterOrEqualTo(updated.getCreatedAt());
+    }
+
+    @Test
+    void shouldRejectASecondRiskCheckForTheSamePayment() {
+        RiskCheckRequestEntity riskCheckRequestEntity = createTransferRiskCheckRequestEntity();
+        riskCheckRequestEntity.setId(null);
+        riskCheckRequestRepository.saveAndFlush(riskCheckRequestEntity);
+        RiskCheckRequestEntity duplicateRiskCheckRequestEntity = createTransferRiskCheckRequestEntity();
+        duplicateRiskCheckRequestEntity.setId(null);
+        duplicateRiskCheckRequestEntity.setPaymentId(riskCheckRequestEntity.getPaymentId());
+
+        assertThatThrownBy(() -> riskCheckRequestRepository.saveAndFlush(duplicateRiskCheckRequestEntity))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test

@@ -42,6 +42,11 @@
              WHERE task_name = 'currency-rates-refresh'</sql>
     </changeSet>
 
+    <changeSet id="2026-10-04-02-01" author="Ismail Dogan">
+        <comment>Add idempotency key and request fingerprint to payment_request</comment>
+        <sqlFile path="changelog/add_payment_request_idempotency.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
     <include file="scheduler/db.changelog-scheduler.xml"/>
     <include file="outbox/db.changelog-outbox.xml"/>
 

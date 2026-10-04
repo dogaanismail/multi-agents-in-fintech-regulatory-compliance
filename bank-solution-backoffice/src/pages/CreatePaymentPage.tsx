@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { paymentService } from '@/api/paymentService';
+import {generateIdempotencyKey} from '@/api/idempotency';
 import { customerService } from '@/api/customerService';
 import { accountService } from '@/api/accountService';
 import { currencyConversionService } from '@/api/currencyConversionService';
@@ -207,6 +208,7 @@ export const CreatePaymentPage: React.FC = () => {
   // ── Submit state ──
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+    const lastPaymentAttemptRef = useRef<{ requestBody: string; idempotencyKey: string } | null>(null);
 
   const paymentTypeCfg = PAYMENT_TYPES.find((t) => t.value === paymentType)!;
 
@@ -313,9 +315,14 @@ export const CreatePaymentPage: React.FC = () => {
       destinationAccountId,
     };
 
+      const requestBody = JSON.stringify(request);
+      if (lastPaymentAttemptRef.current?.requestBody !== requestBody) {
+          lastPaymentAttemptRef.current = {requestBody, idempotencyKey: generateIdempotencyKey()};
+      }
+
     setLoading(true);
     try {
-      await paymentService.createPayment(request);
+        await paymentService.createPayment(request, lastPaymentAttemptRef.current.idempotencyKey);
       navigate('/payments');
     } catch (err: unknown) {
       const msg =

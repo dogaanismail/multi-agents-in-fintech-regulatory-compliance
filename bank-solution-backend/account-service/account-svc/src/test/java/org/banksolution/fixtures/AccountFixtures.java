@@ -14,6 +14,7 @@ import org.banksolution.integration.ledger.dto.LedgerAccountResponse;
 import org.banksolution.model.request.OpenAccountRequest;
 import org.banksolution.utils.AccountNumberUtils;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -111,6 +112,19 @@ public final class AccountFixtures {
             String postedBalance,
             String availableBalance) {
 
+        return createWalletBalanceChangedEvent(
+                ledgerAccountId,
+                postedBalance,
+                availableBalance,
+                OPENING_DATE.atStartOfDay(java.time.ZoneOffset.UTC).toInstant());
+    }
+
+    public static WalletBalanceChangedEvent createWalletBalanceChangedEvent(
+            String ledgerAccountId,
+            String postedBalance,
+            String availableBalance,
+            Instant balanceChangedAt) {
+
         return WalletBalanceChangedEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())
                 .setLedgerAccountId(ledgerAccountId)
@@ -120,7 +134,7 @@ public final class AccountFixtures {
                 .setAvailableBalance(availableBalance)
                 .setPendingDebits("100.00")
                 .setPendingCredits("0.00")
-                .setTimestamp(OPENING_DATE.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli())
+                .setTimestamp(balanceChangedAt.toEpochMilli())
                 .build();
     }
 }

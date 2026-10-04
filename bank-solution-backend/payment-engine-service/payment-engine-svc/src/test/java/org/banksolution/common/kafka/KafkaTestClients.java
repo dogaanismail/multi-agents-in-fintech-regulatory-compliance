@@ -17,6 +17,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -79,5 +80,51 @@ public final class KafkaTestClients {
         }
 
         throw new AssertionError("No matching event arrived on topic " + topic + " within " + timeout);
+    }
+
+    public static <T extends SpecificRecord> List<T> awaitMatchingEvents(
+            String topic,
+            Duration timeout,
+            Predicate<T> matcher,
+            int expectedMatchingEvents) {
+
+        List<T> matchingEvents = new ArrayList<>();
+        try (KafkaConsumer<String, Object> consumer = createAvroConsumer(topic)) {
+            long deadline = System.currentTimeMillis() + timeout.toMillis();
+            while (System.currentTimeMillis() < deadline) {
+                for (ConsumerRecord<String, Object> consumedRecord : consumer.poll(Duration.ofMillis(500))) {
+                    @SuppressWarnings("unchecked")
+                    T value = (T) consumedRecord.value();
+                    if (matcher.test(value)) {
+                        matchingEvents.add(value);
+                    }
+                }
+                if (matchingEvents.size() >= expectedMatchingEvents) {
+                    return matchingEvents;
+                }
+            }
+        }
+
+        throw new AssertionError("Only " + matchingEvents.size() + " of " + expectedMatchingEvents
+                + " matching events arrived on topic " + topic + " within " + timeout);
+    }
+
+    public static <T extends SpecificRecord> void assertNoMatchingEvent(
+            String topic,
+            Duration observationWindow,
+            Predicate<T> matcher) {
+
+        try (KafkaConsumer<String, Object> consumer = createAvroConsumer(topic)) {
+            long deadline = System.currentTimeMillis() + observationWindow.toMillis();
+            while (System.currentTimeMillis() < deadline) {
+                for (ConsumerRecord<String, Object> consumedRecord : consumer.poll(Duration.ofMillis(500))) {
+                    @SuppressWarnings("unchecked")
+                    T value = (T) consumedRecord.value();
+                    if (matcher.test(value)) {
+                        throw new AssertionError("Unexpected matching event arrived on topic " + topic + ": " + value);
+                    }
+                }
+            }
+        }
     }
 }

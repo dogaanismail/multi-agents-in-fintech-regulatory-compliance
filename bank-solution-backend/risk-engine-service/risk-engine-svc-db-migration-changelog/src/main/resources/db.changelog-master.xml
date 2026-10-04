@@ -45,6 +45,13 @@
         <sqlFile path="changelog/allow_unknown_confidence_in_agent_observation.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-10-04-01-01" author="Ismail Dogan">
+        <comment>Back the one-risk-check-per-payment rule with a unique index so concurrent redeliveries cannot both
+            insert
+        </comment>
+        <sqlFile path="changelog/add_unique_risk_check_request_payment_id.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
     <include file="scheduler/db.changelog-scheduler.xml"/>
     <include file="outbox/db.changelog-outbox.xml"/>
 

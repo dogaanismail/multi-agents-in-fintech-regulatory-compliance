@@ -15,12 +15,14 @@ import org.banksolution.api.dto.ApproveManualReviewRequest;
 import org.banksolution.api.dto.OverrideDecisionRequest;
 import org.banksolution.api.dto.RejectManualReviewRequest;
 import org.banksolution.common.PaymentFlowSupport;
+import org.banksolution.common.kafka.KafkaTestClients;
 import org.banksolution.enums.PaymentEventTrigger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,6 +92,24 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
         assertThat(completedSnapshot.getStatus()).isEqualTo(PaymentStatus.BLOCKED);
         assertThat(completedSnapshot.getFraudStatus()).isEqualTo(FraudCheckStatus.BLOCKED);
         assertThat(completedSnapshot.getBlockedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldResendASilentLedgerAuthorisationAndCarryOnOnceTheLedgerAnswersLate() throws Exception {
+        UUID paymentId = givenPaymentCreated();
+
+        List<LedgerPostingRequestedEvent> authorisationRequests = KafkaTestClients.awaitMatchingEvents(
+                ledgerPostingRequestedTopic,
+                FLOW_TIMEOUT,
+                (LedgerPostingRequestedEvent ledgerPostingRequestedEvent) ->
+                        paymentId.toString().equals(ledgerPostingRequestedEvent.getClientTransactionId())
+                                && ledgerPostingRequestedEvent.getPostingInstructionType()
+                                == PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION,
+                2);
+        whenLedgerAnswers(paymentId, PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION, true, null);
+
+        assertThat(awaitRiskAssessmentRequested(paymentId).getPaymentId()).isEqualTo(paymentId.toString());
+        assertThat(authorisationRequests).hasSizeGreaterThanOrEqualTo(2);
     }
 
     @Test
@@ -214,10 +234,6 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
                         "Decision override is only allowed for BLOCKED payments, current status: COMPLETED"));
     }
 
-    /**
-     * Reject, release and override make a 10-event stream, which is where Axon's snapshotter
-     * kicks in; the second override must then be judged on state loaded from that snapshot.
-     */
     @Test
     void shouldReloadTheAggregateFromItsSnapshotWithTheSameState() throws Exception {
         UUID paymentId = givenAuthorisedPayment();

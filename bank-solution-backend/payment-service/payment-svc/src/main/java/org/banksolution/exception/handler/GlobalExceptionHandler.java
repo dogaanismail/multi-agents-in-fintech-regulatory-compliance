@@ -6,11 +6,13 @@ import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.banksolution.exception.CustomError;
 import org.banksolution.exception.ExchangeRateUnavailableException;
+import org.banksolution.exception.IdempotencyKeyReusedException;
 import org.banksolution.exception.PaymentNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -90,6 +92,30 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    protected ResponseEntity<@NonNull CustomError> handleMissingRequestHeader(MissingRequestHeaderException missingRequestHeaderException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .header(CustomError.Header.VALIDATION_ERROR.getName())
+                .message(missingRequestHeaderException.getHeaderName() + " header is required")
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IdempotencyKeyReusedException.class)
+    protected ResponseEntity<@NonNull CustomError> handleIdempotencyKeyReused(IdempotencyKeyReusedException idempotencyKeyReusedException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(idempotencyKeyReusedException.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @ExceptionHandler(ExchangeRateUnavailableException.class)

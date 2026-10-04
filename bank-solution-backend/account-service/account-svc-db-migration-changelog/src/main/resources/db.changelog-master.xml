@@ -20,4 +20,10 @@
         <sqlFile path="changelog/add_account_wallet_available_balance.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-10-04-01-01" author="Ismail Dogan">
+        <comment>Track the ledger timestamp of the projected wallet balance so replayed older balances are ignored
+        </comment>
+        <sqlFile path="changelog/add_account_wallet_balance_as_of.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

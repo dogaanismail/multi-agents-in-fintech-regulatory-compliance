@@ -1,5 +1,6 @@
 package org.banksolution.fixtures;
 
+import org.banksolution.domain.PaymentIdempotency;
 import org.banksolution.entity.ExchangeRateEntity;
 import org.banksolution.entity.PaymentRequestEntity;
 import org.banksolution.enums.AccountStatus;
@@ -30,6 +31,7 @@ public final class PaymentFixtures {
     public static final BigDecimal GBP_TO_EUR_RATE = new BigDecimal("1.16000000");
     public static final Instant FETCHED_AT = Instant.parse("2026-08-27T10:00:00Z");
     public static final String DESCRIPTION = "Rent";
+    public static final String PAYMENT_IDEMPOTENCY_KEY = "payment-request-key-1";
 
     private PaymentFixtures() {
     }
@@ -59,8 +61,17 @@ public final class PaymentFixtures {
                 .build();
     }
 
+    public static PaymentIdempotency createPaymentIdempotency(PaymentRequest paymentRequest) {
+        return PaymentIdempotency.derivePaymentIdempotency(PAYMENT_IDEMPOTENCY_KEY, paymentRequest);
+    }
+
     public static PaymentRequestEntity createPaymentRequestEntity(UUID customerId) {
+        String idempotencyKey = UUID.randomUUID().toString();
         return PaymentRequestEntity.builder()
+                .id(PaymentIdempotency.derivePaymentId(customerId, idempotencyKey))
+                .idempotencyKey(idempotencyKey)
+                .requestFingerprint(PaymentIdempotency.derivePaymentRequestFingerprint(
+                        createTransferOutRequest(customerId, Currency.GBP, Currency.EUR)))
                 .customerId(customerId)
                 .sourceAccountId(SOURCE_ACCOUNT_ID)
                 .destinationAccountId(DESTINATION_ACCOUNT_ID)

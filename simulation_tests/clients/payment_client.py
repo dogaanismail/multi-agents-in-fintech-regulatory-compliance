@@ -8,6 +8,8 @@ from simulation_tests.clients.base_client import BaseClient
 from simulation_tests.config import ServiceURLs
 from simulation_tests.domain.transaction.models import PaymentRequestData
 
+IDEMPOTENCY_KEY_HEADER = "Idempotency-Key"
+
 
 class PaymentClient(BaseClient):
     """Async client for payment-svc (port 5003)."""
@@ -26,4 +28,8 @@ class PaymentClient(BaseClient):
         The caller (simulation_runner._fire_single) handles its own timing.
         """
         payload = payment_data.to_api_payload()
-        return await self.post("/api/v1/payments/request", payload)
+        return await self.post(
+            "/api/v1/payments/request",
+            payload,
+            headers={IDEMPOTENCY_KEY_HEADER: payment_data.idempotency_key},
+        )

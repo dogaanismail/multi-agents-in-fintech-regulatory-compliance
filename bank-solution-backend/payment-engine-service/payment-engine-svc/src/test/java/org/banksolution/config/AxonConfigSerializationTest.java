@@ -59,6 +59,8 @@ class AxonConfigSerializationTest {
         setField(ledgerPostingSaga, "paymentId", createPaymentId());
         setField(ledgerPostingSaga, "deadlineId", "deadline-7");
         setField(ledgerPostingSaga, "awaitedLedgerPosting", LedgerPostingSaga.AwaitedLedgerPosting.SETTLEMENT);
+        setField(ledgerPostingSaga, "ledgerAuthorisationRequest", createLedgerAuthorisationInitiatedEvent());
+        setField(ledgerPostingSaga, "ledgerPostingResends", 3);
 
         LedgerPostingSaga reloadedLedgerPostingSaga = roundTrip(ledgerPostingSaga);
 
@@ -66,6 +68,8 @@ class AxonConfigSerializationTest {
         assertThat(getField(reloadedLedgerPostingSaga, "deadlineId")).isEqualTo("deadline-7");
         assertThat(getField(reloadedLedgerPostingSaga, "awaitedLedgerPosting"))
                 .isEqualTo(LedgerPostingSaga.AwaitedLedgerPosting.SETTLEMENT);
+        assertThat(getField(reloadedLedgerPostingSaga, "ledgerAuthorisationRequest")).isEqualTo(createLedgerAuthorisationInitiatedEvent());
+        assertThat(getField(reloadedLedgerPostingSaga, "ledgerPostingResends")).isEqualTo(3);
     }
 
     @Test

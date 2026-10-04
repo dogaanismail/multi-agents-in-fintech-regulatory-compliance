@@ -1,5 +1,6 @@
 package org.banksolution.mapper;
 
+import org.banksolution.domain.PaymentIdempotency;
 import org.banksolution.entity.PaymentRequestEntity;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.PaymentType;
@@ -18,9 +19,13 @@ class PaymentRequestMapperTest {
     void shouldCopyTheRequestedFieldsAndLeaveTheDerivedOnesForTheService() {
         PaymentRequest paymentRequest = createTransferOutRequest(CUSTOMER_ID, Currency.GBP, Currency.EUR);
 
-        PaymentRequestEntity paymentRequestEntity = PaymentRequestMapper.toPaymentRequestEntity(paymentRequest);
+        PaymentIdempotency paymentIdempotency = PaymentIdempotency.derivePaymentIdempotency(PAYMENT_IDEMPOTENCY_KEY, paymentRequest);
 
-        assertThat(paymentRequestEntity.getId()).isNull();
+        PaymentRequestEntity paymentRequestEntity = PaymentRequestMapper.toPaymentRequestEntity(paymentRequest, paymentIdempotency);
+
+        assertThat(paymentRequestEntity.getId()).isEqualTo(paymentIdempotency.paymentId());
+        assertThat(paymentRequestEntity.getIdempotencyKey()).isEqualTo(PAYMENT_IDEMPOTENCY_KEY);
+        assertThat(paymentRequestEntity.getRequestFingerprint()).isEqualTo(paymentIdempotency.requestFingerprint());
         assertThat(paymentRequestEntity.getCustomerId()).isEqualTo(CUSTOMER_ID);
         assertThat(paymentRequestEntity.getSourceAccountId()).isEqualTo(SOURCE_ACCOUNT_ID);
         assertThat(paymentRequestEntity.getDestinationAccountId()).isEqualTo(DESTINATION_ACCOUNT_ID);

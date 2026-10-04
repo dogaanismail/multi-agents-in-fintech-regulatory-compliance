@@ -12,11 +12,13 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, inspect, select, update
+from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
 from app.infrastructure.database.database import AsyncSessionLocal
 from app.infrastructure.database.models import AgentReplayBufferEntry
+from app.infrastructure.database.models.replay_buffer_entry import COUNTERFACTUAL_REWARD_SOURCE
 
 
 class ReplayBufferRepository:
@@ -34,6 +36,47 @@ class ReplayBufferRepository:
             await session.commit()
             await session.refresh(entry)
         return entry
+
+    async def save_decision_if_absent(self, entry: AgentReplayBufferEntry) -> bool:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                insert(AgentReplayBufferEntry)
+                .values(**self._populated_column_values(entry))
+                .on_conflict_do_nothing()
+                .returning(AgentReplayBufferEntry.id)
+            )
+            await session.commit()
+            return result.scalar_one_or_none() is not None
+
+    async def replace_counterfactual(self, counterfactual: AgentReplayBufferEntry) -> AgentReplayBufferEntry:
+        async with AsyncSessionLocal() as session:
+            await session.execute(
+                delete(AgentReplayBufferEntry)
+                .where(AgentReplayBufferEntry.payment_id == counterfactual.payment_id)
+                .where(AgentReplayBufferEntry.reward_source == COUNTERFACTUAL_REWARD_SOURCE)
+            )
+            session.add(counterfactual)
+            await session.commit()
+            await session.refresh(counterfactual)
+        return counterfactual
+
+    async def delete_counterfactual(self, payment_id: str) -> int:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                delete(AgentReplayBufferEntry)
+                .where(AgentReplayBufferEntry.payment_id == payment_id)
+                .where(AgentReplayBufferEntry.reward_source == COUNTERFACTUAL_REWARD_SOURCE)
+            )
+            await session.commit()
+            return result.rowcount
+
+    @staticmethod
+    def _populated_column_values(entry: AgentReplayBufferEntry) -> dict:
+        return {
+            column_attribute.key: getattr(entry, column_attribute.key)
+            for column_attribute in inspect(AgentReplayBufferEntry).column_attrs
+            if getattr(entry, column_attribute.key) is not None
+        }
 
     async def count_unused(self) -> int:
         """Count experiences not yet consumed by a training run."""

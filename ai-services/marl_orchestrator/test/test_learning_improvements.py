@@ -114,7 +114,7 @@ class TestCounterfactualInjection:
                 "app.services.experience_buffer_service.replay_buffer_repository"
         ) as repository:
             repository.apply_manual_reward = AsyncMock(return_value=updated_entry)
-            repository.save = AsyncMock(side_effect=lambda entry: entry)
+            repository.replace_counterfactual = AsyncMock(side_effect=lambda entry: entry)
 
             applied = await experience_buffer_service.apply_manual_feedback(
                 payment_id="payment-123",
@@ -126,8 +126,8 @@ class TestCounterfactualInjection:
             )
 
             assert applied is True
-            repository.save.assert_awaited_once()
-            counterfactual = repository.save.await_args.args[0]
+            repository.replace_counterfactual.assert_awaited_once()
+            counterfactual = repository.replace_counterfactual.await_args.args[0]
             assert counterfactual.reward_source == "counterfactual"
             assert counterfactual.marl_action == "ALLOW"
             assert counterfactual.actions == {
@@ -146,7 +146,8 @@ class TestCounterfactualInjection:
                 "app.services.experience_buffer_service.replay_buffer_repository"
         ) as repository:
             repository.apply_manual_reward = AsyncMock(return_value=updated_entry)
-            repository.save = AsyncMock()
+            repository.replace_counterfactual = AsyncMock()
+            repository.delete_counterfactual = AsyncMock(return_value=0)
 
             applied = await experience_buffer_service.apply_manual_feedback(
                 payment_id="payment-123",
@@ -158,7 +159,8 @@ class TestCounterfactualInjection:
             )
 
             assert applied is True
-            repository.save.assert_not_awaited()
+            repository.replace_counterfactual.assert_not_awaited()
+            repository.delete_counterfactual.assert_awaited_once_with("payment-123")
 
     async def test_review_rejected_injects_block_experience(self):
         experience_buffer_service = ExperienceBufferService()
@@ -170,7 +172,7 @@ class TestCounterfactualInjection:
                 "app.services.experience_buffer_service.replay_buffer_repository"
         ) as repository:
             repository.apply_manual_reward = AsyncMock(return_value=updated_entry)
-            repository.save = AsyncMock(side_effect=lambda entry: entry)
+            repository.replace_counterfactual = AsyncMock(side_effect=lambda entry: entry)
 
             await experience_buffer_service.apply_manual_feedback(
                 payment_id="payment-123",
@@ -181,7 +183,7 @@ class TestCounterfactualInjection:
                 reviewed_by="officer-1",
             )
 
-            counterfactual = repository.save.await_args.args[0]
+            counterfactual = repository.replace_counterfactual.await_args.args[0]
             assert counterfactual.marl_action == "BLOCK"
             assert counterfactual.actions == {
                 "transaction": 0, "customer": 0, "network": 0
@@ -194,7 +196,7 @@ class TestCounterfactualInjection:
                 "app.services.experience_buffer_service.replay_buffer_repository"
         ) as repository:
             repository.apply_manual_reward = AsyncMock(return_value=None)
-            repository.save = AsyncMock()
+            repository.replace_counterfactual = AsyncMock()
 
             applied = await experience_buffer_service.apply_manual_feedback(
                 payment_id="missing-payment",
@@ -205,7 +207,64 @@ class TestCounterfactualInjection:
             )
 
             assert applied is False
-            repository.save.assert_not_awaited()
+            repository.replace_counterfactual.assert_not_awaited()
+
+
+@pytest.mark.unit
+class TestReplayBufferIdempotency:
+
+    async def test_redelivered_decision_keeps_the_first_experience(self):
+        experience_buffer_service = ExperienceBufferService()
+
+        with patch(
+                "app.services.experience_buffer_service.replay_buffer_repository"
+        ) as repository:
+            repository.save_decision_if_absent = AsyncMock(side_effect=[True, False])
+
+            first_entry = await experience_buffer_service.save_experience(**create_experience_arguments())
+            redelivered_entry = await experience_buffer_service.save_experience(**create_experience_arguments())
+
+            assert first_entry is not None
+            assert first_entry.payment_id == "payment-123"
+            assert redelivered_entry is None
+            assert repository.save_decision_if_absent.await_count == 2
+
+    async def test_redelivered_officer_verdict_replaces_the_counterfactual_instead_of_adding_one(self):
+        experience_buffer_service = ExperienceBufferService()
+        updated_entry = create_replay_buffer_entry(marl_action="BLOCK")
+
+        with patch(
+                "app.services.experience_buffer_service.replay_buffer_repository"
+        ) as repository:
+            repository.apply_manual_reward = AsyncMock(return_value=updated_entry)
+            repository.replace_counterfactual = AsyncMock(side_effect=lambda entry: entry)
+
+            for _ in range(2):
+                await experience_buffer_service.apply_manual_feedback(
+                    payment_id="payment-123",
+                    manual_reward=-2.7,
+                    officer_decision="APPROVE",
+                    feedback_type="DECISION_OVERRIDE",
+                    counterfactual_reward=1.0,
+                )
+
+            assert repository.replace_counterfactual.await_count == 2
+            repository.save.assert_not_called()
+
+
+def create_experience_arguments() -> dict:
+    return {
+        "payment_id": "payment-123",
+        "state": [0.1, 0.1, 0.2, 0.2, 0.3, 0.3],
+        "actions": {"transaction": 0, "customer": 0, "network": 0},
+        "automated_reward": -0.15,
+        "next_state": [0.0] * 6,
+        "done": True,
+        "marl_action": "BLOCK",
+        "marl_confidence": 0.53,
+        "marl_q_value": 0.1,
+        "mean_risk_score": 0.16,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

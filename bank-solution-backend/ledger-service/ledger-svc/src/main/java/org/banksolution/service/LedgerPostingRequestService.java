@@ -8,6 +8,7 @@ import org.banksolution.domain.LedgerPostingInstruction;
 import org.banksolution.domain.LedgerTransfer;
 import org.banksolution.exception.InsufficientLedgerFundsException;
 import org.banksolution.exception.LedgerPostingException;
+import org.banksolution.exception.PendingAuthorisationAlreadyResolvedException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.banksolution.infrastructure.messaging.kafka.producer.LedgerPostingCompletedEventProducer;
 import org.banksolution.mapper.LedgerPostingEventMapper;
@@ -31,7 +32,7 @@ public class LedgerPostingRequestService {
             List<LedgerTransfer> ledgerTransfers = ledgerPostingService.applyPostingInstruction(postingInstruction);
             publishSuccess(ledgerTransfers.getFirst());
         } catch (InsufficientLedgerFundsException | PendingAuthorisationNotFoundException |
-                 LedgerPostingException ledgerRejection) {
+                 PendingAuthorisationAlreadyResolvedException | LedgerPostingException ledgerRejection) {
             publishRejection(ledgerPostingRequestedEvent, ledgerRejection.getMessage());
         }
     }

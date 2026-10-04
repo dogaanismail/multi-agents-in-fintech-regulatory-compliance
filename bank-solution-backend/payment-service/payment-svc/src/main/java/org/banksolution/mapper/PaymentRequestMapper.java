@@ -1,6 +1,7 @@
 package org.banksolution.mapper;
 
 import lombok.experimental.UtilityClass;
+import org.banksolution.domain.PaymentIdempotency;
 import org.banksolution.entity.PaymentRequestEntity;
 import org.banksolution.model.request.PaymentRequest;
 import org.banksolution.model.response.PaymentRequestResponse;
@@ -9,9 +10,13 @@ import org.banksolution.model.response.PaymentRequestResponse;
 public class PaymentRequestMapper {
 
     public static PaymentRequestEntity toPaymentRequestEntity(
-            PaymentRequest paymentRequest) {
+            PaymentRequest paymentRequest,
+            PaymentIdempotency paymentIdempotency) {
 
         return PaymentRequestEntity.builder()
+                .id(paymentIdempotency.paymentId())
+                .idempotencyKey(paymentIdempotency.idempotencyKey())
+                .requestFingerprint(paymentIdempotency.requestFingerprint())
                 .customerId(paymentRequest.getCustomerId())
                 .sourceAccountId(paymentRequest.getSourceAccountId())
                 .destinationAccountId(paymentRequest.getDestinationAccountId())

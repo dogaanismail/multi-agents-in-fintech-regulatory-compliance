@@ -11,11 +11,13 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, String, Text
+from sqlalchemy import Boolean, DateTime, Float, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.database import Base
+
+COUNTERFACTUAL_REWARD_SOURCE = "counterfactual"
 
 
 def _utcnow() -> datetime:
@@ -39,6 +41,20 @@ class AgentReplayBufferEntry(Base):
     """
 
     __tablename__ = "agent_replay_buffer"
+    __table_args__ = (
+        Index(
+            "uq_agent_replay_buffer_decision_payment_id",
+            "payment_id",
+            unique=True,
+            postgresql_where=text(f"reward_source <> '{COUNTERFACTUAL_REWARD_SOURCE}'"),
+        ),
+        Index(
+            "uq_agent_replay_buffer_counterfactual_payment_id",
+            "payment_id",
+            unique=True,
+            postgresql_where=text(f"reward_source = '{COUNTERFACTUAL_REWARD_SOURCE}'"),
+        ),
+    )
 
     # ── Primary key ───────────────────────────────────────────────────────────
     id: Mapped[uuid.UUID] = mapped_column(

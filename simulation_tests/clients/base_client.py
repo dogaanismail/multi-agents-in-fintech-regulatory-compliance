@@ -70,10 +70,10 @@ class BaseClient:
         self._raise_for_status(resp)
         return resp.json()
 
-    async def post(self, path: str, body: dict) -> dict:
+    async def post(self, path: str, body: dict, headers: Optional[dict] = None) -> dict:
         assert self._http, "Client not started — use `async with` context."
         logger.debug("POST %s%s  body=%s", self._base_url, path, str(body)[:120])
-        resp = await self._http.post(path, json=body)
+        resp = await self._http.post(path, json=body, headers=headers)
         self._raise_for_status(resp)
         return resp.json()
 

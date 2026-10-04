@@ -7,8 +7,10 @@ import org.banksolution.enums.Currency;
 import org.banksolution.enums.PaymentType;
 import org.banksolution.exception.CustomError;
 import org.banksolution.exception.ExchangeRateUnavailableException;
+import org.banksolution.exception.IdempotencyKeyReusedException;
 import org.banksolution.exception.PaymentNotFoundException;
 import org.banksolution.exception.UnresolvablePaymentSchemeException;
+import org.banksolution.http.IdempotencyHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -16,8 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -81,6 +85,32 @@ class GlobalExceptionHandlerTest {
         assert customErrorResponse.getBody() != null;
         assertThat(customErrorResponse.getBody().getHeader()).isEqualTo(CustomError.Header.VALIDATION_ERROR.getName());
         assertThat(customErrorResponse.getBody().getMessage()).contains("DEPOSIT");
+    }
+
+    @Test
+    void shouldTurnAMissingIdempotencyKeyIntoABadRequest() {
+        MissingRequestHeaderException missingRequestHeaderException =
+                new MissingRequestHeaderException(IdempotencyHeaders.IDEMPOTENCY_KEY, mock(MethodParameter.class));
+
+        ResponseEntity<CustomError> customErrorResponse = globalExceptionHandler.handleMissingRequestHeader(missingRequestHeaderException);
+
+        assertThat(customErrorResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assert customErrorResponse.getBody() != null;
+        assertThat(customErrorResponse.getBody().getHeader()).isEqualTo(CustomError.Header.VALIDATION_ERROR.getName());
+        assertThat(customErrorResponse.getBody().getMessage()).isEqualTo("Idempotency-Key header is required");
+    }
+
+    @Test
+    void shouldTurnAReusedIdempotencyKeyIntoAnUnprocessableEntity() {
+        UUID paymentId = UUID.randomUUID();
+
+        ResponseEntity<CustomError> customErrorResponse = globalExceptionHandler.handleIdempotencyKeyReused(
+                new IdempotencyKeyReusedException(paymentId));
+
+        assertThat(customErrorResponse.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assert customErrorResponse.getBody() != null;
+        assertThat(customErrorResponse.getBody().getHeader()).isEqualTo(CustomError.Header.PROCESS_ERROR.getName());
+        assertThat(customErrorResponse.getBody().getMessage()).contains(paymentId.toString());
     }
 
     @Test

@@ -24,6 +24,7 @@ import numpy as np
 
 from app.core.logging import logger
 from app.infrastructure.database.models import AgentReplayBufferEntry
+from app.infrastructure.database.models.replay_buffer_entry import COUNTERFACTUAL_REWARD_SOURCE
 from app.repositories.replay_buffer_repository import replay_buffer_repository
 
 
@@ -53,7 +54,7 @@ class ExperienceBufferService:
             decision_reasons: Optional[list] = None,
             amount: Optional[float] = None,
             currency: Optional[str] = None,
-    ) -> AgentReplayBufferEntry:
+    ) -> Optional[AgentReplayBufferEntry]:
         """Build and persist one (s, a, r, s', done) experience tuple."""
         entry = AgentReplayBufferEntry(
             id=uuid.uuid4(),
@@ -77,12 +78,18 @@ class ExperienceBufferService:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-        saved = await replay_buffer_repository.save(entry)
+        if not await replay_buffer_repository.save_decision_if_absent(entry):
+            logger.info(
+                f"📦 Experience for payment={payment_id} already recorded; "
+                f"keeping the first decision and ignoring the redelivered one"
+            )
+            return None
+
         logger.info(
             f"📦 Experience saved: payment={payment_id} action={marl_action} "
             f"reward={automated_reward:.4f}"
         )
-        return saved
+        return entry
 
     # ──────────────────────────────────────────────────────────────────────────
     # Read path: buffer statistics
@@ -166,6 +173,7 @@ class ExperienceBufferService:
         recorded_action_int = 0 if entry.marl_action == "BLOCK" else 1
 
         if correct_action_int == recorded_action_int:
+            await replay_buffer_repository.delete_counterfactual(payment_id)
             return True  # Original entry already carries the corrective signal
 
         counterfactual = AgentReplayBufferEntry(
@@ -178,7 +186,7 @@ class ExperienceBufferService:
             automated_reward=0.0,
             manual_reward=counterfactual_reward,
             effective_reward=counterfactual_reward,
-            reward_source="counterfactual",
+            reward_source=COUNTERFACTUAL_REWARD_SOURCE,
             officer_decision=officer_decision,
             feedback_type=feedback_type,
             officer_notes=officer_notes,
@@ -196,7 +204,7 @@ class ExperienceBufferService:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-        await replay_buffer_repository.save(counterfactual)
+        await replay_buffer_repository.replace_counterfactual(counterfactual)
         logger.info(
             f"🪞 Counterfactual experience injected: payment={payment_id} "
             f"{entry.marl_action} → {correct_action} reward={counterfactual_reward:.4f}"

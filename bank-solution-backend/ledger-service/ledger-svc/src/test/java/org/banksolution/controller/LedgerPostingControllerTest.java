@@ -87,6 +87,57 @@ class LedgerPostingControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    void shouldAcknowledgeARedeliveredSettlementWithoutPostingItTwice() throws Exception {
+        UUID customerAccountId = givenFundedWallet();
+        UUID clientTransactionId = UUID.randomUUID();
+        applyPosting(createOutboundAuthorisation(
+                clientTransactionId, customerAccountId, AUTHORISED_AMOUNT, CURRENCY));
+        applyPosting(createSettlement(clientTransactionId));
+
+        mockMvc.perform(post(POSTINGS_URL)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createSettlement(clientTransactionId))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath(POSTING_INSTRUCTION_TYPE).value("SETTLEMENT"));
+
+        mockMvc.perform(get(BY_CLIENT_TRANSACTION_URL, clientTransactionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void shouldRefuseToSettleAnAuthorisationThatWasAlreadyReleased() throws Exception {
+        UUID customerAccountId = givenFundedWallet();
+        UUID clientTransactionId = UUID.randomUUID();
+        applyPosting(createOutboundAuthorisation(
+                clientTransactionId, customerAccountId, AUTHORISED_AMOUNT, CURRENCY));
+        applyPosting(createRelease(clientTransactionId));
+
+        mockMvc.perform(post(POSTINGS_URL)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createSettlement(clientTransactionId))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Authorisation for client transaction " + clientTransactionId
+                        + " was already released; cannot apply SETTLEMENT"));
+    }
+
+    @Test
+    void shouldRefuseToReleaseAnAuthorisationThatWasAlreadySettled() throws Exception {
+        UUID customerAccountId = givenFundedWallet();
+        UUID clientTransactionId = UUID.randomUUID();
+        applyPosting(createOutboundAuthorisation(
+                clientTransactionId, customerAccountId, AUTHORISED_AMOUNT, CURRENCY));
+        applyPosting(createSettlement(clientTransactionId));
+
+        mockMvc.perform(post(POSTINGS_URL)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRelease(clientTransactionId))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Authorisation for client transaction " + clientTransactionId
+                        + " was already settled; cannot apply RELEASE"));
+    }
+
+    @Test
     void shouldApplyInboundAuthorisation() throws Exception {
         UUID customerAccountId = givenFundedWallet();
 

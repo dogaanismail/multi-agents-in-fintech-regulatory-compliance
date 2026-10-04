@@ -8,6 +8,7 @@ import org.banksolution.enums.TransferType;
 import org.banksolution.exception.InsufficientLedgerFundsException;
 import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.LedgerUnavailableException;
+import org.banksolution.exception.PendingAuthorisationAlreadyResolvedException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.banksolution.mapper.LedgerTransferMapper;
 import org.banksolution.util.MoneyUtils;
@@ -136,12 +137,19 @@ public class TigerBeetleTransferRepository {
     }
 
     private static void failUnlessTransferWasApplied(CreateTransferStatus status, LedgerTransfer ledgerTransfer) {
-        if (TigerBeetleStatuses.isTransferPersisted(status)) {
+        if (TigerBeetleStatuses.isTransferPersisted(status, ledgerTransfer.transferType())) {
             if (status != CreateTransferStatus.Created) {
                 log.info("Posting instruction {} for client transaction {} was already applied: {}",
                         ledgerTransfer.postingInstructionType(), ledgerTransfer.clientTransactionId(), status);
             }
             return;
+        }
+
+        if (TigerBeetleStatuses.isPendingTransferAlreadyResolved(status)) {
+            throw new PendingAuthorisationAlreadyResolvedException(
+                    ledgerTransfer.clientTransactionId(),
+                    ledgerTransfer.postingInstructionType(),
+                    status == CreateTransferStatus.PendingTransferAlreadyPosted ? "settled" : "released");
         }
 
         if (TigerBeetleStatuses.isInsufficientFunds(status)) {

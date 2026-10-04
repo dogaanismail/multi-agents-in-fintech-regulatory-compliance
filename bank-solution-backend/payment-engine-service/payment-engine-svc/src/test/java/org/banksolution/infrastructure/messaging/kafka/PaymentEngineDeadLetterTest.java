@@ -3,9 +3,12 @@ package org.banksolution.infrastructure.messaging.kafka;
 import com.aml.ledger.LedgerPostingCompletedEvent;
 import com.aml.ledger.PostingInstructionType;
 import com.aml.payment.PaymentCreatedEvent;
+import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.banksolution.common.PaymentFlowSupport;
 import org.banksolution.common.kafka.KafkaTestClients;
+import org.banksolution.domain.payment.event.PaymentInitiatedEvent;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -15,11 +18,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PaymentEngineDeadLetterTest extends PaymentFlowSupport {
 
     /**
-     * Unknown aggregates are classified non-retryable, so they park immediately; a
-     * duplicate creation is retried 3 times with exponential backoff (1s/2s/4s) first.
+     * Unknown aggregates are classified non-retryable, so they park immediately.
      */
     private static final Duration DEAD_LETTER_TIMEOUT = Duration.ofSeconds(60);
     private static final String DEAD_LETTER_TOPIC_SUFFIX = ".DLT";
+    private static final Duration RETRY_AND_PARK_WINDOW = Duration.ofSeconds(15);
+
+    @Autowired
+    private EventStore eventStore;
 
     @Test
     void shouldParkALedgerOutcomeForAnUnknownPaymentWithoutRetrying() throws Exception {
@@ -39,19 +45,20 @@ class PaymentEngineDeadLetterTest extends PaymentFlowSupport {
     }
 
     @Test
-    void shouldParkADuplicatePaymentCreationInsteadOfSilentlyDroppingIt() throws Exception {
+    void shouldAcknowledgeARedeliveredPaymentCreationInsteadOfParkingOrReinitiatingIt() throws Exception {
         UUID paymentId = givenPaymentCreated();
         awaitLedgerPostingRequested(paymentId, PostingInstructionType.INTERNAL_TRANSFER_AUTHORISATION);
-        PaymentCreatedEvent duplicatePaymentCreatedEvent = createPaymentCreatedEventFor(paymentId);
+        PaymentCreatedEvent redeliveredPaymentCreatedEvent = createPaymentCreatedEventFor(paymentId);
 
-        publish(paymentCreatedTopic, paymentId, duplicatePaymentCreatedEvent);
+        publish(paymentCreatedTopic, paymentId, redeliveredPaymentCreatedEvent);
 
-        PaymentCreatedEvent parkedPaymentCreatedEvent = KafkaTestClients.awaitMatchingEvent(
+        KafkaTestClients.assertNoMatchingEvent(
                 paymentCreatedTopic + DEAD_LETTER_TOPIC_SUFFIX,
-                DEAD_LETTER_TIMEOUT,
+                RETRY_AND_PARK_WINDOW,
                 (PaymentCreatedEvent deadLetteredEvent) ->
-                        duplicatePaymentCreatedEvent.getEventId().equals(deadLetteredEvent.getEventId()));
-
-        assertThat(parkedPaymentCreatedEvent.getPaymentId()).isEqualTo(paymentId.toString());
+                        redeliveredPaymentCreatedEvent.getEventId().equals(deadLetteredEvent.getEventId()));
+        assertThat(eventStore.readEvents(paymentId.toString()).asStream()
+                .filter(domainEventMessage -> domainEventMessage.getPayloadType().equals(PaymentInitiatedEvent.class)))
+                .hasSize(1);
     }
 }

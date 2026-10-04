@@ -1,11 +1,13 @@
 package org.banksolution.exception.handler;
 
+import org.banksolution.enums.PostingInstructionType;
 import org.banksolution.exception.CustomError;
 import org.banksolution.exception.InsufficientLedgerFundsException;
 import org.banksolution.exception.LedgerAccountNotFoundException;
 import org.banksolution.exception.LedgerAccountPersistenceException;
 import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.LedgerUnavailableException;
+import org.banksolution.exception.PendingAuthorisationAlreadyResolvedException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
@@ -53,6 +55,9 @@ class GlobalExceptionHandlerTest {
                 HttpStatus.CONFLICT, CustomError.Header.PROCESS_ERROR, "ExistsWithDifferentLedger");
         assertResponse(globalExceptionHandler.handlePendingAuthorisationNotFound(new PendingAuthorisationNotFoundException(clientTransactionId)),
                 HttpStatus.NOT_FOUND, CustomError.Header.NOT_FOUND, clientTransactionId.toString());
+        assertResponse(globalExceptionHandler.handlePendingAuthorisationAlreadyResolved(
+                        new PendingAuthorisationAlreadyResolvedException(clientTransactionId, PostingInstructionType.RELEASE, "settled")),
+                HttpStatus.CONFLICT, CustomError.Header.PROCESS_ERROR, clientTransactionId.toString());
         assertResponse(globalExceptionHandler.handleInsufficientLedgerFunds(new InsufficientLedgerFundsException(ledgerAccountId)),
                 HttpStatus.UNPROCESSABLE_ENTITY, CustomError.Header.PROCESS_ERROR, ledgerAccountId.toString());
         assertResponse(globalExceptionHandler.handleLedgerPosting(new LedgerPostingException("AccountsMustBeDifferent")),

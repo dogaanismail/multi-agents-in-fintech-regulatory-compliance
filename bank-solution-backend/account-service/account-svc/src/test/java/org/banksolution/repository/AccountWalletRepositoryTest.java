@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +33,7 @@ class AccountWalletRepositoryTest extends BaseIntegrationTest {
         AccountWalletEntity accountWalletEntity = createAccountWalletEntity(accountEntity, Currency.GBP, true);
         accountWalletEntity.setBalance(new BigDecimal("1234.56"));
         accountWalletEntity.setAvailableBalance(new BigDecimal("1000.01"));
+        accountWalletEntity.setBalanceAsOf(Instant.parse("2026-10-04T10:00:00.123Z"));
 
         UUID savedAccountWalletId = accountWalletRepository.saveAndFlush(accountWalletEntity).getId();
         AccountWalletEntity reloadedAccountWalletEntity = accountWalletRepository.findById(savedAccountWalletId).orElseThrow();
@@ -42,6 +44,7 @@ class AccountWalletRepositoryTest extends BaseIntegrationTest {
         assertThat(reloadedAccountWalletEntity.getWalletStatus()).isEqualTo(WalletStatus.ACTIVE);
         assertThat(reloadedAccountWalletEntity.getBalance()).isEqualByComparingTo("1234.56");
         assertThat(reloadedAccountWalletEntity.getAvailableBalance()).isEqualByComparingTo("1000.01");
+        assertThat(reloadedAccountWalletEntity.getBalanceAsOf()).isEqualTo(Instant.parse("2026-10-04T10:00:00.123Z"));
         assertThat(reloadedAccountWalletEntity.isPrimary()).isTrue();
         assertThat(reloadedAccountWalletEntity.getCreatedAt()).isNotNull();
     }

@@ -1,6 +1,7 @@
 package org.banksolution.infrastructure.messaging.kafka.handler;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.AvroEventFixtures.createDepositPaymentCreatedEvent;
@@ -16,6 +19,7 @@ import static org.banksolution.fixtures.AvroEventFixtures.createPaymentCreatedEv
 import static org.banksolution.fixtures.PaymentFixtures.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,6 +27,9 @@ class PaymentCreatedEventHandlerTest {
 
     @Mock
     private CommandGateway commandGateway;
+
+    @Mock
+    private EventStore eventStore;
 
     @InjectMocks
     private PaymentCreatedEventHandler paymentCreatedEventHandler;
@@ -65,6 +72,15 @@ class PaymentCreatedEventHandlerTest {
         assertThat(initiatePaymentCommand.description()).isNull();
         assertThat(initiatePaymentCommand.paymentType()).isEqualTo("DEPOSIT");
         assertThat(initiatePaymentCommand.paymentScheme()).isEqualTo("EXTERNAL_INBOUND");
+    }
+
+    @Test
+    void shouldAcknowledgeARedeliveryForAnAlreadyInitiatedPaymentWithoutSendingACommand() {
+        when(eventStore.lastSequenceNumberFor(createPaymentId().toString())).thenReturn(Optional.of(4L));
+
+        paymentCreatedEventHandler.handle(createPaymentCreatedEvent());
+
+        verifyNoInteractions(commandGateway);
     }
 
     @Test

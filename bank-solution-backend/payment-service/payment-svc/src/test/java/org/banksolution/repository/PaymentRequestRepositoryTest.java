@@ -30,6 +30,8 @@ class PaymentRequestRepositoryTest extends BaseIntegrationTest {
         PaymentRequestEntity reloadedPaymentRequestEntity = paymentRequestRepository.findById(savedPaymentId).orElseThrow();
 
         assertThat(reloadedPaymentRequestEntity.getCustomerId()).isEqualTo(paymentRequestEntity.getCustomerId());
+        assertThat(reloadedPaymentRequestEntity.getIdempotencyKey()).isEqualTo(paymentRequestEntity.getIdempotencyKey());
+        assertThat(reloadedPaymentRequestEntity.getRequestFingerprint()).isEqualTo(paymentRequestEntity.getRequestFingerprint());
         assertThat(reloadedPaymentRequestEntity.getSourceAccountId()).isEqualTo(SOURCE_ACCOUNT_ID);
         assertThat(reloadedPaymentRequestEntity.getDestinationAccountId()).isEqualTo(DESTINATION_ACCOUNT_ID);
         assertThat(reloadedPaymentRequestEntity.getAmount()).isEqualByComparingTo(AMOUNT);
@@ -76,6 +78,27 @@ class PaymentRequestRepositoryTest extends BaseIntegrationTest {
 
         assertThatThrownBy(() -> paymentRequestRepository.saveAndFlush(paymentRequestEntity))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void shouldRejectASecondPaymentForTheSameCustomerAndIdempotencyKey() {
+        PaymentRequestEntity paymentRequestEntity = paymentRequestRepository.saveAndFlush(createPaymentRequestEntity(UUID.randomUUID()));
+        PaymentRequestEntity duplicatePaymentRequestEntity = createPaymentRequestEntity(paymentRequestEntity.getCustomerId());
+        duplicatePaymentRequestEntity.setIdempotencyKey(paymentRequestEntity.getIdempotencyKey());
+
+        assertThatThrownBy(() -> paymentRequestRepository.saveAndFlush(duplicatePaymentRequestEntity))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void shouldAllowTwoCustomersToUseTheSameIdempotencyKey() {
+        PaymentRequestEntity paymentRequestEntity = paymentRequestRepository.saveAndFlush(createPaymentRequestEntity(UUID.randomUUID()));
+        PaymentRequestEntity otherCustomerPaymentRequestEntity = createPaymentRequestEntity(UUID.randomUUID());
+        otherCustomerPaymentRequestEntity.setIdempotencyKey(paymentRequestEntity.getIdempotencyKey());
+
+        paymentRequestRepository.saveAndFlush(otherCustomerPaymentRequestEntity);
+
+        assertThat(paymentRequestRepository.findById(otherCustomerPaymentRequestEntity.getId())).isPresent();
     }
 
     @Test

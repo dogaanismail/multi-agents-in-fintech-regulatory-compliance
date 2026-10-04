@@ -2,6 +2,7 @@ package org.banksolution.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.banksolution.domain.PaymentIdempotency;
 import org.banksolution.entity.PaymentRequestEntity;
 import org.banksolution.model.CurrencyConversion;
 import org.banksolution.model.PaymentAccounts;
@@ -25,13 +26,18 @@ import static org.banksolution.mapper.PaymentRequestMapper.toPaymentRequestRespo
 @Slf4j
 public class PaymentService {
 
+    public static final String PAYMENT_SUBMITTED_MESSAGE = "Payment request submitted successfully and is being processed";
+
     private final PaymentRequestRepository paymentRequestRepository;
     private final PaymentCreatedEventProducer paymentCreatedEventProducer;
     private final AccountService accountService;
     private final CurrencyConversionService currencyConversionService;
 
     @Transactional
-    public PaymentRequestResponse requestPayment(PaymentRequest paymentRequest) {
+    public PaymentRequestResponse createPayment(
+            PaymentIdempotency paymentIdempotency,
+            PaymentRequest paymentRequest) {
+
         log.info("Processing payment request for customer: {}, type: {}, amount: {} {}",
                 paymentRequest.getCustomerId(),
                 paymentRequest.getPaymentType(),
@@ -50,13 +56,13 @@ public class PaymentService {
                 paymentRequest.getToCurrency(),
                 paymentRequest.getFixedSide());
 
-        PaymentRequestEntity paymentRequestEntity = toPaymentRequestEntity(paymentRequest);
+        PaymentRequestEntity paymentRequestEntity = toPaymentRequestEntity(paymentRequest, paymentIdempotency);
         applyConversion(paymentRequestEntity, currencyConversion);
         paymentRequestEntity.setPaymentScheme(
                 PaymentSchemeClassifier.classify(paymentRequest, resolvedPaymentAccounts.orElse(null)));
 
         PaymentRequestEntity savedPaymentRequestEntity = paymentRequestRepository
-                .save(paymentRequestEntity);
+                .saveAndFlush(paymentRequestEntity);
 
         boolean isCrossBorderPayment = resolvedPaymentAccounts
                 .map(accountService::isCrossBorderPayment)
@@ -65,7 +71,7 @@ public class PaymentService {
         paymentCreatedEventProducer.publishPaymentCreatedEvent(savedPaymentRequestEntity, isCrossBorderPayment);
 
         log.info("Payment request created: id:{}", savedPaymentRequestEntity.getId());
-        return toPaymentRequestResponse(savedPaymentRequestEntity, "Payment request submitted successfully and is being processed");
+        return toPaymentRequestResponse(savedPaymentRequestEntity, PAYMENT_SUBMITTED_MESSAGE);
     }
 
     @Transactional(readOnly = true)

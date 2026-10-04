@@ -9,6 +9,7 @@ import org.banksolution.enums.PostingInstructionType;
 import org.banksolution.exception.InsufficientLedgerFundsException;
 import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.LedgerUnavailableException;
+import org.banksolution.exception.PendingAuthorisationAlreadyResolvedException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.banksolution.infrastructure.messaging.kafka.producer.LedgerPostingCompletedEventProducer;
 import org.junit.jupiter.api.Test;
@@ -87,18 +88,21 @@ class LedgerPostingRequestServiceTest {
     void shouldReportAMissingAuthorisationAndOtherLedgerRejections() {
         when(ledgerPostingService.applyPostingInstruction(any()))
                 .thenThrow(new PendingAuthorisationNotFoundException(CLIENT_TRANSACTION_ID))
+                .thenThrow(new PendingAuthorisationAlreadyResolvedException(CLIENT_TRANSACTION_ID, PostingInstructionType.SETTLEMENT, "released"))
                 .thenThrow(new LedgerPostingException("AccountsMustBeDifferent"));
 
+        ledgerPostingRequestService.processLedgerPostingRequest(createSettlementRequestedEvent(CLIENT_TRANSACTION_ID));
         ledgerPostingRequestService.processLedgerPostingRequest(createSettlementRequestedEvent(CLIENT_TRANSACTION_ID));
         ledgerPostingRequestService.processLedgerPostingRequest(createSettlementRequestedEvent(CLIENT_TRANSACTION_ID));
 
         ArgumentCaptor<LedgerPostingCompletedEvent> ledgerPostingCompletedEventCaptor =
                 ArgumentCaptor.forClass(LedgerPostingCompletedEvent.class);
-        verify(ledgerPostingCompletedEventProducer, times(2)).publish(ledgerPostingCompletedEventCaptor.capture());
+        verify(ledgerPostingCompletedEventProducer, times(3)).publish(ledgerPostingCompletedEventCaptor.capture());
         assertThat(ledgerPostingCompletedEventCaptor.getAllValues())
                 .extracting(LedgerPostingCompletedEvent::getFailureReason)
                 .containsExactly(
                         "No authorisation found for client transaction: " + CLIENT_TRANSACTION_ID,
+                        "Authorisation for client transaction " + CLIENT_TRANSACTION_ID + " was already released; cannot apply SETTLEMENT",
                         "Failed to post ledger transfer, TigerBeetle returned: AccountsMustBeDifferent");
     }
 

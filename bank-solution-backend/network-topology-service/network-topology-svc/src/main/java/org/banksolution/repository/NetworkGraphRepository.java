@@ -86,24 +86,26 @@ public class NetworkGraphRepository {
         try (Session session = neo4jDriver.session()) {
             String query = """
                     MERGE (source:Account {accountId: $sourceAccountId})
-                    ON CREATE SET source.createdAt      = datetime(),
-                                  source.lastActivityAt = datetime(),
-                                  source.transactionCount = 1
-                    ON MATCH  SET source.lastActivityAt  = datetime(),
-                                  source.transactionCount = source.transactionCount + 1
+                    ON CREATE SET source.createdAt        = datetime(),
+                                  source.transactionCount = 0
                     MERGE (dest:Account {accountId: $destAccountId})
-                    ON CREATE SET dest.createdAt      = datetime(),
-                                  dest.lastActivityAt = datetime(),
-                                  dest.transactionCount = 1
-                    ON MATCH  SET dest.lastActivityAt  = datetime(),
-                                  dest.transactionCount = dest.transactionCount + 1
-                    MERGE (source)-[r:TRANSFERRED_TO {paymentId: $paymentId}]->(dest)
-                    ON CREATE SET r.amount        = $amount,
-                                  r.fromCurrency  = $fromCurrency,
-                                  r.toCurrency    = $toCurrency,
-                                  r.paymentType   = $paymentType,
-                                  r.timestamp     = $timestamp,
-                                  r.riskCheckPassed = $riskCheckPassed
+                    ON CREATE SET dest.createdAt        = datetime(),
+                                  dest.transactionCount = 0
+                    WITH source, dest
+                    WHERE NOT EXISTS { (source)-[:TRANSFERRED_TO {paymentId: $paymentId}]->(dest) }
+                    CREATE (source)-[:TRANSFERRED_TO {
+                        paymentId:       $paymentId,
+                        amount:          $amount,
+                        fromCurrency:    $fromCurrency,
+                        toCurrency:      $toCurrency,
+                        paymentType:     $paymentType,
+                        timestamp:       $timestamp,
+                        riskCheckPassed: $riskCheckPassed
+                    }]->(dest)
+                    SET source.lastActivityAt   = datetime(),
+                        source.transactionCount = source.transactionCount + 1,
+                        dest.lastActivityAt     = datetime(),
+                        dest.transactionCount   = dest.transactionCount + 1
                     """;
 
             session.run(query, Values.parameters(

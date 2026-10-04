@@ -7,6 +7,7 @@ import org.banksolution.enums.Currency;
 import org.banksolution.enums.WalletStatus;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.banksolution.enums.WalletStatus.ACTIVE;
@@ -51,6 +52,9 @@ public class AccountWalletEntity extends BaseEntity {
     @Column(name = "available_balance", nullable = false, precision = 19, scale = 2)
     @Builder.Default
     private BigDecimal availableBalance = BigDecimal.ZERO;
+
+    @Column(name = "balance_as_of")
+    private Instant balanceAsOf;
 
     @Column(name = "is_primary", nullable = false)
     @Builder.Default

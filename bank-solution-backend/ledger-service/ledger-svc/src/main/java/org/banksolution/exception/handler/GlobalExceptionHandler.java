@@ -7,6 +7,7 @@ import org.banksolution.exception.LedgerAccountNotFoundException;
 import org.banksolution.exception.LedgerAccountPersistenceException;
 import org.banksolution.exception.LedgerPostingException;
 import org.banksolution.exception.LedgerUnavailableException;
+import org.banksolution.exception.PendingAuthorisationAlreadyResolvedException;
 import org.banksolution.exception.PendingAuthorisationNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -90,6 +91,19 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(PendingAuthorisationAlreadyResolvedException.class)
+    protected ResponseEntity<@NonNull CustomError> handlePendingAuthorisationAlreadyResolved(
+            PendingAuthorisationAlreadyResolvedException pendingAuthorisationAlreadyResolvedException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.CONFLICT)
+                .header(CustomError.Header.PROCESS_ERROR.getName())
+                .message(pendingAuthorisationAlreadyResolvedException.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(InsufficientLedgerFundsException.class)

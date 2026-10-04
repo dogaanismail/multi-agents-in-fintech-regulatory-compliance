@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
 from enum import Enum
 import time
+import uuid
 
 
 class FraudLabel(str, Enum):
@@ -38,6 +39,7 @@ class PaymentRequestData:
     source_account_id: Optional[str] = None
     destination_account_id: Optional[str] = None
     description: Optional[str] = None
+    idempotency_key: str = field(default_factory=lambda: uuid.uuid4().hex)
 
     def to_api_payload(self) -> dict:
         payload: dict = {

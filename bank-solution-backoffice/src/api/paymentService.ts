@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import {IDEMPOTENCY_KEY_HEADER} from './idempotency';
 import {
   PaymentHistoryResponse,
   Page,
@@ -119,8 +120,13 @@ export const paymentService = {
   },
 
   // Create / request a new payment
-  createPayment: async (request: CreatePaymentRequest): Promise<CreatePaymentResponse> => {
-    const response = await apiClient.post<CreatePaymentResponse>('/payments/request', request);
+    createPayment: async (
+        request: CreatePaymentRequest,
+        idempotencyKey: string
+    ): Promise<CreatePaymentResponse> => {
+        const response = await apiClient.post<CreatePaymentResponse>('/payments/request', request, {
+            headers: {[IDEMPOTENCY_KEY_HEADER]: idempotencyKey},
+        });
     return response.data;
   },
 

@@ -1,5 +1,6 @@
 package org.banksolution.service;
 
+import org.banksolution.domain.PaymentIdempotency;
 import org.banksolution.entity.PaymentRequestEntity;
 import org.banksolution.enums.Currency;
 import org.banksolution.enums.FixedSide;
@@ -55,17 +56,13 @@ class PaymentServiceTest {
         when(accountService.isCrossBorderPayment(any())).thenReturn(true);
         when(currencyConversionService.convert(AMOUNT, Currency.GBP, Currency.EUR, FixedSide.SELL)).thenReturn(
                 new CurrencyConversion(AMOUNT, Currency.GBP, new BigDecimal("116.00"), Currency.EUR, GBP_TO_EUR_RATE, FixedSide.SELL));
-        UUID paymentId = UUID.randomUUID();
-        when(paymentRequestRepository.save(any(PaymentRequestEntity.class))).thenAnswer(invocation -> {
-            PaymentRequestEntity paymentRequestEntity = invocation.getArgument(0);
-            paymentRequestEntity.setId(paymentId);
-            return paymentRequestEntity;
-        });
+        PaymentIdempotency paymentIdempotency = createPaymentIdempotency(paymentRequest);
+        when(paymentRequestRepository.saveAndFlush(any(PaymentRequestEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PaymentRequestResponse paymentRequestResponse = paymentService.requestPayment(paymentRequest);
+        PaymentRequestResponse paymentRequestResponse = paymentService.createPayment(paymentIdempotency, paymentRequest);
 
         ArgumentCaptor<PaymentRequestEntity> paymentRequestEntityCaptor = ArgumentCaptor.forClass(PaymentRequestEntity.class);
-        verify(paymentRequestRepository).save(paymentRequestEntityCaptor.capture());
+        verify(paymentRequestRepository).saveAndFlush(paymentRequestEntityCaptor.capture());
 
         PaymentRequestEntity savedPaymentRequestEntity = paymentRequestEntityCaptor.getValue();
         assertThat(savedPaymentRequestEntity.getPaymentScheme()).isEqualTo(PaymentScheme.INTERNAL_TRANSFER);
@@ -74,8 +71,10 @@ class PaymentServiceTest {
         assertThat(savedPaymentRequestEntity.getFixedSide()).isEqualTo(FixedSide.SELL);
 
         verify(paymentCreatedEventProducer).publishPaymentCreatedEvent(savedPaymentRequestEntity, true);
-        assertThat(paymentRequestResponse.getId()).isEqualTo(paymentId);
-        assertThat(paymentRequestResponse.getMessage()).isEqualTo("Payment request submitted successfully and is being processed");
+        assertThat(paymentRequestResponse.getId()).isEqualTo(paymentIdempotency.paymentId());
+        assertThat(savedPaymentRequestEntity.getIdempotencyKey()).isEqualTo(paymentIdempotency.idempotencyKey());
+        assertThat(savedPaymentRequestEntity.getRequestFingerprint()).isEqualTo(paymentIdempotency.requestFingerprint());
+        assertThat(paymentRequestResponse.getMessage()).isEqualTo(PaymentService.PAYMENT_SUBMITTED_MESSAGE);
     }
 
     @Test
@@ -84,12 +83,12 @@ class PaymentServiceTest {
         when(accountService.loadPaymentAccounts(null, DESTINATION_ACCOUNT_ID)).thenReturn(Optional.empty());
         when(currencyConversionService.convert(AMOUNT, Currency.GBP, Currency.GBP, FixedSide.SELL))
                 .thenReturn(CurrencyConversion.sameCurrency(AMOUNT, Currency.GBP));
-        when(paymentRequestRepository.save(any(PaymentRequestEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentRequestRepository.saveAndFlush(any(PaymentRequestEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        paymentService.requestPayment(depositRequest);
+        paymentService.createPayment(createPaymentIdempotency(depositRequest), depositRequest);
 
         ArgumentCaptor<PaymentRequestEntity> paymentRequestEntityCaptor = ArgumentCaptor.forClass(PaymentRequestEntity.class);
-        verify(paymentRequestRepository).save(paymentRequestEntityCaptor.capture());
+        verify(paymentRequestRepository).saveAndFlush(paymentRequestEntityCaptor.capture());
         assertThat(paymentRequestEntityCaptor.getValue().getPaymentScheme()).isEqualTo(PaymentScheme.EXTERNAL_INBOUND);
         assertThat(paymentRequestEntityCaptor.getValue().getAppliedExchangeRate()).isNull();
         verify(paymentCreatedEventProducer).publishPaymentCreatedEvent(paymentRequestEntityCaptor.getValue(), false);
@@ -100,7 +99,9 @@ class PaymentServiceTest {
         PaymentRequest paymentRequest = createTransferOutRequest(CUSTOMER_ID, Currency.GBP, Currency.GBP);
         paymentRequest.setSourceAccountId(null);
 
-        assertThatThrownBy(() -> paymentService.requestPayment(paymentRequest))
+        PaymentIdempotency paymentIdempotency = createPaymentIdempotency(paymentRequest);
+
+        assertThatThrownBy(() -> paymentService.createPayment(paymentIdempotency, paymentRequest))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Source account is required for TRANSFER_OUT");
 

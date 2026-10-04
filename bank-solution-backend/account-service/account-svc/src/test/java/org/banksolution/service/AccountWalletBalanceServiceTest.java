@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ import static org.banksolution.fixtures.AccountFixtures.createPersistedAccountWa
 import static org.banksolution.fixtures.AccountFixtures.createWalletBalanceChangedEvent;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -61,6 +63,25 @@ class AccountWalletBalanceServiceTest {
 
         assertThat(accountWalletEntity.getBalance()).isEqualByComparingTo(new BigDecimal("750.00"));
         assertThat(accountWalletEntity.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("650.00"));
+    }
+
+    @Test
+    void shouldIgnoreAnOlderBalanceReplayedAfterANewerOne() {
+        AccountWalletEntity accountWalletEntity = createGbpAccountWalletEntity();
+        String ledgerAccountId = accountWalletEntity.getLedgerAccountId().toString();
+        Instant newerBalanceChangedAt = Instant.parse("2026-10-04T10:00:01Z");
+        when(accountWalletRepository.findByLedgerAccountId(accountWalletEntity.getLedgerAccountId()))
+                .thenReturn(Optional.of(accountWalletEntity));
+
+        accountWalletBalanceService.applyWalletBalanceChange(
+                createWalletBalanceChangedEvent(ledgerAccountId, "500.00", "500.00", newerBalanceChangedAt));
+        accountWalletBalanceService.applyWalletBalanceChange(
+                createWalletBalanceChangedEvent(ledgerAccountId, "750.00", "650.00", newerBalanceChangedAt.minusSeconds(1)));
+
+        assertThat(accountWalletEntity.getBalance()).isEqualByComparingTo(new BigDecimal("500.00"));
+        assertThat(accountWalletEntity.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("500.00"));
+        assertThat(accountWalletEntity.getBalanceAsOf()).isEqualTo(newerBalanceChangedAt);
+        verify(accountWalletRepository, times(1)).save(accountWalletEntity);
     }
 
     @Test

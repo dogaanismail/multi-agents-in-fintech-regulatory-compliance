@@ -4,6 +4,7 @@ import com.aml.payment.PaymentCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.banksolution.domain.payment.command.InitiatePaymentCommand;
 import org.banksolution.domain.payment.valueobject.PaymentId;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class PaymentCreatedEventHandler {
 
     private final CommandGateway commandGateway;
+    private final EventStore eventStore;
 
     public void handle(PaymentCreatedEvent paymentCreatedEvent) {
         log.info("Handling PaymentCreatedEvent: eventId:{}, paymentId:{}",
@@ -24,6 +26,13 @@ public class PaymentCreatedEventHandler {
                 paymentCreatedEvent.getPaymentId());
 
         PaymentId paymentId = new PaymentId(UUID.fromString(paymentCreatedEvent.getPaymentId()));
+        if (isAlreadyInitiated(paymentId)) {
+            log.info("Payment {} is already initiated, acknowledging redelivered PaymentCreatedEvent {}",
+                    paymentId,
+                    paymentCreatedEvent.getEventId());
+            return;
+        }
+
         UUID sourceAccountId = toUuid(paymentCreatedEvent.getSourceAccountId());
         UUID destinationAccountId = toUuid(paymentCreatedEvent.getDestinationAccountId());
         UUID customerId = UUID.fromString(paymentCreatedEvent.getCustomerId());
@@ -49,6 +58,10 @@ public class PaymentCreatedEventHandler {
         // instead of being acknowledged and silently lost.
         commandGateway.sendAndWait(initiatePaymentCommand);
         log.info("Payment initiated for paymentId:{} successfully", paymentId);
+    }
+
+    private boolean isAlreadyInitiated(PaymentId paymentId) {
+        return eventStore.lastSequenceNumberFor(paymentId.toString()).isPresent();
     }
 
     private static UUID toUuid(String identifier) {
