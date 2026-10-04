@@ -1,0 +1,80 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+}
+
+group = 'org.bank.solution'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+    }
+}
+
+dependencies {
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.kafka:spring-kafka'
+    api "com.github.kagkarlsson:db-scheduler-spring-boot-4-starter:${dbSchedulerVersion}"
+    api "org.apache.avro:avro:${apacheAvroVersion}"
+    implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
+    implementation 'io.micrometer:micrometer-tracing'
+    implementation 'io.micrometer:micrometer-core'
+
+    testImplementation project(':outbox-library:outbox-db-migration-changelog')
+    testImplementation project(':avro-schema-library-java')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    testImplementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+    testImplementation 'org.springframework.boot:spring-boot-micrometer-tracing-opentelemetry'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:kafka'
+    testRuntimeOnly 'org.postgresql:postgresql'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    finalizedBy jacocoTestReport
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs Testcontainers-based integration tests (requires a Docker daemon).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter test
+    finalizedBy jacocoIntegrationTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.register('jacocoIntegrationTestReport', JacocoReport) {
+    description = 'Coverage report over unit + integration test executions combined.'
+    group = 'verification'
+    mustRunAfter tasks.withType(Test)
+    executionData fileTree(layout.buildDirectory).include('jacoco/*.exec')
+    sourceSets sourceSets.main
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}

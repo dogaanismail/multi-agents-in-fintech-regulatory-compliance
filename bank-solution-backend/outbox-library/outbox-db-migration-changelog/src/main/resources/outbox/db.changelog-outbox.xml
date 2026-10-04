@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="2026-10-04-outbox-01" author="Ismail Dogan">
+        <comment>Add outbox_event table</comment>
+        <sqlFile path="changelog/add_outbox_event_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="2026-10-04-outbox-02" author="Ismail Dogan">
+        <comment>Add db-scheduler scheduled_tasks table used by the outbox relay, unless the service already has it
+        </comment>
+        <sqlFile path="changelog/add_db_scheduler_table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>

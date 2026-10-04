@@ -15,6 +15,11 @@ include 'common'
 include 'avro-schema-library-java'
 project(':avro-schema-library-java').projectDir = file('../libraries/avro-schema-library/java')
 
+// transactional outbox library
+include 'outbox-library'
+include 'outbox-library:outbox'
+include 'outbox-library:outbox-db-migration-changelog'
+
 // customer service modules
 include 'customer-service'
 include 'customer-service:customer-svc'
