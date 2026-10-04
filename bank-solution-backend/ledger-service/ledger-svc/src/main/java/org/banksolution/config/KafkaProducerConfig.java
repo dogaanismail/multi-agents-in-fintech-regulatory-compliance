@@ -64,6 +64,7 @@ public class KafkaProducerConfig {
         props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
                 kafkaConfigurationProperties.getSchemaRegistry().getUrl());
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         props.put(ProducerConfig.RETRIES_CONFIG, RETRIES);
 
         return props;

@@ -91,7 +91,7 @@ class KafkaConfig:
         additional_config: Dict[str, Any] = None
     ) -> AvroProducer:
         """
-        Create pre-configured Avro producer with Schema Registry support.
+        Create a pre-configured Avro producer with Schema Registry support.
         
         Includes reliability settings (acks=all, retries) and performance tuning.
         
@@ -106,6 +106,7 @@ class KafkaConfig:
             'schema.registry.url': settings.schema_registry_url,
             # Reliability settings
             'acks': 'all',
+            'enable.idempotence': True,
             'retries': 3,
             'max.in.flight.requests.per.connection': 5,
             # Performance tuning
@@ -128,7 +129,7 @@ class KafkaConfig:
         additional_config: Dict[str, Any] = None
     ) -> AvroProducer:
         """
-        Create pre-configured Avro producer with explicit schemas.
+        Create a pre-configured Avro producer with explicit schemas.
         
         Args:
             value_schema: Avro schema for message values
@@ -143,6 +144,7 @@ class KafkaConfig:
             'schema.registry.url': settings.schema_registry_url,
             # Reliability settings
             'acks': 'all',
+            'enable.idempotence': True,
             'retries': 3,
             'max.in.flight.requests.per.connection': 5,
             # Performance tuning
