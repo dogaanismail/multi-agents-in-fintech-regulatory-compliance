@@ -3,14 +3,13 @@ package org.banksolution.infrastructure.messaging.kafka.producer;
 import com.aml.risk.RiskAssessmentCompletedEvent;
 import org.banksolution.config.KafkaConfigurationProperties;
 import org.banksolution.entity.RiskCheckRequestEntity;
-import org.banksolution.exception.RiskAssessmentCompletedEventException;
 import org.banksolution.mapper.RiskAssessmentCompletedEventMapper;
+import org.banksolution.outbox.publisher.OutboxEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.banksolution.fixtures.FraudAnalysisFixtures.createFraudAnalysisCompletedEvent;
@@ -26,7 +25,7 @@ class RiskAssessmentCompletedEventProducerTest {
     private static final String PAYMENT_ID = "PAY-1";
 
     @Mock
-    private KafkaTemplate<String, RiskAssessmentCompletedEvent> riskAssessmentCompletedEventKafkaTemplate;
+    private OutboxEventPublisher outboxEventPublisher;
 
     private RiskAssessmentCompletedEventProducer riskAssessmentCompletedEventProducer;
 
@@ -34,37 +33,43 @@ class RiskAssessmentCompletedEventProducerTest {
     void createProducerWithConfiguredTopic() {
         KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
         kafkaConfigurationProperties.getTopics().getOutgoing().setRiskAssessmentCompleted(TOPIC);
-        riskAssessmentCompletedEventProducer = new RiskAssessmentCompletedEventProducer(
-                kafkaConfigurationProperties, riskAssessmentCompletedEventKafkaTemplate);
+        riskAssessmentCompletedEventProducer = new RiskAssessmentCompletedEventProducer(kafkaConfigurationProperties, outboxEventPublisher);
     }
 
     @Test
-    void shouldSendTheEventToTheConfiguredTopicKeyedByPaymentId() {
-        RiskAssessmentCompletedEvent event = createRiskAssessmentCompletedEvent();
+    void shouldStoreTheEventInTheOutboxKeyedByPaymentAndDeduplicatedByRiskCheck() {
+        RiskAssessmentCompletedEvent riskAssessmentCompletedEvent = createRiskAssessmentCompletedEvent();
 
-        riskAssessmentCompletedEventProducer.produceRiskAssessmentCompletedEvent(event);
+        riskAssessmentCompletedEventProducer.produceRiskAssessmentCompletedEvent(riskAssessmentCompletedEvent);
 
-        verify(riskAssessmentCompletedEventKafkaTemplate).send(TOPIC, event.getPaymentId(), event);
+        verify(outboxEventPublisher).publish(
+                TOPIC,
+                riskAssessmentCompletedEvent.getPaymentId(),
+                riskAssessmentCompletedEvent,
+                "risk-assessment-completed:" + riskAssessmentCompletedEvent.getRiskCheckRequestId());
     }
 
     @Test
-    void shouldWrapPublishingFailuresWithThePaymentContext() {
-        RiskAssessmentCompletedEvent event = createRiskAssessmentCompletedEvent();
-        when(riskAssessmentCompletedEventKafkaTemplate.send(TOPIC, event.getPaymentId(), event))
-                .thenThrow(new IllegalStateException("broker unavailable"));
+    void shouldLetAnOutboxFailureRollBackTheCallersTransaction() {
+        RiskAssessmentCompletedEvent riskAssessmentCompletedEvent = createRiskAssessmentCompletedEvent();
+        IllegalStateException outboxFailure = new IllegalStateException("outbox insert failed");
+        when(outboxEventPublisher.publish(
+                TOPIC,
+                riskAssessmentCompletedEvent.getPaymentId(),
+                riskAssessmentCompletedEvent,
+                "risk-assessment-completed:" + riskAssessmentCompletedEvent.getRiskCheckRequestId()))
+                .thenThrow(outboxFailure);
 
-        assertThatThrownBy(() -> riskAssessmentCompletedEventProducer.produceRiskAssessmentCompletedEvent(event))
-                .isInstanceOf(RiskAssessmentCompletedEventException.class)
-                .hasMessageContaining("RiskAssessmentCompletedEvent")
-                .hasMessageContaining(event.getPaymentId());
+        assertThatThrownBy(() -> riskAssessmentCompletedEventProducer.produceRiskAssessmentCompletedEvent(riskAssessmentCompletedEvent))
+                .isSameAs(outboxFailure);
     }
 
     private static RiskAssessmentCompletedEvent createRiskAssessmentCompletedEvent() {
-        RiskCheckRequestEntity riskCheckRequest = createTransferRiskCheckRequestEntity();
+        RiskCheckRequestEntity riskCheckRequestEntity = createTransferRiskCheckRequestEntity();
         return RiskAssessmentCompletedEventMapper.toEvent(
-                createFraudAnalysisCompletedEvent(riskCheckRequest.getId().toString(), PAYMENT_ID),
-                riskCheckRequest,
-                createRiskAssessmentEntity(riskCheckRequest),
+                createFraudAnalysisCompletedEvent(riskCheckRequestEntity.getId().toString(), PAYMENT_ID),
+                riskCheckRequestEntity,
+                createRiskAssessmentEntity(riskCheckRequestEntity),
                 123L);
     }
 }

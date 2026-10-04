@@ -1,11 +1,12 @@
 package org.banksolution.producer;
 
 import com.aml.payment.PaymentCreatedEvent;
+import org.apache.avro.specific.SpecificRecord;
 import org.banksolution.config.KafkaConfigurationProperties;
+import org.banksolution.outbox.publisher.OutboxEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.UUID;
 
@@ -20,27 +21,33 @@ class PaymentCreatedEventProducerTest {
 
     private static final String TOPIC = "payment-created-events";
 
-    private KafkaTemplate<String, PaymentCreatedEvent> paymentCreatedEventKafkaTemplate;
+    private OutboxEventPublisher outboxEventPublisher;
     private PaymentCreatedEventProducer paymentCreatedEventProducer;
 
-    @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() {
         KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
         kafkaConfigurationProperties.getTopics().getOutgoing().setPaymentCreated(TOPIC);
-        paymentCreatedEventKafkaTemplate = mock(KafkaTemplate.class);
-        paymentCreatedEventProducer = new PaymentCreatedEventProducer(kafkaConfigurationProperties, paymentCreatedEventKafkaTemplate);
+        outboxEventPublisher = mock(OutboxEventPublisher.class);
+        paymentCreatedEventProducer = new PaymentCreatedEventProducer(kafkaConfigurationProperties, outboxEventPublisher);
     }
 
     @Test
-    void shouldPublishTheCreatedPaymentKeyedByPaymentId() {
+    void shouldStoreTheCreatedPaymentInTheOutboxKeyedAndDeduplicatedByPaymentId() {
         UUID paymentId = UUID.randomUUID();
 
         paymentCreatedEventProducer.publishPaymentCreatedEvent(createPersistedPaymentRequestEntity(paymentId, CUSTOMER_ID), true);
 
-        ArgumentCaptor<PaymentCreatedEvent> paymentCreatedEventCaptor = ArgumentCaptor.forClass(PaymentCreatedEvent.class);
-        verify(paymentCreatedEventKafkaTemplate).send(eq(TOPIC), eq(paymentId.toString()), paymentCreatedEventCaptor.capture());
-        assertThat(paymentCreatedEventCaptor.getValue().getPaymentId()).isEqualTo(paymentId.toString());
-        assertThat(paymentCreatedEventCaptor.getValue().getIsCrossBorderPayment()).isTrue();
+        ArgumentCaptor<SpecificRecord> payloadCaptor = ArgumentCaptor.forClass(SpecificRecord.class);
+        verify(outboxEventPublisher).publish(
+                eq(TOPIC),
+                eq(paymentId.toString()),
+                payloadCaptor.capture(),
+                eq("payment-created:" + paymentId));
+        assertThat(payloadCaptor.getValue())
+                .isInstanceOfSatisfying(PaymentCreatedEvent.class, paymentCreatedEvent -> {
+                    assertThat(paymentCreatedEvent.getPaymentId()).isEqualTo(paymentId.toString());
+                    assertThat(paymentCreatedEvent.getIsCrossBorderPayment()).isTrue();
+                });
     }
 }

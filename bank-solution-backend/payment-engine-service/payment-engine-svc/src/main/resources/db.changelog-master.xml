@@ -10,4 +10,6 @@
         <sqlFile path="changelog/add_db_scheduler_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <include file="scheduler/db.changelog-scheduler.xml"/>
+
 </databaseChangeLog>

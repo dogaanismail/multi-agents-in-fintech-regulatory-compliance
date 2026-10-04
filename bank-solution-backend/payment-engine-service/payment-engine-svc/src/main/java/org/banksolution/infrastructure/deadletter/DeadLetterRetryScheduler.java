@@ -8,7 +8,6 @@ import org.axonframework.messaging.deadletter.SequencedDeadLetterProcessor;
 import org.axonframework.messaging.deadletter.SequencedDeadLetterQueue;
 import org.banksolution.domain.payment.PaymentEventProcessingGroups;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Predicate;
@@ -28,7 +27,6 @@ public class DeadLetterRetryScheduler {
         this.maxRetries = maxRetries;
     }
 
-    @Scheduled(fixedDelayString = "${payment-engine.dead-letter.retry-interval}")
     public void retryDeadLetters() {
         PaymentEventProcessingGroups.deadLetteringGroups().forEach(this::retryDeadLettersOf);
     }

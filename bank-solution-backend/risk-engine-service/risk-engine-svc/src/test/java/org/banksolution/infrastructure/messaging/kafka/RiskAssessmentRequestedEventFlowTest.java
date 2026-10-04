@@ -12,8 +12,11 @@ import org.banksolution.repository.RiskCheckRequestRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -45,6 +48,9 @@ class RiskAssessmentRequestedEventFlowTest extends BaseIntegrationTest {
     @Autowired
     private RiskCheckRequestRepository riskCheckRequestRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Test
     void shouldPersistTheRequestAndPublishFraudAnalysisRequestedWithAllFeatureSets()
             throws ExecutionException, InterruptedException {
@@ -72,6 +78,12 @@ class RiskAssessmentRequestedEventFlowTest extends BaseIntegrationTest {
         assertThat(published.getTransactionFeatures().getReceiverAccount()).isEqualTo("DE000222");
         assertThat(published.getCustomerFeatures().getTransactionCount()).isEqualTo(42);
         assertThat(published.getNetworkFeatures().getInDegree()).isEqualTo(5);
+        await().atMost(EVENT_TIMEOUT).untilAsserted(() -> assertThat(findOutboxEventsByPaymentId(paymentId))
+                .singleElement()
+                .satisfies(outboxEvent -> {
+                    assertThat(outboxEvent.get("status")).isEqualTo("PROCESSED");
+                    assertThat(outboxEvent.get("idempotence_key")).isEqualTo("fraud-analysis-requested:" + persisted.getId());
+                }));
     }
 
     @Test
@@ -108,6 +120,15 @@ class RiskAssessmentRequestedEventFlowTest extends BaseIntegrationTest {
                 () -> riskCheckRequestRepository.findAll().stream()
                         .filter(entity -> paymentId.equals(entity.getPaymentId()))
                         .count() == 1);
+        await().during(Duration.ofSeconds(3)).atMost(EVENT_TIMEOUT).until(
+                () -> findOutboxEventsByPaymentId(paymentId).size() == 1);
+    }
+
+    private List<Map<String, Object>> findOutboxEventsByPaymentId(String paymentId) {
+        return jdbcTemplate.queryForList(
+                "select status, idempotence_key from outbox_event where reference_id = ? and destination = ?",
+                paymentId,
+                fraudAnalysisRequestedTopic);
     }
 
     private void publishRiskAssessmentRequested(RiskAssessmentRequestedEvent event)

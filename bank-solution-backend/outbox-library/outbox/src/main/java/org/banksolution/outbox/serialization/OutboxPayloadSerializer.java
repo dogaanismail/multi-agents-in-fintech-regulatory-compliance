@@ -18,7 +18,10 @@ public class OutboxPayloadSerializer {
                 false);
     }
 
-    public byte[] serializeOutboxPayload(String destination, SpecificRecord payload) {
+    public byte[] serializeOutboxPayload(
+            String destination,
+            SpecificRecord payload) {
+
         return kafkaAvroSerializer.serialize(destination, payload);
     }
 }

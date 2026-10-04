@@ -22,12 +22,13 @@ dependencyManagement {
 dependencies {
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
     api 'org.springframework.kafka:spring-kafka'
-    api "com.github.kagkarlsson:db-scheduler-spring-boot-4-starter:${dbSchedulerVersion}"
+    api project(':scheduler-library:scheduler')
     api "org.apache.avro:avro:${apacheAvroVersion}"
     implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
     implementation 'io.micrometer:micrometer-tracing'
     implementation 'io.micrometer:micrometer-core'
 
+    testImplementation project(':scheduler-library:scheduler-db-migration-changelog')
     testImplementation project(':outbox-library:outbox-db-migration-changelog')
     testImplementation project(':avro-schema-library-java')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

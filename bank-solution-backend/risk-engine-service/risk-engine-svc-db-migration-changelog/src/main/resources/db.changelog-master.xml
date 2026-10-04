@@ -45,4 +45,7 @@
         <sqlFile path="changelog/allow_unknown_confidence_in_agent_observation.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <include file="scheduler/db.changelog-scheduler.xml"/>
+    <include file="outbox/db.changelog-outbox.xml"/>
+
 </databaseChangeLog>

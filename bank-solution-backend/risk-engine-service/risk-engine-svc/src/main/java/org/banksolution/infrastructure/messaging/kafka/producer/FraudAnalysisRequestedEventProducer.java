@@ -1,12 +1,10 @@
 package org.banksolution.infrastructure.messaging.kafka.producer;
 
 import com.aml.fraud.FraudAnalysisRequestedEvent;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.config.KafkaConfigurationProperties;
-import org.banksolution.exception.FraudAnalysisRequestedEventException;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.banksolution.outbox.publisher.OutboxEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,29 +12,20 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class FraudAnalysisRequestedEventProducer {
 
+    private static final String FRAUD_ANALYSIS_REQUESTED_IDEMPOTENCE_KEY_PREFIX = "fraud-analysis-requested:";
+
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
-    private final KafkaTemplate<@NonNull String, @NonNull FraudAnalysisRequestedEvent> fraudAnalysisRequestedEventKafkaTemplate;
+    private final OutboxEventPublisher outboxEventPublisher;
 
-    public void publishFraudAnalysisRequestedEvent(FraudAnalysisRequestedEvent event) {
-        try {
-            String topic = kafkaConfigurationProperties.getTopics().getOutgoing().getFraudAnalysisRequested();
-            String messageKey = event.getPaymentId();
+    public void publishFraudAnalysisRequestedEvent(FraudAnalysisRequestedEvent fraudAnalysisRequestedEvent) {
+        outboxEventPublisher.publish(
+                kafkaConfigurationProperties.getTopics().getOutgoing().getFraudAnalysisRequested(),
+                fraudAnalysisRequestedEvent.getPaymentId(),
+                fraudAnalysisRequestedEvent,
+                FRAUD_ANALYSIS_REQUESTED_IDEMPOTENCE_KEY_PREFIX + fraudAnalysisRequestedEvent.getRiskCheckRequestId());
 
-            fraudAnalysisRequestedEventKafkaTemplate.send(topic, messageKey, event);
-            log.info("Successfully published FraudAnalysisRequestedEvent for paymentId: {} and riskCheckRequestId: {}",
-                    event.getPaymentId(),
-                    event.getRiskCheckRequestId());
-        } catch (Exception e) {
-            log.error("Error publishing FraudAnalysisRequestedEvent for paymentId: {} and riskCheckRequestId: {}",
-                    event.getPaymentId(),
-                    event.getRiskCheckRequestId(),
-                    e);
-            throw new FraudAnalysisRequestedEventException(
-                    "Failed to publish FraudAnalysisRequestedEvent for paymentId: %s, riskCheckRequestId: %s",
-                    e,
-                    event.getPaymentId(),
-                    event.getRiskCheckRequestId()
-            );
-        }
+        log.info("Stored FraudAnalysisRequestedEvent in outbox for paymentId: {} and riskCheckRequestId: {}",
+                fraudAnalysisRequestedEvent.getPaymentId(),
+                fraudAnalysisRequestedEvent.getRiskCheckRequestId());
     }
 }

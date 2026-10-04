@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
 }
 
 group = 'org.bank.solution'
@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    api project(':scheduler-library:scheduler-db-migration-changelog')
+    api project(':outbox-library:outbox-db-migration-changelog')
 }
 
 test {

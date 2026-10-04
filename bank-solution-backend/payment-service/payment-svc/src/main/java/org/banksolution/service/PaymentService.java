@@ -62,7 +62,6 @@ public class PaymentService {
                 .map(accountService::isCrossBorderPayment)
                 .orElse(false);
 
-        //TODO: Investigate and implement outbox pattern
         paymentCreatedEventProducer.publishPaymentCreatedEvent(savedPaymentRequestEntity, isCrossBorderPayment);
 
         log.info("Payment request created: id:{}", savedPaymentRequestEntity.getId());

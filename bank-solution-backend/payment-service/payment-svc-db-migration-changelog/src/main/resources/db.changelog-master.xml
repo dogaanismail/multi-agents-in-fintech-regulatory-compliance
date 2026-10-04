@@ -35,4 +35,14 @@
         <sqlFile path="changelog/add_payment_scheme_and_fixed_side.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-10-04-01-01" author="Ismail Dogan">
+        <comment>Drop the persistent-schedule currency rates task; it is now a plain recurring task</comment>
+        <sql>DELETE
+             FROM scheduled_tasks
+             WHERE task_name = 'currency-rates-refresh'</sql>
+    </changeSet>
+
+    <include file="scheduler/db.changelog-scheduler.xml"/>
+    <include file="outbox/db.changelog-outbox.xml"/>
+
 </databaseChangeLog>

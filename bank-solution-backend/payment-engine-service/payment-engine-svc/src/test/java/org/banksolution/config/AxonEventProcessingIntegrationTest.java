@@ -20,7 +20,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * The unit test pins the processor semantics against an in-memory store; this one checks
  * the same wiring survives the real Spring context: JPA token store, JPA dead-letter table
- * (Hibernate must know the entity), the scheduler bean, and a payment flowing through the
+ * (Hibernate must know the entity), the dead-letter retry, and a payment flowing through the
  * streaming processors out to Kafka.
  */
 class AxonEventProcessingIntegrationTest extends PaymentFlowSupport {
@@ -71,7 +71,7 @@ class AxonEventProcessingIntegrationTest extends PaymentFlowSupport {
 
         for (String processingGroup : PaymentEventProcessingGroups.allGroups()) {
             await().atMost(FLOW_TIMEOUT).untilAsserted(() -> {
-                TrackingToken trackingToken = transactionTemplate.execute(status -> tokenStore.fetchToken(processingGroup, 0));
+                TrackingToken trackingToken = transactionTemplate.execute(_ -> tokenStore.fetchToken(processingGroup, 0));
                 assertThat(trackingToken).as(processingGroup).isNotNull();
             });
         }

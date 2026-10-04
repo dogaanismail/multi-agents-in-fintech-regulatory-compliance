@@ -15,6 +15,11 @@ include 'common'
 include 'avro-schema-library-java'
 project(':avro-schema-library-java').projectDir = file('../libraries/avro-schema-library/java')
 
+// db-scheduler library
+include 'scheduler-library'
+include 'scheduler-library:scheduler'
+include 'scheduler-library:scheduler-db-migration-changelog'
+
 // transactional outbox library
 include 'outbox-library'
 include 'outbox-library:outbox'

@@ -35,7 +35,8 @@ dependencies {
 
     implementation "org.axonframework:axon-spring-boot-starter:${axonVersion}"
     implementation "org.axonframework.extensions.kafka:axon-kafka-spring-boot-starter:${axonKafkaVersion}"
-    implementation 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:14.0.0'
+    implementation project(':scheduler-library:scheduler')
+    implementation project(':scheduler-library:scheduler-db-migration-changelog')
 
     implementation 'org.springframework.kafka:spring-kafka'
     implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"

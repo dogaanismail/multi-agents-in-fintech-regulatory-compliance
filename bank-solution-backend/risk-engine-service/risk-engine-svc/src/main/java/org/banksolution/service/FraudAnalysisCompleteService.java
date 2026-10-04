@@ -46,7 +46,6 @@ public class FraudAnalysisCompleteService {
         riskCheckRequestEntity.setStatus(COMPLETED);
         riskCheckRequestService.save(riskCheckRequestEntity);
 
-        //TODO: Investigate and implement outbox pattern here
         riskAssessmentCompleteService.publishRiskAssessmentCompletedEvent(event, riskCheckRequestEntity, riskAssessmentEntity);
 
         log.info("Successfully processed fraud analysis for paymentId: {}, riskCheckRequestId: {} and action: {}",

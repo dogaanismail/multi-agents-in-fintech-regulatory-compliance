@@ -10,10 +10,4 @@
         <sqlFile path="changelog/add_outbox_event_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
-    <changeSet id="2026-10-04-outbox-02" author="Ismail Dogan">
-        <comment>Add db-scheduler scheduled_tasks table used by the outbox relay, unless the service already has it
-        </comment>
-        <sqlFile path="changelog/add_db_scheduler_table.sql" relativeToChangelogFile="true"/>
-    </changeSet>
-
 </databaseChangeLog>

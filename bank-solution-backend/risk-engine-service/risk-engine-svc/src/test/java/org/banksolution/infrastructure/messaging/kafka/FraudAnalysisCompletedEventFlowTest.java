@@ -19,6 +19,7 @@ import org.banksolution.repository.RiskCheckRequestRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Duration;
 import java.util.List;
@@ -52,6 +53,9 @@ class FraudAnalysisCompletedEventFlowTest extends BaseIntegrationTest {
     @Autowired
     private AgentObservationRepository agentObservationRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Test
     void shouldRecordTheAssessmentsAndPublishRiskAssessmentCompleted()
             throws ExecutionException, InterruptedException {
@@ -80,6 +84,8 @@ class FraudAnalysisCompletedEventFlowTest extends BaseIntegrationTest {
         assertThat(countAgentObservations(riskCheckRequestId)).isEqualTo(3);
         assertThat(riskCheckRequestRepository.findById(riskCheckRequestId).orElseThrow().getStatus())
                 .isEqualTo(RiskCheckStatus.COMPLETED);
+        await().atMost(EVENT_TIMEOUT).untilAsserted(() -> assertThat(findOutboxEventStatusesByRiskCheckRequestId(riskCheckRequestId))
+                .containsExactly("PROCESSED"));
     }
 
     @Test
@@ -96,7 +102,15 @@ class FraudAnalysisCompletedEventFlowTest extends BaseIntegrationTest {
                 () -> assertThat(marlAssessmentRepository.existsByRiskCheckRequestId(riskCheckRequestId)).isTrue());
         await().during(Duration.ofSeconds(3)).atMost(EVENT_TIMEOUT).until(
                 () -> countRiskAssessments(riskCheckRequestId) == 1
-                        && countAgentObservations(riskCheckRequestId) == 3);
+                        && countAgentObservations(riskCheckRequestId) == 3
+                        && findOutboxEventStatusesByRiskCheckRequestId(riskCheckRequestId).size() == 1);
+    }
+
+    private List<String> findOutboxEventStatusesByRiskCheckRequestId(UUID riskCheckRequestId) {
+        return jdbcTemplate.queryForList(
+                "select status from outbox_event where idempotence_key = ?",
+                String.class,
+                "risk-assessment-completed:" + riskCheckRequestId);
     }
 
     private RiskCheckRequestEntity persistedRiskCheckRequest() {

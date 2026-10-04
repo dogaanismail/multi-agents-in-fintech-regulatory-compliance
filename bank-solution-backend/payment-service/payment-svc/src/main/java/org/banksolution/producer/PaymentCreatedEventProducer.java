@@ -1,12 +1,11 @@
 package org.banksolution.producer;
 
 import com.aml.payment.PaymentCreatedEvent;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.config.KafkaConfigurationProperties;
 import org.banksolution.entity.PaymentRequestEntity;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.banksolution.outbox.publisher.OutboxEventPublisher;
 import org.springframework.stereotype.Component;
 
 import static org.banksolution.mapper.PaymentCreatedEventMapper.toPaymentCreatedEvent;
@@ -16,24 +15,28 @@ import static org.banksolution.mapper.PaymentCreatedEventMapper.toPaymentCreated
 @Slf4j
 public class PaymentCreatedEventProducer {
 
+    private static final String PAYMENT_CREATED_IDEMPOTENCE_KEY_PREFIX = "payment-created:";
+
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
-    private final KafkaTemplate<@NonNull String, @NonNull PaymentCreatedEvent> paymentCreatedEventKafkaTemplate;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     public void publishPaymentCreatedEvent(
             PaymentRequestEntity paymentRequestEntity,
             boolean isCrossBorderPayment) {
 
-        log.info("Publishing PaymentCreatedEvent for payment: {}", paymentRequestEntity.getId());
-
         String paymentCreatedTopic = kafkaConfigurationProperties.getTopics().getOutgoing().getPaymentCreated();
-        String messageKey = paymentRequestEntity.getId().toString();
+        String paymentId = paymentRequestEntity.getId().toString();
         PaymentCreatedEvent paymentCreatedEvent = toPaymentCreatedEvent(paymentRequestEntity, isCrossBorderPayment);
-        paymentCreatedEventKafkaTemplate.send(paymentCreatedTopic, messageKey, paymentCreatedEvent);
 
-        log.info("Published PaymentCreatedEvent: eventId:{}, paymentId:{}, type:{}",
+        outboxEventPublisher.publish(
+                paymentCreatedTopic,
+                paymentId,
+                paymentCreatedEvent,
+                PAYMENT_CREATED_IDEMPOTENCE_KEY_PREFIX + paymentId);
+
+        log.info("Stored PaymentCreatedEvent in outbox: eventId:{}, paymentId:{}, type:{}",
                 paymentCreatedEvent.getEventId(),
                 paymentCreatedEvent.getPaymentId(),
                 paymentCreatedEvent.getPaymentType());
     }
 }
-

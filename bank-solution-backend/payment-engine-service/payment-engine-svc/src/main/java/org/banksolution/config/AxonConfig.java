@@ -127,7 +127,7 @@ public class AxonConfig {
                 .spanFactory(DefaultDeadlineManagerSpanFactory.builder()
                         .spanFactory(spanFactory)
                         .build())
-                .startScheduler(true)
+                .startScheduler(false)
                 .build();
     }
 

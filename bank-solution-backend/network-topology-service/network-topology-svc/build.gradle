@@ -30,7 +30,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
-    implementation 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:14.0.0'
+    implementation project(':scheduler-library:scheduler')
+    implementation project(':scheduler-library:scheduler-db-migration-changelog')
 
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-liquibase'

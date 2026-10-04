@@ -8,7 +8,6 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GraphAlgorithmScheduledService {
 
     private final Driver neo4jDriver;
-    private final AtomicBoolean running = new AtomicBoolean(false);
 
     private static final int GDS_CONCURRENCY = 2;
     private static final String GRAPH_NAME_KEY = "graphName";
@@ -24,11 +22,6 @@ public class GraphAlgorithmScheduledService {
     private static final String GRAPH_NAME_UNDIRECTED = "transactionGraphUndirected";
 
     public void computeAllMetrics() {
-        if (!running.compareAndSet(false, true)) {
-            log.warn("Graph algorithm computation already running — skipping trigger");
-            return;
-        }
-
         log.info("Starting scheduled graph algorithm computation");
 
         try {
@@ -52,12 +45,10 @@ public class GraphAlgorithmScheduledService {
             dropProjection(GRAPH_NAME_UNDIRECTED);
 
             log.info("Graph algorithm computation completed successfully");
-        } catch (Exception e) {
-            log.error("Failed to compute graph algorithms", e);
+        } catch (RuntimeException graphAlgorithmFailure) {
             safeDropProjection(GRAPH_NAME_DIRECTED);
             safeDropProjection(GRAPH_NAME_UNDIRECTED);
-        } finally {
-            running.set(false);
+            throw graphAlgorithmFailure;
         }
     }
 

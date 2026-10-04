@@ -35,10 +35,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class OutboxAutoConfiguration {
 
     @Bean
-    public OutboxPayloadSerializer outboxPayloadSerializer(OutboxProperties outboxProperties, Environment environment) {
-        return new OutboxPayloadSerializer(resolveRequiredSetting(
-                outboxProperties.getKafka().getSchemaRegistryUrl(), environment,
-                "spring.kafka.schema-registry.url", "outbox.kafka.schema-registry-url"));
+    public OutboxPayloadSerializer outboxPayloadSerializer(
+            OutboxProperties outboxProperties,
+            Environment environment) {
+
+        return new OutboxPayloadSerializer(
+                resolveRequiredSetting(
+                        outboxProperties.getKafka().getSchemaRegistryUrl(),
+                        environment,
+                        "spring.kafka.schema-registry.url",
+                        "outbox.kafka.schema-registry-url"));
     }
 
     @Bean
@@ -114,39 +120,64 @@ public class OutboxAutoConfiguration {
                 outboxEventRepository,
                 toRequiresNewTransactionTemplate(platformTransactionManager),
                 clock.getIfAvailable(Clock::systemUTC),
-                outboxProperties.getCleanup().getRetention());
+                outboxProperties.getCleanup().getRetention()
+        );
     }
 
     @Bean
-    public RecurringTask<Void> outboxRelayTask(OutboxEventRelay outboxEventRelay, OutboxProperties outboxProperties) {
-        return OutboxSchedulerTasks.createOutboxRelayTask(outboxEventRelay, outboxProperties.getRelay().getPollingInterval());
+    public RecurringTask<Void> outboxRelayTask(
+            OutboxEventRelay outboxEventRelay,
+            OutboxProperties outboxProperties) {
+
+        return OutboxSchedulerTasks.createOutboxRelayTask(
+                outboxEventRelay,
+                outboxProperties.getRelay().getPollingInterval()
+        );
     }
 
     @Bean
-    public RecurringTask<Void> outboxCleanupTask(OutboxEventCleaner outboxEventCleaner, OutboxProperties outboxProperties) {
-        return OutboxSchedulerTasks.createOutboxCleanupTask(outboxEventCleaner, outboxProperties.getCleanup().getInterval());
+    public RecurringTask<Void> outboxCleanupTask(
+            OutboxEventCleaner outboxEventCleaner,
+            OutboxProperties outboxProperties) {
+
+        return OutboxSchedulerTasks.createOutboxCleanupTask(
+                outboxEventCleaner,
+                outboxProperties.getCleanup().getInterval()
+        );
     }
 
-    private static TransactionTemplate toRequiresNewTransactionTemplate(PlatformTransactionManager platformTransactionManager) {
+    private static TransactionTemplate toRequiresNewTransactionTemplate(
+            PlatformTransactionManager platformTransactionManager) {
+
         TransactionTemplate transactionTemplate = new TransactionTemplate(platformTransactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
         return transactionTemplate;
     }
 
-    private static ThreadPoolTaskExecutor toImmediatePublishExecutor(OutboxProperties.Relay relayProperties) {
+    private static ThreadPoolTaskExecutor toImmediatePublishExecutor(
+            OutboxProperties.Relay relayProperties) {
+
         if (!relayProperties.isPublishImmediately()) {
             return null;
         }
+
         ThreadPoolTaskExecutor immediatePublishExecutor = new ThreadPoolTaskExecutor();
         immediatePublishExecutor.setThreadNamePrefix("outbox-publish-");
         immediatePublishExecutor.setCorePoolSize(relayProperties.getImmediatePublishThreads());
         immediatePublishExecutor.setMaxPoolSize(relayProperties.getImmediatePublishThreads());
         immediatePublishExecutor.setQueueCapacity(relayProperties.getImmediatePublishQueueCapacity());
         immediatePublishExecutor.initialize();
+
         return immediatePublishExecutor;
     }
 
-    private static String resolveRequiredSetting(String explicitValue, Environment environment, String fallbackProperty, String outboxProperty) {
+    private static String resolveRequiredSetting(
+            String explicitValue,
+            Environment environment,
+            String fallbackProperty,
+            String outboxProperty) {
+
         String resolvedValue = explicitValue != null ? explicitValue : environment.getProperty(fallbackProperty);
         if (resolvedValue == null || resolvedValue.isBlank()) {
             throw new IllegalStateException("Outbox needs " + outboxProperty + " or " + fallbackProperty + " to be set");

@@ -71,6 +71,7 @@ public class OutboxKafkaSender implements DisposableBean {
                 outboxEventEntity.getDestination(),
                 outboxEventEntity.getReferenceId(),
                 outboxEventEntity.getPayload());
+
         addHeader(producerRecord, OUTBOX_EVENT_ID_HEADER, outboxEventEntity.getId().toString());
         addHeader(producerRecord, PAYLOAD_TYPE_HEADER, outboxEventEntity.getPayloadType());
         addHeader(producerRecord, IDEMPOTENCE_KEY_HEADER, outboxEventEntity.getIdempotenceKey());

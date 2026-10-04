@@ -1,38 +1,56 @@
 package org.banksolution.config;
 
-import com.github.kagkarlsson.scheduler.SchedulerName;
-import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer;
-import com.github.kagkarlsson.scheduler.serializer.JacksonSerializer;
-import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay;
+import com.github.kagkarlsson.scheduler.task.FailureHandler;
+import com.github.kagkarlsson.scheduler.task.TaskInstanceId;
+import com.github.kagkarlsson.scheduler.task.helper.RecurringTask;
+import org.banksolution.service.CurrencyRateSyncService;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class SchedulerConfigTest {
 
-    @Test
-    void shouldPinTheSchedulerNameAndUseJacksonForTaskData() {
-        DbSchedulerCustomizer dbSchedulerCustomizer = new SchedulerConfig().dbSchedulerCustomizer();
+    private static final long CURRENCY_RATES_REFRESH_INTERVAL_MS = 3_600_000L;
+    private static final Duration CURRENCY_RATES_REFRESH_RETRY_DELAY = Duration.ofMinutes(5);
 
-        assertThat(dbSchedulerCustomizer.schedulerName()).map(SchedulerName::getName).contains("payment-service-scheduler");
-        assertThat(dbSchedulerCustomizer.serializer()).containsInstanceOf(JacksonSerializer.class);
+    private final SchedulerConfig schedulerConfig = new SchedulerConfig();
+    private final CurrencyRateSyncService currencyRateSyncService = mock(CurrencyRateSyncService.class);
+
+    @Test
+    void shouldRegisterTheCurrencyRatesRefreshAsASingleRecurringInstance() {
+        RecurringTask<Void> currencyRatesRefreshTask = createCurrencyRatesRefreshTask();
+
+        assertThat(currencyRatesRefreshTask.getDefaultTaskInstance())
+                .isEqualTo(TaskInstanceId.of(SchedulerConfig.CURRENCY_RATES_REFRESH_TASK_NAME, RecurringTask.INSTANCE));
+        assertThat(currencyRatesRefreshTask.getFailureHandler()).isInstanceOf(FailureHandler.OnFailureRetryLater.class);
     }
 
     @Test
-    void shouldTurnTheConfiguredIntervalIntoAFixedDelayScheduleWithoutPayload() {
-        SchedulerConfig.ScheduleAndRateData scheduleAndRateData = new SchedulerConfig.ScheduleAndRateData(60_000L);
+    void shouldSyncTheCurrencyRatesOnEveryExecution() {
+        createCurrencyRatesRefreshTask().executeRecurringly(null, null);
 
-        assertThat(scheduleAndRateData.getIntervalMs()).isEqualTo(60_000L);
-        assertThat(scheduleAndRateData.getSchedule()).isEqualTo(FixedDelay.of(Duration.ofMillis(60_000L)));
-        assertThat(scheduleAndRateData.getData()).isNull();
+        verify(currencyRateSyncService).syncRates();
     }
 
     @Test
-    void shouldTolerateStoppingBeforeTheSchedulerWasEverBuilt() {
-        SchedulerConfig schedulerConfig = new SchedulerConfig();
+    void shouldLetASyncFailureReachTheSchedulerSoItIsRetried() {
+        RecurringTask<Void> currencyRatesRefreshTask = createCurrencyRatesRefreshTask();
+        IllegalStateException providerUnavailable = new IllegalStateException("exchange rate provider unavailable");
+        doThrow(providerUnavailable).when(currencyRateSyncService).syncRates();
 
-        org.assertj.core.api.Assertions.assertThatCode(schedulerConfig::stopScheduler).doesNotThrowAnyException();
+        assertThatThrownBy(() -> currencyRatesRefreshTask.executeRecurringly(null, null)).isSameAs(providerUnavailable);
+    }
+
+    private RecurringTask<Void> createCurrencyRatesRefreshTask() {
+        return schedulerConfig.currencyRatesRefreshTask(
+                currencyRateSyncService,
+                CURRENCY_RATES_REFRESH_INTERVAL_MS,
+                CURRENCY_RATES_REFRESH_RETRY_DELAY);
     }
 }

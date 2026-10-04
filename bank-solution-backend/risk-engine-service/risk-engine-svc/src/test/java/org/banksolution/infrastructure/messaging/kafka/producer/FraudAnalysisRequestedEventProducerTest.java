@@ -2,15 +2,14 @@ package org.banksolution.infrastructure.messaging.kafka.producer;
 
 import com.aml.fraud.FraudAnalysisRequestedEvent;
 import org.banksolution.config.KafkaConfigurationProperties;
-import org.banksolution.exception.FraudAnalysisRequestedEventException;
 import org.banksolution.mapper.CustomerFeaturesMapper;
 import org.banksolution.mapper.NetworkFeaturesMapper;
+import org.banksolution.outbox.publisher.OutboxEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.UUID;
 
@@ -26,7 +25,7 @@ class FraudAnalysisRequestedEventProducerTest {
     private static final String PAYMENT_ID = "PAY-1";
 
     @Mock
-    private KafkaTemplate<String, FraudAnalysisRequestedEvent> fraudAnalysisRequestedEventKafkaTemplate;
+    private OutboxEventPublisher outboxEventPublisher;
 
     private FraudAnalysisRequestedEventProducer fraudAnalysisRequestedEventProducer;
 
@@ -34,29 +33,35 @@ class FraudAnalysisRequestedEventProducerTest {
     void createProducerWithConfiguredTopic() {
         KafkaConfigurationProperties kafkaConfigurationProperties = new KafkaConfigurationProperties();
         kafkaConfigurationProperties.getTopics().getOutgoing().setFraudAnalysisRequested(TOPIC);
-        fraudAnalysisRequestedEventProducer = new FraudAnalysisRequestedEventProducer(
-                kafkaConfigurationProperties, fraudAnalysisRequestedEventKafkaTemplate);
+        fraudAnalysisRequestedEventProducer = new FraudAnalysisRequestedEventProducer(kafkaConfigurationProperties, outboxEventPublisher);
     }
 
     @Test
-    void shouldSendTheEventToTheConfiguredTopicKeyedByPaymentId() {
-        FraudAnalysisRequestedEvent event = createFraudAnalysisRequestedEvent();
+    void shouldStoreTheEventInTheOutboxKeyedByPaymentAndDeduplicatedByRiskCheck() {
+        FraudAnalysisRequestedEvent fraudAnalysisRequestedEvent = createFraudAnalysisRequestedEvent();
 
-        fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(event);
+        fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(fraudAnalysisRequestedEvent);
 
-        verify(fraudAnalysisRequestedEventKafkaTemplate).send(TOPIC, PAYMENT_ID, event);
+        verify(outboxEventPublisher).publish(
+                TOPIC,
+                PAYMENT_ID,
+                fraudAnalysisRequestedEvent,
+                "fraud-analysis-requested:" + fraudAnalysisRequestedEvent.getRiskCheckRequestId());
     }
 
     @Test
-    void shouldWrapPublishingFailuresWithThePaymentContext() {
-        FraudAnalysisRequestedEvent event = createFraudAnalysisRequestedEvent();
-        when(fraudAnalysisRequestedEventKafkaTemplate.send(TOPIC, PAYMENT_ID, event))
-                .thenThrow(new IllegalStateException("broker unavailable"));
+    void shouldLetAnOutboxFailureRollBackTheCallersTransaction() {
+        FraudAnalysisRequestedEvent fraudAnalysisRequestedEvent = createFraudAnalysisRequestedEvent();
+        IllegalStateException outboxFailure = new IllegalStateException("outbox insert failed");
+        when(outboxEventPublisher.publish(
+                TOPIC,
+                PAYMENT_ID,
+                fraudAnalysisRequestedEvent,
+                "fraud-analysis-requested:" + fraudAnalysisRequestedEvent.getRiskCheckRequestId()))
+                .thenThrow(outboxFailure);
 
-        assertThatThrownBy(() -> fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(event))
-                .isInstanceOf(FraudAnalysisRequestedEventException.class)
-                .hasMessageContaining("FraudAnalysisRequestedEvent")
-                .hasMessageContaining(PAYMENT_ID);
+        assertThatThrownBy(() -> fraudAnalysisRequestedEventProducer.publishFraudAnalysisRequestedEvent(fraudAnalysisRequestedEvent))
+                .isSameAs(outboxFailure);
     }
 
     private static FraudAnalysisRequestedEvent createFraudAnalysisRequestedEvent() {

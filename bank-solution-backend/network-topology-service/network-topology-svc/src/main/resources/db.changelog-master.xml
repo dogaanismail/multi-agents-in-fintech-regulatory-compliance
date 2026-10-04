@@ -10,4 +10,13 @@
         <sqlFile path="changelog/add_db_scheduler_table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2026-10-04-01-01" author="Ismail Dogan">
+        <comment>Drop the persistent-schedule graph algorithm task; it is now a plain recurring task</comment>
+        <sql>DELETE
+             FROM scheduled_tasks
+             WHERE task_name = 'graph-algorithm-computation'</sql>
+    </changeSet>
+
+    <include file="scheduler/db.changelog-scheduler.xml"/>
+
 </databaseChangeLog>

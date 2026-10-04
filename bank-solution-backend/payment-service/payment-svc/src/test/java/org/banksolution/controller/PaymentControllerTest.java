@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.banksolution.common.initializers.WireMockInitializer.ACCOUNT_SERVICE_BASE_PATH;
 import static org.banksolution.fixtures.PaymentFixtures.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,6 +43,9 @@ class PaymentControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private ExchangeRateRepository exchangeRateRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void givenGbpToEurRate() {
@@ -75,6 +80,8 @@ class PaymentControllerTest extends BaseIntegrationTest {
         assertThat(paymentCreatedEvent.getIsCrossBorderPayment()).isTrue();
         assertThat(paymentCreatedEvent.getConvertedAmount()).isEqualTo("116.00");
         assertThat(paymentCreatedEvent.getAppliedExchangeRate()).isEqualTo("1.16000000");
+        await().atMost(EVENT_TIMEOUT).untilAsserted(() ->
+                assertThat(findOutboxEventStatusesByPaymentId(paymentRequestResponse.getId())).containsExactly("PROCESSED"));
     }
 
     @Test
@@ -156,5 +163,12 @@ class PaymentControllerTest extends BaseIntegrationTest {
                         .withStatus(200)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                         .withBody(objectMapper.writeValueAsString(accountResponses))));
+    }
+
+    private List<String> findOutboxEventStatusesByPaymentId(UUID paymentId) {
+        return jdbcTemplate.queryForList(
+                "select status from outbox_event where reference_id = ?",
+                String.class,
+                paymentId.toString());
     }
 }
