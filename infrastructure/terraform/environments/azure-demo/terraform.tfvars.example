@@ -1,0 +1,4 @@
+release           = "v1.0.0"
+subscription_id   = "00000000-0000-0000-0000-000000000000"
+location          = "westeurope"
+api_allowed_cidrs = ["203.0.113.10/32"]

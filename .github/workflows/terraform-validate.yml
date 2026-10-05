@@ -45,3 +45,9 @@ jobs:
         run: |
           terraform init -backend=false -input=false
           terraform validate
+
+      - name: Validate azure-demo
+        working-directory: infrastructure/terraform/environments/azure-demo
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate

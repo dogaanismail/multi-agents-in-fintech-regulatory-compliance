@@ -10,5 +10,5 @@ output "kafka_users" {
 
 output "database_roles" {
   description = "PostgreSQL roles that received credentials, by service."
-  value       = {for service, database in local.databases : service => database.role}
+    value = {for service, database in local.databases : service => database.role}
 }

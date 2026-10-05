@@ -1,14 +1,19 @@
 # Terraform (cloud demo environments)
 
-One `terraform apply` creates a Kubernetes cluster and installs the same platform that runs locally on kind: the
-operators, ArgoCD and the `bank-solution-apps` ApplicationSets. ArgoCD then syncs every store and service from a
-**release tag**, running the images the **Publish Images** workflow pushed for that tag.
+One `terraform apply` creates a Kubernetes cluster on AWS or Azure and installs the same platform that runs locally on
+kind: the operators, ArgoCD and the `bank-solution-apps` ApplicationSets. ArgoCD then syncs every store and service
+from a **release tag**, running the images the **Publish Images** workflow pushed for that tag.
 
 | Path                         | What it is                                                                                |
 |------------------------------|-------------------------------------------------------------------------------------------|
 | `modules/aws-cluster`        | VPC (2 AZs, one NAT gateway), EKS, EBS CSI driver, default encrypted `gp3` StorageClass   |
+| `modules/azure-cluster`      | Resource group, AKS with Azure CNI Overlay and Cilium (enforces the NetworkPolicies)      |
 | `modules/platform-bootstrap` | Cloud-neutral: namespaces, generated credentials, priority classes, Strimzi, CNPG, ArgoCD |
-| `environments/aws-demo`      | The deployable root: wires the two modules together                                       |
+| `environments/aws-demo`      | Deployable root for AWS                                                                   |
+| `environments/azure-demo`    | Deployable root for Azure                                                                 |
+
+Both roots use the same Kubernetes values, `infrastructure/kubernetes/environments/cloud-demo`: credentials come from
+Terraform instead of the charts, everything else matches local.
 
 `platform-bootstrap` reads `infrastructure/kubernetes` (the files ArgoCD reads) to decide which credentials to create:
 a PostgreSQL role per entry in `data/<namespace>/<store>.yaml`, a Kafka user per service with `messaging.enabled`, and
@@ -26,9 +31,13 @@ git tag v1.0.0 && git push origin v1.0.0       # Publish Images builds and pushe
 Each image is tagged `1.0.0` and `sha-<commit>`, and labelled with `org.opencontainers.image.source`, which links the
 package to this repository. The workflow can also be started by hand (Actions → Publish Images); that run pushes only
 `sha-<commit>` tags. After the first publish, check every package under the repository's **Packages** and set its
-visibility to **public** if it is private, because the cluster pulls without credentials.
+visibility to **public** if it is private, because the clusters pull without credentials.
+
+The release must be a tag that already contains the `cloud-demo` values and whose images were published.
 
 ## Deploying a demo
+
+### AWS
 
 Prerequisites: Terraform ≥ 1.9, AWS CLI v2 logged in to the target account, `kubectl`.
 
@@ -41,15 +50,35 @@ $(terraform output -raw configure_kubectl)
 kubectl get applications -n argocd
 ```
 
-The release must be a tag that already contains the `environments/aws-demo` values and whose images were published.
-Generated passwords live only in the Terraform state (local, git-ignored) and in the cluster's Secrets.
+### Azure
 
-Nothing is exposed publicly yet: reach the services the same way as on kind, with `kubectl port-forward`.
+Prerequisites: Terraform ≥ 1.9, Azure CLI logged in (`az login`), `kubectl`.
+
+```bash
+cd infrastructure/terraform/environments/azure-demo
+cp terraform.tfvars.example terraform.tfvars    # set release, subscription_id, location, your IP
+terraform init
+terraform apply                                 # ~10 min; ArgoCD needs ~10 more to sync everything
+$(terraform output -raw configure_kubectl)
+kubectl get applications -n argocd
+```
+
+Generated passwords live only in the Terraform state (local, git-ignored) and in the cluster's Secrets. Nothing is
+exposed publicly yet: reach the services the same way as on kind, with `kubectl port-forward`.
 
 ## Cost and teardown
 
-Three `m6i.xlarge` nodes, the EKS control plane and one NAT gateway cost roughly **$0.80/hour**. Create the
-environment before a demo and destroy it afterwards:
+Rough on-demand prices for the defaults (three 4 vCPU / 16 GB nodes):
+
+| Cloud | What you pay for                                      | Approximate cost |
+|-------|-------------------------------------------------------|------------------|
+| AWS   | 3 × `m6i.xlarge`, EKS control plane, one NAT gateway  | $0.80/hour       |
+| Azure | 3 × `Standard_D4s_v5`, load balancer (free AKS tier)  | $0.65/hour       |
+
+Create the environment before a demo and destroy it afterwards.
+
+**AWS.** Volumes are created by Kubernetes, not Terraform, so a volume whose claim outlives the cluster is not deleted
+by `destroy`. Every such volume is tagged `bank-solution/cluster=<name>`; check for leftovers:
 
 ```bash
 list_leftover_volumes=$(terraform output -raw leftover_volumes)
@@ -57,8 +86,8 @@ terraform destroy
 eval "$list_leftover_volumes"                   # should print []
 ```
 
-Volumes are created by Kubernetes, not Terraform, so a volume whose claim outlives the cluster is not deleted by
-`destroy`. Every such volume is tagged `bank-solution/cluster=<name>`; delete any that the last command still lists.
+**Azure.** `terraform destroy` deletes the resource group; AKS keeps the nodes and disks in its own node resource group
+(`MC_<name>_<name>_<location>`), which Azure deletes with the cluster.
 
 ## Keeping versions in step
 

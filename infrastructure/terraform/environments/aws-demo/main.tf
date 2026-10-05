@@ -15,7 +15,7 @@ module "platform" {
   source = "../../modules/platform-bootstrap"
 
   kubernetes_directory = "${path.root}/../../../kubernetes"
-  environment          = "aws-demo"
+  environment = "cloud-demo"
   repository_url       = var.repository_url
   release              = var.release
   image_registry       = var.image_registry
