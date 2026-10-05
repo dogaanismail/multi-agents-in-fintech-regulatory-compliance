@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,6 +35,7 @@ public class LedgerInternalAccountController {
     private final LedgerAccountService ledgerAccountService;
 
     @PostMapping
+    @RequiresPermission(Permissions.LEDGER_POST)
     @Operation(summary = "Create an internal ledger account", description = "Creates an internal ledger account for a type and currency")
     public ResponseEntity<@NonNull LedgerInternalAccountResponse> createInternalAccount(
             @Valid @RequestBody CreateLedgerInternalAccountRequest createLedgerInternalAccountRequest) {
@@ -47,6 +50,7 @@ public class LedgerInternalAccountController {
     }
 
     @GetMapping
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "List internal ledger accounts", description = "Lists internal ledger accounts, optionally filtered by currency")
     public ResponseEntity<@NonNull List<LedgerInternalAccountResponse>> getInternalAccounts(
             @RequestParam(required = false) Currency currency) {
@@ -60,6 +64,7 @@ public class LedgerInternalAccountController {
     }
 
     @GetMapping("/{ledgerAccountId}")
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "Retrieve an internal ledger account", description = "Retrieves an internal ledger account and its balances")
     public ResponseEntity<@NonNull LedgerInternalAccountResponse> getInternalAccount(
             @PathVariable UUID ledgerAccountId) {
@@ -69,6 +74,7 @@ public class LedgerInternalAccountController {
     }
 
     @GetMapping("/trial-balance/{currency}")
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "Trial balance",
             description = "Nets the internal accounts against the customer wallets for a currency; a balanced book sums to zero")
     public ResponseEntity<@NonNull TrialBalanceResponse> getTrialBalance(@PathVariable Currency currency) {

@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +34,7 @@ public class PaymentController {
 
     @Operation(summary = "Request a payment")
     @PostMapping("/request")
+    @RequiresPermission(Permissions.PAYMENT_CREATE)
     public ResponseEntity<@NonNull PaymentRequestResponse> requestPayment(
             @Parameter(description = "Client-generated key; a retry with the same key returns the original payment")
             @RequestHeader(IdempotencyHeaders.IDEMPOTENCY_KEY) String idempotencyKey,
@@ -51,6 +54,7 @@ public class PaymentController {
 
     @Operation(summary = "List payments by customer")
     @GetMapping("/customer/{customerId}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull List<PaymentRequestResponse>> getPaymentsByCustomerId(
             @PathVariable UUID customerId) {
         log.info("GET /api/v1/payments/customer/{}", customerId);

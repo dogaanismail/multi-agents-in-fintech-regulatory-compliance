@@ -10,6 +10,7 @@ import httpx
 import time
 from typing import Dict
 
+from ..core.service_token import service_token_auth
 from ..core.config import settings
 from ..core.logging import logger
 from ..models.schemas import AgentObservation, FeatureContribution
@@ -26,6 +27,7 @@ class CustomerAgentClient:
         """Initialize HTTP client for Customer Agent"""
         
         self.client = httpx.AsyncClient(
+            auth=service_token_auth,
             base_url=settings.customer_agent_url,
             timeout=settings.agent_timeout
         )

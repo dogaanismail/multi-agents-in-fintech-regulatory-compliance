@@ -13,8 +13,9 @@ Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.core.security import MARL_READ, MARL_TRAIN, require_permission
 from app.core.logging import logger
 from app.models.schemas.training_schemas import (
     BufferStatsResponse,
@@ -36,7 +37,7 @@ router = APIRouter(prefix="/training")
 # GET /training/status
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get(
-    "/status",
+    "/status", dependencies=[Depends(require_permission(MARL_READ))],
     response_model=TrainingStatusResponse,
     summary="Offline Training Status",
     description=(
@@ -55,7 +56,7 @@ async def get_training_status() -> TrainingStatusResponse:
 # POST /training/trigger
 # ─────────────────────────────────────────────────────────────────────────────
 @router.post(
-    "/trigger",
+    "/trigger", dependencies=[Depends(require_permission(MARL_TRAIN))],
     response_model=TriggerTrainingResponse,
     summary="Manually Trigger Training",
     description=(
@@ -76,7 +77,7 @@ async def trigger_training() -> TriggerTrainingResponse:
 # GET /training/history
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get(
-    "/history",
+    "/history", dependencies=[Depends(require_permission(MARL_READ))],
     response_model=List[TrainingRunResponse],
     summary="Training Run History",
     description=(
@@ -117,7 +118,7 @@ async def get_training_history(
 # GET /training/buffer
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get(
-    "/buffer",
+    "/buffer", dependencies=[Depends(require_permission(MARL_READ))],
     response_model=BufferStatsResponse,
     summary="Replay Buffer Stats",
     description="Returns current replay buffer statistics.",
@@ -137,7 +138,7 @@ async def get_buffer_stats() -> BufferStatsResponse:
 # GET /training/experiences
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get(
-    "/experiences",
+    "/experiences", dependencies=[Depends(require_permission(MARL_READ))],
     response_model=List[ExperienceEntryResponse],
     summary="Replay Buffer Experience Log",
     description=(
@@ -177,7 +178,7 @@ async def list_experiences(
 # GET /training/experiences/stats
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get(
-    "/experiences/stats",
+    "/experiences/stats", dependencies=[Depends(require_permission(MARL_READ))],
     response_model=ReplayBufferAggStats,
     summary="Replay Buffer Aggregate Statistics",
     description=(

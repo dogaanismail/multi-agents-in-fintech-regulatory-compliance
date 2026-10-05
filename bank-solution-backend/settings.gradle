@@ -25,6 +25,10 @@ include 'outbox-library'
 include 'outbox-library:outbox'
 include 'outbox-library:outbox-db-migration-changelog'
 
+// service-to-service security library: JWT validation, permissions, client-credentials tokens for Feign
+include 'security-library'
+include 'security-library:service-security'
+
 // customer service modules
 include 'customer-service'
 include 'customer-service:customer-svc'

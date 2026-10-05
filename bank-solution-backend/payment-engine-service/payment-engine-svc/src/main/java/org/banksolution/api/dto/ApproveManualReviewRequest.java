@@ -16,9 +16,6 @@ public class ApproveManualReviewRequest {
     @Schema(description = "Payment under review", example = "3f2b8c1e-7a4d-4e9b-9c2a-5d1f6e8a0b47")
     private UUID paymentId;
 
-    @Schema(description = "Compliance officer approving the payment")
-    private String approvedBy;
-
     @Schema(description = "Notes justifying the approval")
     private String approvalNotes;
 }

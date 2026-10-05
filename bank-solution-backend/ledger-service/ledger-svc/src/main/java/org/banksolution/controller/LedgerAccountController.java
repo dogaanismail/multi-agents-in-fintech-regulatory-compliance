@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ public class LedgerAccountController {
     private final LedgerAccountService ledgerAccountService;
 
     @PostMapping
+    @RequiresPermission(Permissions.LEDGER_POST)
     @Operation(summary = "Create a ledger account", description = "Creates a wallet ledger account for a bank account and currency")
     public ResponseEntity<@NonNull LedgerAccountResponse> createLedgerAccount(
             @Valid @RequestBody CreateLedgerAccountRequest request) {
@@ -43,6 +46,7 @@ public class LedgerAccountController {
     }
 
     @PostMapping("/batch")
+    @RequiresPermission(Permissions.LEDGER_POST)
     @Operation(summary = "Create ledger accounts", description = "Creates several wallet ledger accounts in one batch")
     public ResponseEntity<@NonNull List<LedgerAccountResponse>> createLedgerAccounts(
             @Valid @RequestBody CreateLedgerAccountsRequest request) {
@@ -58,6 +62,7 @@ public class LedgerAccountController {
     }
 
     @GetMapping("/{ledgerAccountId}")
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "Retrieve a ledger account", description = "Retrieves a ledger account and its balances")
     public ResponseEntity<@NonNull LedgerAccountResponse> getLedgerAccount(@PathVariable UUID ledgerAccountId) {
         log.info("GET /api/v1/ledger/accounts/{}", ledgerAccountId);
@@ -65,6 +70,7 @@ public class LedgerAccountController {
     }
 
     @GetMapping("/bank-account/{accountId}")
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "Retrieve wallets for a bank account", description = "Retrieves every currency wallet held for a bank account")
     public ResponseEntity<@NonNull List<LedgerAccountResponse>> getWallets(@PathVariable UUID accountId) {
         log.info("GET /api/v1/ledger/accounts/bank-account/{}", accountId);
@@ -74,6 +80,7 @@ public class LedgerAccountController {
     }
 
     @GetMapping("/bank-account/{accountId}/{currency}")
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "Retrieve a wallet", description = "Retrieves the wallet held for a bank account in one currency")
     public ResponseEntity<@NonNull LedgerAccountResponse> getWallet(
             @PathVariable UUID accountId,

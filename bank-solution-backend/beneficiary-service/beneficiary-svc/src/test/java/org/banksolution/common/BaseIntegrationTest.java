@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.banksolution.servicesecurity.testing.ServiceTokenStubs.stubServiceTokenEndpoint;
+
 public abstract class BaseIntegrationTest extends IntegrationTest {
 
     @Autowired
@@ -18,5 +20,6 @@ public abstract class BaseIntegrationTest extends IntegrationTest {
     @BeforeEach
     void resetWireMock() {
         WireMockInitializer.WIRE_MOCK_SERVER.resetAll();
+        stubServiceTokenEndpoint(WireMockInitializer.WIRE_MOCK_SERVER);
     }
 }

@@ -3,9 +3,11 @@ package org.banksolution.common.annotations;
 import org.banksolution.PaymentEngineServiceApplication;
 import org.banksolution.common.initializers.KafkaInitializer;
 import org.banksolution.common.initializers.PostgreSQLInitializer;
+import org.banksolution.servicesecurity.testing.EveryPermissionMockMvcConfiguration;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -20,5 +22,6 @@ import org.springframework.test.context.ContextConfiguration;
 })
 @ActiveProfiles({"test"})
 @AutoConfigureMockMvc
+@Import(EveryPermissionMockMvcConfiguration.class)
 public abstract class IntegrationTest {
 }

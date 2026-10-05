@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class ExchangeRateController {
 
     @Operation(summary = "List all exchange rates")
     @GetMapping
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<List<ExchangeRateResponse>> getAllRates() {
         log.debug("GET /api/v1/exchange-rates - Fetching all exchange rates");
         return ResponseEntity.ok(exchangeRateService.getAllRates());
@@ -29,6 +32,7 @@ public class ExchangeRateController {
 
     @Operation(summary = "Get exchange rate for a currency pair")
     @GetMapping("/{from}/{to}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<ExchangeRateResponse> getRate(
             @PathVariable("from") String fromCurrency,
             @PathVariable("to") String toCurrency) {

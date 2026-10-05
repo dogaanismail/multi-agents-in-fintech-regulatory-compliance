@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 
 import java.util.UUID;
 
+import static org.banksolution.fixtures.PaymentFixtures.createComplianceOfficerJwt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.banksolution.fixtures.PaymentFixtures.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -54,14 +55,16 @@ class PaymentCommandControllerTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/manual-review/approve")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new ApproveManualReviewRequest(null, OFFICER, APPROVAL_NOTES))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new ApproveManualReviewRequest(null, APPROVAL_NOTES))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.httpStatus").value("409 CONFLICT"))
                 .andExpect(jsonPath("$.message").value("Payment is not in MANUAL_REVIEW_REQUIRED status"));
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/manual-review/reject")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new RejectManualReviewRequest(null, OFFICER, REJECTION_REASON))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new RejectManualReviewRequest(null, REJECTION_REASON))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Payment is not in MANUAL_REVIEW_REQUIRED status"));
     }
@@ -72,7 +75,8 @@ class PaymentCommandControllerTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + unknownPaymentId + "/decision/override")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, true))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OVERRIDE_REASON, true))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }

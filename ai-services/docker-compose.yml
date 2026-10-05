@@ -105,6 +105,7 @@ services:
       - SCHEMA_REGISTRY_URL=http://schema-registry:8081
       - DATABASE_URL=postgresql+asyncpg://marl_user:marl_password@marl-orchestrator-db:5432/marl_orchestrator_db
       - CONFIGURATION_SERVICE_URL=http://configuration-service:5009
+      - SERVICE_CLIENT_SECRET=local-marl-orchestrator-secret
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
     depends_on:
       marl-orchestrator-db:

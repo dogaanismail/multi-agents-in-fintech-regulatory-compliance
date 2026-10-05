@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class NetworkFeaturesController {
 
     @Operation(summary = "Get network features for an account")
     @GetMapping("/features/{accountId}")
+    @RequiresPermission(Permissions.RISK_READ)
     public ResponseEntity<NetworkFeaturesDto> getNetworkFeatures(@PathVariable String accountId) {
         log.info("REST request to get network features for account: {}", accountId);
         NetworkFeaturesDto features = networkFeatureService.getNetworkFeatures(accountId);

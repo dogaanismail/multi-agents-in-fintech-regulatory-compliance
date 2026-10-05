@@ -65,6 +65,14 @@ class Settings(BaseSettings):
     kafka_sasl_mechanism: str = os.getenv("KAFKA_SASL_MECHANISM", "")
     kafka_sasl_username: str = os.getenv("KAFKA_SASL_USERNAME", "")
     kafka_sasl_password: str = os.getenv("KAFKA_SASL_PASSWORD", "")
+
+    # Token validation and the service's own identity (Keycloak)
+    trusted_issuers: str = os.getenv(
+        "TRUSTED_ISSUERS", "http://keycloak:8180/realms/bank-staff,http://keycloak:8180/realms/bank-internal")
+    accepted_audiences: str = os.getenv("ACCEPTED_AUDIENCES", "marl-orchestrator,bank-platform")
+    keycloak_url: str = os.getenv("KEYCLOAK_URL", "http://keycloak:8180")
+    service_client_id: str = os.getenv("SERVICE_CLIENT_ID", "marl-orchestrator")
+    service_client_secret: str = os.getenv("SERVICE_CLIENT_SECRET", "")
     fraud_analysis_requested_topic: str = "fraud.analysis.requested"
     fraud_analysis_completed_topic: str = "fraud.analysis.completed"
     agent_manual_feedback_topic: str = "agent.manual.feedback"

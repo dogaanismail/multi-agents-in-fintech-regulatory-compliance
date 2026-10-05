@@ -1,5 +1,6 @@
 package org.banksolution.integration.networktopology;
 
+import org.banksolution.servicesecurity.feign.ServiceTokenFeignConfiguration;
 import feign.Headers;
 import org.banksolution.integration.networktopology.dto.NetworkFeatureResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
+        configuration = ServiceTokenFeignConfiguration.class,
         name = "network-topology-svc",
         url = "${integration.network-topology-service.url}"
 )

@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "Create a beneficiary")
     @PostMapping
+    @RequiresPermission(Permissions.BENEFICIARY_WRITE)
     public ResponseEntity<@NonNull BeneficiaryResponse> createBeneficiary(
             @Valid @RequestBody BeneficiaryCreateRequest beneficiaryCreateRequest) {
 
@@ -51,6 +54,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "Get a beneficiary by id")
     @GetMapping("/{beneficiaryId}")
+    @RequiresPermission(Permissions.CUSTOMER_READ)
     public ResponseEntity<@NonNull BeneficiaryResponse> getBeneficiaryById(@PathVariable UUID beneficiaryId) {
         log.info("GET /api/v1/beneficiaries/{} - Fetching beneficiary", beneficiaryId);
         return ResponseEntity.ok(beneficiaryService.getBeneficiaryById(beneficiaryId));
@@ -58,6 +62,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "List a customer's beneficiaries")
     @GetMapping
+    @RequiresPermission(Permissions.CUSTOMER_READ)
     public ResponseEntity<@NonNull List<BeneficiaryResponse>> getBeneficiariesByCustomerId(@RequestParam UUID customerId) {
         log.info("GET /api/v1/beneficiaries?customerId={} - Fetching beneficiaries", customerId);
         return ResponseEntity.ok(beneficiaryService.getBeneficiariesByCustomerId(customerId));
@@ -65,6 +70,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "Update a beneficiary")
     @PutMapping("/{beneficiaryId}")
+    @RequiresPermission(Permissions.BENEFICIARY_WRITE)
     public ResponseEntity<@NonNull BeneficiaryResponse> updateBeneficiary(
             @PathVariable UUID beneficiaryId,
             @Valid @RequestBody BeneficiaryUpdateRequest beneficiaryUpdateRequest) {
@@ -75,6 +81,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "Soft delete a beneficiary")
     @DeleteMapping("/{beneficiaryId}")
+    @RequiresPermission(Permissions.BENEFICIARY_WRITE)
     public ResponseEntity<@NonNull Void> deleteBeneficiary(
             @PathVariable UUID beneficiaryId,
             @RequestParam(defaultValue = BeneficiaryService.DEFAULT_DELETED_REASON)
@@ -87,6 +94,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "Add a coordinate to a beneficiary")
     @PostMapping("/{beneficiaryId}/coordinates")
+    @RequiresPermission(Permissions.BENEFICIARY_WRITE)
     public ResponseEntity<@NonNull BeneficiaryResponse> addBeneficiaryCoordinate(
             @PathVariable UUID beneficiaryId,
             @Valid @RequestBody BeneficiaryCoordinateRequest beneficiaryCoordinateRequest) {
@@ -98,6 +106,7 @@ public class BeneficiaryController {
 
     @Operation(summary = "Soft delete a beneficiary coordinate")
     @DeleteMapping("/{beneficiaryId}/coordinates/{beneficiaryCoordinateId}")
+    @RequiresPermission(Permissions.BENEFICIARY_WRITE)
     public ResponseEntity<@NonNull Void> deleteBeneficiaryCoordinate(
             @PathVariable UUID beneficiaryId,
             @PathVariable UUID beneficiaryCoordinateId,

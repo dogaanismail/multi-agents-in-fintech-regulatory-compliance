@@ -4,7 +4,7 @@ Inference endpoint - Coordinated decision making
 Thin controller - delegates business logic to FraudDecisionService
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..models.schemas import (
     CoordinatedDecisionRequest,
@@ -12,11 +12,13 @@ from ..models.schemas import (
 )
 from ..services.fraud_decision_service import fraud_decision_service
 from ..core.logging import logger
+from ..core.security import MARL_READ, MARL_TRAIN, require_permission
 
 router = APIRouter()
 
 
-@router.post("/predict", response_model=CoordinatedDecisionResponse, tags=["Inference"])
+@router.post("/predict", dependencies=[Depends(require_permission(MARL_TRAIN))],
+             response_model=CoordinatedDecisionResponse, tags=["Inference"])
 async def coordinated_predict(request: CoordinatedDecisionRequest):
     """
     Make coordinated AML decision using MADDPG.
@@ -52,7 +54,7 @@ async def coordinated_predict(request: CoordinatedDecisionRequest):
         )
 
 
-@router.get("/predict/example", tags=["Inference"])
+@router.get("/predict/example", dependencies=[Depends(require_permission(MARL_READ))], tags=["Inference"])
 async def example_prediction():
     """
     Example coordinated prediction

@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
@@ -29,6 +31,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get payment history by payment")
     @GetMapping("/{paymentId}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull PaymentHistoryResponse> getPaymentHistory(@PathVariable UUID paymentId) {
         log.info("Fetching payment history for paymentId: {}", paymentId);
         return paymentHistoryQueryService.getPaymentHistoryById(paymentId)
@@ -38,6 +41,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get payment history by customer")
     @GetMapping("/customer/{customerId}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getCustomerPaymentHistory(
             @PathVariable UUID customerId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -52,6 +56,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get customer payment history by dates")
     @GetMapping("/customer/{customerId}/date-range")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getCustomerPaymentHistoryByDateRange(
             @PathVariable UUID customerId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
@@ -73,6 +78,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get payment history by status")
     @GetMapping("/status/{status}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getPaymentHistoryByStatus(
             @PathVariable String status,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -86,6 +92,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get payment history by fraud status")
     @GetMapping("/fraud-status/{fraudStatus}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getPaymentHistoryByFraudStatus(
             @PathVariable String fraudStatus,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -98,6 +105,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get payment history by risk level")
     @GetMapping("/risk-level/{riskLevel}")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getPaymentHistoryByRiskLevel(
             @PathVariable String riskLevel,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -110,6 +118,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "Get payment history by date range")
     @GetMapping("/date-range")
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getPaymentHistoryByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
@@ -125,6 +134,7 @@ public class PaymentHistoryController {
 
     @Operation(summary = "List all payment history")
     @GetMapping
+    @RequiresPermission(Permissions.PAYMENT_READ)
     public ResponseEntity<@NonNull Page<@NonNull PaymentHistoryResponse>> getAllPaymentHistory(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Fetching all payment history, page: {}, size: {}",

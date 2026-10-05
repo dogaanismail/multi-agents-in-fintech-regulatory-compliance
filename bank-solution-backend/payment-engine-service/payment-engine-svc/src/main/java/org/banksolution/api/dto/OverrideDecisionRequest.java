@@ -16,9 +16,6 @@ public class OverrideDecisionRequest {
     @Schema(description = "Payment whose decision is overridden", example = "3f2b8c1e-7a4d-4e9b-9c2a-5d1f6e8a0b47")
     private UUID paymentId;
 
-    @Schema(description = "Compliance officer applying the override")
-    private String overriddenBy;
-
     @Schema(description = "Reason for overriding the decision")
     private String overrideReason;
 

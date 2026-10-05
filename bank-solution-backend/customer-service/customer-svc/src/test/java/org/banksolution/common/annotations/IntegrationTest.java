@@ -1,5 +1,7 @@
 package org.banksolution.common.annotations;
 
+import org.springframework.context.annotation.Import;
+import org.banksolution.servicesecurity.testing.EveryPermissionMockMvcConfiguration;
 import org.banksolution.CustomerServiceApplication;
 import org.banksolution.common.initializers.PostgreSQLInitializer;
 import org.junit.jupiter.api.Tag;
@@ -18,5 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 })
 @ActiveProfiles({"test"})
 @AutoConfigureMockMvc
+@Import(EveryPermissionMockMvcConfiguration.class)
 public abstract class IntegrationTest {
 }

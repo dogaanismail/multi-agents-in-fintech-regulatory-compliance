@@ -83,10 +83,10 @@ class PaymentCommandServiceTest {
     @Test
     void shouldApproveTheManualReviewOfThePaymentInThePath() {
         ApproveManualReviewRequest approveManualReviewRequest =
-                new ApproveManualReviewRequest(UUID.randomUUID(), OFFICER, APPROVAL_NOTES);
+                new ApproveManualReviewRequest(UUID.randomUUID(), APPROVAL_NOTES);
 
         ManualReviewResponse manualReviewResponse =
-                paymentCommandService.approveManualReview(PAYMENT_UUID.toString(), approveManualReviewRequest);
+                paymentCommandService.approveManualReview(PAYMENT_UUID.toString(), approveManualReviewRequest, OFFICER);
 
         verify(commandGateway).sendAndWait(new ApproveManualReviewCommand(createPaymentId(), OFFICER, APPROVAL_NOTES));
         assertThat(manualReviewResponse.getPaymentId()).isEqualTo(PAYMENT_UUID.toString());
@@ -97,10 +97,10 @@ class PaymentCommandServiceTest {
     @Test
     void shouldRejectTheManualReviewOfThePaymentInThePath() {
         RejectManualReviewRequest rejectManualReviewRequest =
-                new RejectManualReviewRequest(null, OFFICER, REJECTION_REASON);
+                new RejectManualReviewRequest(null, REJECTION_REASON);
 
         ManualReviewResponse manualReviewResponse =
-                paymentCommandService.rejectManualReview(PAYMENT_UUID.toString(), rejectManualReviewRequest);
+                paymentCommandService.rejectManualReview(PAYMENT_UUID.toString(), rejectManualReviewRequest, OFFICER);
 
         verify(commandGateway).sendAndWait(new RejectManualReviewCommand(createPaymentId(), OFFICER, REJECTION_REASON));
         assertThat(manualReviewResponse.getMessage()).contains(REJECTION_REASON);
@@ -110,9 +110,9 @@ class PaymentCommandServiceTest {
     @Test
     void shouldOverrideTheDecisionAndReportTheResultingStatus() {
         OverrideDecisionResponse approvedResponse = paymentCommandService.overrideDecision(
-                PAYMENT_UUID.toString(), new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, true));
+                PAYMENT_UUID.toString(), new OverrideDecisionRequest(null, OVERRIDE_REASON, true), OFFICER);
         OverrideDecisionResponse rejectedResponse = paymentCommandService.overrideDecision(
-                PAYMENT_UUID.toString(), new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, false));
+                PAYMENT_UUID.toString(), new OverrideDecisionRequest(null, OVERRIDE_REASON, false), OFFICER);
 
         verify(commandGateway).sendAndWait(new OverrideDecisionCommand(createPaymentId(), OFFICER, OVERRIDE_REASON, true));
         verify(commandGateway).sendAndWait(new OverrideDecisionCommand(createPaymentId(), OFFICER, OVERRIDE_REASON, false));

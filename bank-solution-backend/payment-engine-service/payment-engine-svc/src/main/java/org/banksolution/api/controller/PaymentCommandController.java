@@ -12,8 +12,13 @@ import org.banksolution.api.dto.OverrideDecisionRequest;
 import org.banksolution.api.dto.OverrideDecisionResponse;
 import org.banksolution.api.dto.RejectManualReviewRequest;
 import org.banksolution.api.service.PaymentCommandService;
+import org.banksolution.servicesecurity.AuthenticatedCaller;
+import org.banksolution.servicesecurity.Permissions;
+import org.banksolution.servicesecurity.RequiresPermission;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Payment Commands")
@@ -26,31 +31,50 @@ public class PaymentCommandController {
 
     @Operation(summary = "Initiate a payment")
     @PostMapping
+    @RequiresPermission(Permissions.PAYMENT_ENGINE_COMMAND)
     public ResponseEntity<@NonNull InitiatePaymentResponse> initiatePayment(@RequestBody InitiatePaymentRequest initiatePaymentRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentCommandService.initiatePayment(initiatePaymentRequest));
     }
 
     @Operation(summary = "Approve a manual review")
     @PostMapping("/{paymentId}/manual-review/approve")
+    @RequiresPermission(Permissions.PAYMENT_REVIEW)
     public ResponseEntity<@NonNull ManualReviewResponse> approveManualReview(
             @PathVariable String paymentId,
-            @RequestBody ApproveManualReviewRequest approveManualReviewRequest) {
-        return ResponseEntity.ok(paymentCommandService.approveManualReview(paymentId, approveManualReviewRequest));
+            @RequestBody ApproveManualReviewRequest approveManualReviewRequest,
+            @AuthenticationPrincipal Jwt caller) {
+
+        return ResponseEntity.ok(paymentCommandService.approveManualReview(
+                paymentId,
+                approveManualReviewRequest,
+                AuthenticatedCaller.username(caller)));
     }
 
     @Operation(summary = "Reject a manual review")
     @PostMapping("/{paymentId}/manual-review/reject")
+    @RequiresPermission(Permissions.PAYMENT_REVIEW)
     public ResponseEntity<@NonNull ManualReviewResponse> rejectManualReview(
             @PathVariable String paymentId,
-            @RequestBody RejectManualReviewRequest rejectManualReviewRequest) {
-        return ResponseEntity.ok(paymentCommandService.rejectManualReview(paymentId, rejectManualReviewRequest));
+            @RequestBody RejectManualReviewRequest rejectManualReviewRequest,
+            @AuthenticationPrincipal Jwt caller) {
+
+        return ResponseEntity.ok(paymentCommandService.rejectManualReview(
+                paymentId,
+                rejectManualReviewRequest,
+                AuthenticatedCaller.username(caller)));
     }
 
     @Operation(summary = "Override a compliance decision")
     @PostMapping("/{paymentId}/decision/override")
+    @RequiresPermission(Permissions.PAYMENT_OVERRIDE)
     public ResponseEntity<@NonNull OverrideDecisionResponse> overrideDecision(
             @PathVariable String paymentId,
-            @RequestBody OverrideDecisionRequest overrideDecisionRequest) {
-        return ResponseEntity.ok(paymentCommandService.overrideDecision(paymentId, overrideDecisionRequest));
+            @RequestBody OverrideDecisionRequest overrideDecisionRequest,
+            @AuthenticationPrincipal Jwt caller) {
+
+        return ResponseEntity.ok(paymentCommandService.overrideDecision(
+                paymentId,
+                overrideDecisionRequest,
+                AuthenticatedCaller.username(caller)));
     }
 }

@@ -46,6 +46,8 @@ dependencies {
 
     implementation project(':common')
 
+    implementation project(':security-library:service-security')
+
     // vulnerabilities
     implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
     implementation 'io.grpc:grpc-netty-shaded:1.75.0'
@@ -56,6 +58,8 @@ dependencies {
     implementation 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation testFixtures(project(':security-library:service-security'))
     testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
     testImplementation "org.axonframework:axon-test:${axonVersion}"
     testImplementation 'org.testcontainers:junit-jupiter'

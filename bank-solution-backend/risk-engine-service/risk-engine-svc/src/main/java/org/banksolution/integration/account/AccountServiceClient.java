@@ -1,5 +1,6 @@
 package org.banksolution.integration.account;
 
+import org.banksolution.servicesecurity.feign.ServiceTokenFeignConfiguration;
 import feign.Headers;
 import org.banksolution.integration.account.dto.AccountResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @FeignClient(
+        configuration = ServiceTokenFeignConfiguration.class,
         name = "account-svc",
         url = "${integration.account-service.url}"
 )

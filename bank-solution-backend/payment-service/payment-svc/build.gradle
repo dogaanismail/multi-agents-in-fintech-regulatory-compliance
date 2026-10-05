@@ -43,6 +43,8 @@ dependencies {
 
     implementation project(':common')
 
+    implementation project(':security-library:service-security')
+
     implementation project(':scheduler-library:scheduler')
     implementation project(':outbox-library:outbox')
 
@@ -54,6 +56,7 @@ dependencies {
     // The migration jar owns the changelog at runtime; the tests run it so entity/changelog drift fails the build.
     testImplementation project(':payment-service:payment-svc-db-migration-changelog')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation testFixtures(project(':security-library:service-security'))
     testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'

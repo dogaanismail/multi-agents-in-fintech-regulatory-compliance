@@ -25,6 +25,7 @@ python-dateutil==2.9.0
 # Testing (optional)
 pytest==8.3.4
 httpx==0.28.1
+PyJWT[crypto]==2.10.1
 
 # Distributed tracing (OpenTelemetry -> OTLP -> Jaeger)
 opentelemetry-sdk==1.29.0

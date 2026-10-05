@@ -52,6 +52,8 @@ dependencies {
 
     implementation project(':common')
 
+    implementation project(':security-library:service-security')
+
     // vulnerabilities
     implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
     implementation 'io.grpc:grpc-netty-shaded:1.75.0'

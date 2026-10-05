@@ -1,5 +1,7 @@
 package org.banksolution.fixtures;
 
+import org.banksolution.servicesecurity.Permissions;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.banksolution.domain.payment.command.*;
 import org.banksolution.domain.payment.event.*;
 import org.banksolution.domain.payment.query.PaymentResponse;
@@ -17,6 +19,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.banksolution.servicesecurity.testing.ServiceSecurityTestFixtures.createCallerJwt;
 
 public final class PaymentFixtures {
 
@@ -351,5 +355,9 @@ public final class PaymentFixtures {
                 null,
                 null,
                 null);
+    }
+
+    public static JwtRequestPostProcessor createComplianceOfficerJwt() {
+        return createCallerJwt(OFFICER, Permissions.PAYMENT_REVIEW, Permissions.PAYMENT_OVERRIDE);
     }
 }

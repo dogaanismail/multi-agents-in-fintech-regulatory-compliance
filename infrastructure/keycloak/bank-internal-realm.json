@@ -1,0 +1,436 @@
+{
+  "realm": "bank-internal",
+  "displayName": "Bank Solution Internal Services",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "accessTokenLifespan": 300,
+  "roles": {
+    "client": {
+      "bank-platform": [
+        {
+          "name": "payment.read",
+          "description": "Read payments, their history, explanations and exchange rates"
+        },
+        {
+          "name": "customer.read",
+          "description": "Read customers, customer risk profiles and beneficiaries"
+        },
+        {
+          "name": "account.read",
+          "description": "Read accounts and wallet balances"
+        },
+        {
+          "name": "ledger.read",
+          "description": "Read ledger accounts, postings and the trial balance"
+        },
+        {
+          "name": "risk.read",
+          "description": "Read risk assessments and the transaction network"
+        },
+        {
+          "name": "marl.read",
+          "description": "Read MARL decisions, the review queue, training status and the replay buffer"
+        },
+        {
+          "name": "configuration.read",
+          "description": "Read platform configuration"
+        },
+        {
+          "name": "customer.create",
+          "description": "Register customers"
+        },
+        {
+          "name": "customer.update",
+          "description": "Update customer details"
+        },
+        {
+          "name": "customer.delete",
+          "description": "Delete customers"
+        },
+        {
+          "name": "account.open",
+          "description": "Open accounts for customers"
+        },
+        {
+          "name": "payment.create",
+          "description": "Submit payments"
+        },
+        {
+          "name": "payment.review",
+          "description": "Approve or reject payments held for manual review"
+        },
+        {
+          "name": "payment.override",
+          "description": "Override a final payment decision"
+        },
+        {
+          "name": "configuration.write",
+          "description": "Create, change and delete platform configuration"
+        },
+        {
+          "name": "marl.train",
+          "description": "Trigger a MARL training cycle"
+        },
+        {
+          "name": "ledger.post",
+          "description": "Create internal ledger accounts and post ledger instructions"
+        },
+        {
+          "name": "beneficiary.write",
+          "description": "Create, change and delete beneficiaries"
+        },
+        {
+          "name": "payment-engine.command",
+          "description": "Send payment commands straight to the payment engine"
+        },
+        {
+          "name": "iam.manage",
+          "description": "Manage backoffice users, roles and the permissions of each role"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "bank-platform",
+      "name": "Bank Platform permissions",
+      "description": "Holds the permission catalog as client roles; no one signs in with this client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "account-service",
+      "name": "account-service",
+      "description": "Machine identity of account-service for calls to ledger-service, customer-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${ACCOUNT_SERVICE_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience ledger-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "ledger-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience customer-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "customer-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "risk-engine-service",
+      "name": "risk-engine-service",
+      "description": "Machine identity of risk-engine-service for calls to account-service, customer-profile-service, network-topology-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${RISK_ENGINE_SERVICE_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience account-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "account-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience customer-profile-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "customer-profile-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience network-topology-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "network-topology-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "payment-service",
+      "name": "payment-service",
+      "description": "Machine identity of payment-service for calls to account-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${PAYMENT_SERVICE_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience account-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "account-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "beneficiary-service",
+      "name": "beneficiary-service",
+      "description": "Machine identity of beneficiary-service for calls to customer-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BENEFICIARY_SERVICE_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience customer-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "customer-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "marl-orchestrator",
+      "name": "marl-orchestrator",
+      "description": "Machine identity of marl-orchestrator for calls to configuration-service, transaction-pattern-agent, customer-risk-agent, network-analysis-agent",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${MARL_ORCHESTRATOR_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience configuration-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "configuration-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience transaction-pattern-agent",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "transaction-pattern-agent",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience customer-risk-agent",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "customer-risk-agent",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience network-analysis-agent",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "network-analysis-agent",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-account-service",
+      "enabled": true,
+      "serviceAccountClientId": "account-service",
+      "clientRoles": {
+        "bank-platform": [
+          "ledger.post",
+          "customer.read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-risk-engine-service",
+      "enabled": true,
+      "serviceAccountClientId": "risk-engine-service",
+      "clientRoles": {
+        "bank-platform": [
+          "account.read",
+          "customer.read",
+          "risk.read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-payment-service",
+      "enabled": true,
+      "serviceAccountClientId": "payment-service",
+      "clientRoles": {
+        "bank-platform": [
+          "account.read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-beneficiary-service",
+      "enabled": true,
+      "serviceAccountClientId": "beneficiary-service",
+      "clientRoles": {
+        "bank-platform": [
+          "customer.read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-marl-orchestrator",
+      "enabled": true,
+      "serviceAccountClientId": "marl-orchestrator",
+      "clientRoles": {
+        "bank-platform": [
+          "configuration.read"
+        ]
+      }
+    }
+  ]
+}

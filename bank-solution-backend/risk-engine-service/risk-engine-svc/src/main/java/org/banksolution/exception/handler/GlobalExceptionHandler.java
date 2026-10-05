@@ -1,5 +1,8 @@
 package org.banksolution.exception.handler;
 
+import org.springframework.security.access.AccessDeniedException;
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -126,4 +129,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(customError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    protected ResponseEntity<@NonNull CustomError> handleAccessDenied(AccessDeniedException accessDeniedException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.FORBIDDEN)
+                .header(CustomError.Header.AUTH_ERROR.getName())
+                .message("Access denied")
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.FORBIDDEN);
+    }
 }

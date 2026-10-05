@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     
     # API
     api_v1_prefix: str = "/api/v1"
+    trusted_issuers: str = "http://keycloak:8180/realms/bank-internal"
+    accepted_audiences: str = "transaction-pattern-agent"
     
     # Batch processing
     max_batch_size: int = 1000

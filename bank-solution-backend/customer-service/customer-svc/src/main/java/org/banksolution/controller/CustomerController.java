@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,6 +33,7 @@ public class CustomerController {
 
     @Operation(summary = "Create a customer")
     @PostMapping
+    @RequiresPermission(Permissions.CUSTOMER_CREATE)
     public ResponseEntity<@NonNull CustomerResponse> createCustomer(
             @Valid @RequestBody CustomerCreateRequest customerCreateRequest) {
 
@@ -41,6 +44,7 @@ public class CustomerController {
 
     @Operation(summary = "Get a customer by id")
     @GetMapping("/{id}")
+    @RequiresPermission(Permissions.CUSTOMER_READ)
     public ResponseEntity<@NonNull CustomerResponse> getCustomerById(@PathVariable UUID id) {
         log.info("GET /api/v1/customers/{} - Fetching customer", id);
         CustomerResponse customerResponse = customerService.getCustomerById(id);
@@ -49,6 +53,7 @@ public class CustomerController {
 
     @Operation(summary = "List customers")
     @GetMapping
+    @RequiresPermission(Permissions.CUSTOMER_READ)
     public ResponseEntity<@NonNull PageResponse<CustomerResponse>> getAllCustomers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -63,6 +68,7 @@ public class CustomerController {
 
     @Operation(summary = "Update a customer")
     @PutMapping("/{id}")
+    @RequiresPermission(Permissions.CUSTOMER_UPDATE)
     public ResponseEntity<@NonNull CustomerResponse> updateCustomer(
             @PathVariable UUID id,
             @Valid @RequestBody CustomerUpdateRequest customerUpdateRequest
@@ -74,6 +80,7 @@ public class CustomerController {
 
     @Operation(summary = "Soft delete a customer")
     @DeleteMapping("/{id}")
+    @RequiresPermission(Permissions.CUSTOMER_DELETE)
     public ResponseEntity<@NonNull Void> deleteCustomer(@PathVariable UUID id) {
         log.info("DELETE /api/v1/customers/{} - Soft deleting customer", id);
         customerService.deleteCustomer(id);

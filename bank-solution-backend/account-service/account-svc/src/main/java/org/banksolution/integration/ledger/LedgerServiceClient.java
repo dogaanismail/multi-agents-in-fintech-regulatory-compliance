@@ -1,5 +1,6 @@
 package org.banksolution.integration.ledger;
 
+import org.banksolution.servicesecurity.feign.ServiceTokenFeignConfiguration;
 import feign.Headers;
 import org.banksolution.integration.ledger.dto.CreateLedgerAccountsRequest;
 import org.banksolution.integration.ledger.dto.LedgerAccountResponse;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 @FeignClient(
+        configuration = ServiceTokenFeignConfiguration.class,
         name = "ledger-svc",
         url = "${integration.ledger-service.url}"
 )

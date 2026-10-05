@@ -6,12 +6,13 @@ Author: Ismail Dogan
 Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 """
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.logging import logger
+from app.core.security import require_service_caller
 from app.core.telemetry import setup_telemetry
 from app.services.model_loader import model_loader
 from app.api import health, model, predictions
@@ -89,8 +90,8 @@ async def root():
 # Create API router and include sub-routers
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["Health"])
-api_router.include_router(model.router, tags=["Model"])
-api_router.include_router(predictions.router, tags=["Prediction"])
+api_router.include_router(model.router, tags=["Model"], dependencies=[Depends(require_service_caller)])
+api_router.include_router(predictions.router, tags=["Prediction"], dependencies=[Depends(require_service_caller)])
 
 # Include API routes
 app.include_router(api_router, prefix=settings.api_v1_prefix)

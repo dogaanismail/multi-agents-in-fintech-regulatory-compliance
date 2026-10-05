@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class CustomerProfileController {
 
     @Operation(summary = "Get behavioural features for a customer")
     @GetMapping("/customer/{customerId}/features")
+    @RequiresPermission(Permissions.CUSTOMER_READ)
     public ResponseEntity<CustomerFeaturesResponse> getCustomerFeatures(@PathVariable String customerId) {
         log.info("REST request to get customer features for customerId: {}", customerId);
         CustomerFeaturesResponse features = customerProfileService.getCustomerFeatures(customerId);
@@ -31,6 +34,7 @@ public class CustomerProfileController {
 
     @Operation(summary = "Get behavioural features for an account")
     @GetMapping("/account/{accountId}/features")
+    @RequiresPermission(Permissions.CUSTOMER_READ)
     public ResponseEntity<CustomerFeaturesResponse> getFeaturesByAccountId(@PathVariable String accountId) {
         log.info("REST request to get customer features for accountId: {}", accountId);
         CustomerFeaturesResponse features = customerProfileService.getFeaturesByAccountId(accountId);

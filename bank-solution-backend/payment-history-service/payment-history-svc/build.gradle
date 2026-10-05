@@ -41,6 +41,7 @@ dependencies {
 
     implementation project(':avro-schema-library-java')
     implementation project(':common')
+    implementation project(':security-library:service-security')
 
     implementation project(':payment-history-service:payment-history-svc-db-migration-changelog')
 
@@ -51,6 +52,8 @@ dependencies {
     implementation 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation testFixtures(project(':security-library:service-security'))
     testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'

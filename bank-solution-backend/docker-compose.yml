@@ -99,6 +99,7 @@ services:
     ports:
       - "5014:5014"
     environment:
+      SERVICE_CLIENT_SECRET: local-beneficiary-service-secret
       SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/beneficiary_service_db
       SPRING_DATASOURCE_USERNAME: default
       SPRING_DATASOURCE_PASSWORD: default
@@ -151,6 +152,7 @@ services:
     ports:
       - "5002:5002"
     environment:
+      SERVICE_CLIENT_SECRET: local-account-service-secret
       SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/account_service_db
       SPRING_DATASOURCE_USERNAME: default
       SPRING_DATASOURCE_PASSWORD: default
@@ -207,6 +209,7 @@ services:
     ports:
       - "5003:5003"
     environment:
+      SERVICE_CLIENT_SECRET: local-payment-service-secret
       SPRING_DATASOURCE_URL: jdbc:postgresql://bank-solution-postgres:5432/payment_service_db
       SPRING_DATASOURCE_USERNAME: default
       SPRING_DATASOURCE_PASSWORD: default
@@ -290,6 +293,7 @@ services:
     ports:
       - "5006:5006"
     environment:
+      SERVICE_CLIENT_SECRET: local-risk-engine-service-secret
       DB_SERVICE_URL: jdbc:postgresql://bank-solution-postgres:5432/risk_engine_db
       DB_SERVICE_USERNAME: default
       DB_SERVICE_PASSWORD: default
@@ -619,10 +623,16 @@ services:
       BACKOFFICE_URL: http://localhost:6060
       BACKOFFICE_DEV_SERVER_URL: http://localhost:3000
       KEYCLOAK_DEMO_USER_PASSWORD: default
+      ACCOUNT_SERVICE_CLIENT_SECRET: local-account-service-secret
+      RISK_ENGINE_SERVICE_CLIENT_SECRET: local-risk-engine-service-secret
+      PAYMENT_SERVICE_CLIENT_SECRET: local-payment-service-secret
+      BENEFICIARY_SERVICE_CLIENT_SECRET: local-beneficiary-service-secret
+      MARL_ORCHESTRATOR_CLIENT_SECRET: local-marl-orchestrator-secret
     volumes:
       - ../infrastructure/keycloak:/opt/keycloak/data/import:ro
     networks:
       - bank-network
+      - aml-multi-agent-network
     healthcheck:
       test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
       interval: 10s

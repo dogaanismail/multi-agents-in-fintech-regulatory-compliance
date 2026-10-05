@@ -8,6 +8,8 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import static org.banksolution.servicesecurity.testing.ServiceTokenStubs.SERVICE_TOKEN_PATH;
+
 /**
  * One WireMock server stands in for every Feign target; the clients are told apart by
  * base path, exactly as the real services are behind their own ports.
@@ -36,6 +38,7 @@ public class WireMockInitializer implements ApplicationContextInitializer<Config
 
         String wireMockUrl = "http://localhost:" + WIRE_MOCK_SERVER.port();
         TestPropertyValues.of(
+                        "spring.security.oauth2.client.provider.bank-internal.token-uri=" + wireMockUrl + SERVICE_TOKEN_PATH,
                         "integration.account-service.url=" + wireMockUrl + ACCOUNT_SERVICE_BASE_PATH,
                         "integration.network-topology-service.url=" + wireMockUrl + NETWORK_TOPOLOGY_SERVICE_BASE_PATH,
                         "integration.customer-profile-service.url=" + wireMockUrl + CUSTOMER_PROFILE_SERVICE_BASE_PATH)

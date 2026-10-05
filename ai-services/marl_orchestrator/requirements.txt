@@ -12,6 +12,7 @@ fastapi==0.115.5            # Async web framework
 uvicorn[standard]==0.32.1   # ASGI server with websockets
 
 # HTTP Client
+PyJWT[crypto]==2.10.1        # Bearer token validation (JWKS)
 httpx==0.27.2               # Async HTTP client for detection agents
 
 # Data Validation

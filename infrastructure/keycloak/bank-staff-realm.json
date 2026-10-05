@@ -251,6 +251,17 @@
             "userinfo.token.claim": "true",
             "introspection.token.claim": "true"
           }
+        },
+        {
+          "name": "audience bank-platform",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "bank-platform",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
         }
       ]
     },

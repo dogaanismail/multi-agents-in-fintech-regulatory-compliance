@@ -1,5 +1,7 @@
 package org.banksolution.controller;
 
+import org.banksolution.servicesecurity.RequiresPermission;
+import org.banksolution.servicesecurity.Permissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ public class LedgerPostingController {
     private final LedgerPostingService ledgerPostingService;
 
     @PostMapping
+    @RequiresPermission(Permissions.LEDGER_POST)
     @Operation(summary = "Apply a posting instruction",
             description = "Applies exactly one posting instruction: authorisation, settlement, release or hard settlement")
     public ResponseEntity<@NonNull List<LedgerPostingResponse>> createLedgerPostingInstruction(
@@ -47,6 +50,7 @@ public class LedgerPostingController {
     }
 
     @GetMapping("/{clientTransactionId}")
+    @RequiresPermission(Permissions.LEDGER_READ)
     @Operation(summary = "Retrieve postings",
             description = "Retrieves every ledger posting recorded against a client transaction")
     public ResponseEntity<@NonNull List<LedgerPostingResponse>> getPostingsByClientTransactionId(

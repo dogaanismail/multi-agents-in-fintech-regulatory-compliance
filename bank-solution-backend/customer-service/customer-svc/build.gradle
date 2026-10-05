@@ -32,6 +32,8 @@ dependencies {
 
     implementation project(':common')
 
+    implementation project(':security-library:service-security')
+
     // vulnerabilities
     implementation "commons-fileupload:commons-fileupload:${commonsFileUploadVersion}"
 
@@ -39,6 +41,8 @@ dependencies {
     implementation 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation testFixtures(project(':security-library:service-security'))
     testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'

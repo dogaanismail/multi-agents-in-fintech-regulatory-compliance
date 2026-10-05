@@ -25,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 import java.util.UUID;
 
+import static org.banksolution.fixtures.PaymentFixtures.createComplianceOfficerJwt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.banksolution.fixtures.PaymentFixtures.*;
@@ -149,7 +150,8 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/manual-review/approve")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new ApproveManualReviewRequest(null, OFFICER, APPROVAL_NOTES))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new ApproveManualReviewRequest(null, APPROVAL_NOTES))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentId").value(paymentId.toString()))
                 .andExpect(jsonPath("$.reviewedBy").value(OFFICER));
@@ -177,7 +179,8 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/manual-review/reject")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new RejectManualReviewRequest(null, OFFICER, REJECTION_REASON))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new RejectManualReviewRequest(null, REJECTION_REASON))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Manual review rejected. Payment has been blocked: " + REJECTION_REASON));
 
@@ -200,7 +203,8 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/decision/override")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, true))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OVERRIDE_REASON, true))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.newStatus").value("OVERRIDE_APPROVED"));
 
@@ -228,7 +232,8 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/decision/override")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, true))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OVERRIDE_REASON, true))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(
                         "Decision override is only allowed for BLOCKED payments, current status: COMPLETED"));
@@ -241,14 +246,16 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
         awaitSnapshot(paymentId, PaymentEventTrigger.MANUAL_REVIEW_REQUESTED);
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/manual-review/reject")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new RejectManualReviewRequest(null, OFFICER, REJECTION_REASON))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new RejectManualReviewRequest(null, REJECTION_REASON))))
                 .andExpect(status().isOk());
         awaitLedgerPostingRequested(paymentId, PostingInstructionType.RELEASE);
         whenLedgerAnswers(paymentId, PostingInstructionType.RELEASE, true, null);
         awaitSnapshot(paymentId, PaymentEventTrigger.PAYMENT_COMPLETED);
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/decision/override")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, false))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OVERRIDE_REASON, false))))
                 .andExpect(status().isOk());
         awaitSnapshot(paymentId, PaymentEventTrigger.DECISION_OVERRIDE_REJECTED);
 
@@ -256,7 +263,8 @@ class PaymentLifecycleFlowTest extends PaymentFlowSupport {
 
         mockMvc.perform(post(PAYMENTS_URL + "/" + paymentId + "/decision/override")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OFFICER, OVERRIDE_REASON, true))))
+                        .with(createComplianceOfficerJwt())
+                        .content(objectMapper.writeValueAsString(new OverrideDecisionRequest(null, OVERRIDE_REASON, true))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(
                         "Decision override is only allowed for BLOCKED payments, current status: OVERRIDE_REJECTED"));

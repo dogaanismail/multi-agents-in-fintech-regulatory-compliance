@@ -30,6 +30,8 @@ dependencies {
 
     implementation project(':common')
 
+    implementation project(':security-library:service-security')
+
     implementation project(':configuration-service:configuration-svc-db-migration-changelog')
     implementation 'org.postgresql:postgresql'
 }

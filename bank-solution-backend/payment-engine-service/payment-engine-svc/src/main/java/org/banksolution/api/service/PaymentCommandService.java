@@ -62,46 +62,58 @@ public class PaymentCommandService {
         return new InitiatePaymentResponse(paymentId.toString(), "Payment initiated successfully");
     }
 
-    public ManualReviewResponse approveManualReview(String paymentId, ApproveManualReviewRequest approveManualReviewRequest) {
-        log.info("Approving manual review for payment: {} by: {}", paymentId, approveManualReviewRequest.getApprovedBy());
+    public ManualReviewResponse approveManualReview(
+            String paymentId,
+            ApproveManualReviewRequest approveManualReviewRequest,
+            String approvedBy) {
+
+        log.info("Approving manual review for payment: {} by: {}", paymentId, approvedBy);
 
         commandGateway.sendAndWait(new ApproveManualReviewCommand(
                 new PaymentId(UUID.fromString(paymentId)),
-                approveManualReviewRequest.getApprovedBy(),
+                approvedBy,
                 approveManualReviewRequest.getApprovalNotes()
         ));
 
-        log.info("Manual review approved for payment: {} by: {}", paymentId, approveManualReviewRequest.getApprovedBy());
+        log.info("Manual review approved for payment: {} by: {}", paymentId, approvedBy);
         return new ManualReviewResponse(
                 paymentId,
                 "Manual review approved successfully. Payment will proceed to account charging.",
-                approveManualReviewRequest.getApprovedBy()
+                approvedBy
         );
     }
 
-    public ManualReviewResponse rejectManualReview(String paymentId, RejectManualReviewRequest rejectManualReviewRequest) {
-        log.info("Rejecting manual review for payment: {} by: {}", paymentId, rejectManualReviewRequest.getRejectedBy());
+    public ManualReviewResponse rejectManualReview(
+            String paymentId,
+            RejectManualReviewRequest rejectManualReviewRequest,
+            String rejectedBy) {
+
+        log.info("Rejecting manual review for payment: {} by: {}", paymentId, rejectedBy);
 
         commandGateway.sendAndWait(new RejectManualReviewCommand(
                 new PaymentId(UUID.fromString(paymentId)),
-                rejectManualReviewRequest.getRejectedBy(),
+                rejectedBy,
                 rejectManualReviewRequest.getRejectionReason()
         ));
 
-        log.info("Manual review rejected for payment: {} by: {}", paymentId, rejectManualReviewRequest.getRejectedBy());
+        log.info("Manual review rejected for payment: {} by: {}", paymentId, rejectedBy);
         return new ManualReviewResponse(
                 paymentId,
                 "Manual review rejected. Payment has been blocked: " + rejectManualReviewRequest.getRejectionReason(),
-                rejectManualReviewRequest.getRejectedBy()
+                rejectedBy
         );
     }
 
-    public OverrideDecisionResponse overrideDecision(String paymentId, OverrideDecisionRequest overrideDecisionRequest) {
-        log.info("Overriding decision for payment: {} by: {}", paymentId, overrideDecisionRequest.getOverriddenBy());
+    public OverrideDecisionResponse overrideDecision(
+            String paymentId,
+            OverrideDecisionRequest overrideDecisionRequest,
+            String overriddenBy) {
+
+        log.info("Overriding decision for payment: {} by: {}", paymentId, overriddenBy);
 
         commandGateway.sendAndWait(new OverrideDecisionCommand(
                 new PaymentId(UUID.fromString(paymentId)),
-                overrideDecisionRequest.getOverriddenBy(),
+                overriddenBy,
                 overrideDecisionRequest.getOverrideReason(),
                 overrideDecisionRequest.isApprovePayment()
         ));
@@ -111,11 +123,11 @@ public class PaymentCommandService {
                 : PaymentStatus.OVERRIDE_REJECTED.name();
 
         log.info("Decision override applied for payment: {} by: {} — newStatus: {}",
-                paymentId, overrideDecisionRequest.getOverriddenBy(), newStatus);
+                paymentId, overriddenBy, newStatus);
         return new OverrideDecisionResponse(
                 paymentId,
                 "Decision override applied successfully",
-                overrideDecisionRequest.getOverriddenBy(),
+                overriddenBy,
                 newStatus
         );
     }

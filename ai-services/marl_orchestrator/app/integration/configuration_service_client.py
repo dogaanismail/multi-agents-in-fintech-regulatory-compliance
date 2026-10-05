@@ -15,6 +15,7 @@ from typing import Optional
 import httpx
 
 from app.core.logging import logger
+from app.core.service_token import service_token_auth
 
 
 class ConfigurationServiceClient:
@@ -45,7 +46,7 @@ class ConfigurationServiceClient:
         """
         url = f"{self._base_url}/api/v1/configurations"
         try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with httpx.AsyncClient(timeout=self._timeout, auth=service_token_auth) as client:
                 response = await client.get(url)
                 response.raise_for_status()
 
@@ -87,7 +88,7 @@ class ConfigurationServiceClient:
         """
         url = f"{self._base_url}/api/v1/configurations"
         try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
+            async with httpx.AsyncClient(timeout=2.0, auth=service_token_auth) as client:
                 response = await client.get(url)
                 return response.is_success
         except Exception:

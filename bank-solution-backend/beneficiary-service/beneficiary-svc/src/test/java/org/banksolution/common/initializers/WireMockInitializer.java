@@ -8,6 +8,8 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import static org.banksolution.servicesecurity.testing.ServiceTokenStubs.SERVICE_TOKEN_PATH;
+
 public class WireMockInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     public static final String CUSTOMER_SERVICE_BASE_PATH = "/api/v1/customers";
@@ -29,6 +31,7 @@ public class WireMockInitializer implements ApplicationContextInitializer<Config
         WireMock.configureFor(WIRE_MOCK_SERVER.port());
 
         TestPropertyValues.of(
+                        "spring.security.oauth2.client.provider.bank-internal.token-uri=http://localhost:" + WIRE_MOCK_SERVER.port() + SERVICE_TOKEN_PATH,
                         "integration.customer-service.url=http://localhost:" + WIRE_MOCK_SERVER.port() + CUSTOMER_SERVICE_BASE_PATH)
                 .applyTo(configurableApplicationContext.getEnvironment());
     }
