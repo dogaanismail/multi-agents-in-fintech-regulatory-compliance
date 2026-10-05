@@ -4,6 +4,10 @@ targetRevision: main
 basePath: infrastructure/kubernetes
 environment: local
 
+images:
+  registry: ""
+  tag: ""
+
 namespaces:
   - platform
   - banking

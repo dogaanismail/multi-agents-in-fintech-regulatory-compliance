@@ -1,6 +1,7 @@
 replicaCount: 1
 
 image:
+  registry: ""
   repository: ""
   tag: local
   pullPolicy: IfNotPresent
@@ -45,6 +46,7 @@ messaging:
     kafkaNamespace: platform
     securityProtocol: SASL_PLAINTEXT
     mechanism: SCRAM-SHA-512
+    createCredentialsSecrets: true
     credentials: { }
 
 migration:

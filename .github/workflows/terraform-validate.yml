@@ -1,0 +1,47 @@
+name: Terraform Validate
+
+on:
+  push:
+    branches: [ '**' ]
+    paths:
+      - 'infrastructure/terraform/**'
+      - 'infrastructure/kubernetes/**'
+      - '.github/workflows/terraform-validate.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infrastructure/terraform/**'
+      - 'infrastructure/kubernetes/**'
+      - '.github/workflows/terraform-validate.yml'
+
+concurrency:
+  group: terraform-validate-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Format and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: infrastructure/terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.5
+
+      - name: Check formatting
+        run: terraform fmt -recursive -check
+
+      - name: Validate aws-demo
+        working-directory: infrastructure/terraform/environments/aws-demo
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate

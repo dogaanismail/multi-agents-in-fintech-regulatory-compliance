@@ -30,6 +30,15 @@ spec:
             valueFiles:
               - {{ printf "$values/%s/services/{{ .path.basename }}/{{ .path.filename }}" .Values.basePath | squote }}
               - {{ printf "$values/%s/environments/%s/services.yaml" .Values.basePath .Values.environment | squote }}
+            {{- with .Values.images.registry }}
+            parameters:
+              {{- range list "image" "migration.image" }}
+              - name: {{ printf "%s.registry" . }}
+                value: {{ $.Values.images.registry | quote }}
+              - name: {{ printf "%s.tag" . }}
+                value: {{ required "images.tag is required when images.registry is set" $.Values.images.tag | quote }}
+              {{- end }}
+            {{- end }}
         - repoURL: {{ .Values.repoURL }}
           targetRevision: {{ .Values.targetRevision }}
           ref: values

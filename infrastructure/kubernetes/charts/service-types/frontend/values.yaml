@@ -1,6 +1,7 @@
 replicaCount: 1
 
 image:
+  registry: ""
   repository: ""
   tag: local
   pullPolicy: IfNotPresent

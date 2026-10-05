@@ -1,0 +1,104 @@
+name: Publish Images
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-images-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_CATALOG: infrastructure/container-images.txt
+  IMAGE_NAMESPACE: bank-solution
+
+jobs:
+  catalog:
+    name: Read image catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      images: ${{ steps.catalog.outputs.images }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Turn the catalog into a build matrix
+        id: catalog
+        run: |
+          images=$(jq --raw-input --slurp --compact-output '
+            [ split("\n")[]
+              | select(length > 0)
+              | [ splits(" +") ]
+              | { name: .[0], build: .[1], context: .[2] }
+              | .gradleTask = if .build == "gradle"
+                  then ":" + (.context | sub("^bank-solution-backend/"; "") | gsub("/"; ":")) + ":bootJar"
+                  else "" end ]' "$IMAGE_CATALOG")
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: ${{ matrix.image.name }}
+    needs: catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.catalog.outputs.images) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        if: matrix.image.build == 'gradle'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        if: matrix.image.build == 'gradle'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build boot jar
+        if: matrix.image.build == 'gradle'
+        working-directory: bank-solution-backend
+        run: ./gradlew ${{ matrix.image.gradleTask }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive tags and labels
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=${{ matrix.image.name }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,scope=${{ matrix.image.name }},mode=max

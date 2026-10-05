@@ -1,0 +1,70 @@
+env:
+  TRACING_SAMPLING_PROBABILITY: "0.0"
+
+networkPeers:
+  dns:
+    namespace: kube-system
+    podLabels:
+      k8s-app: kube-dns
+    ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+  kafka:
+    namespace: platform
+    podLabels:
+      strimzi.io/cluster: bank-kafka
+    ports:
+      - protocol: TCP
+        port: 9092
+  schema-registry:
+    namespace: platform
+    podLabels:
+      app.kubernetes.io/name: schema-registry
+    ports:
+      - protocol: TCP
+        port: 8081
+  bank-postgres:
+    namespace: banking
+    podLabels:
+      cnpg.io/cluster: bank-postgres
+    ports:
+      - protocol: TCP
+        port: 5432
+  ai-postgres:
+    namespace: ai
+    podLabels:
+      cnpg.io/cluster: ai-postgres
+    ports:
+      - protocol: TCP
+        port: 5432
+  neo4j:
+    namespace: banking
+    podLabels:
+      app: bank-neo4j
+    ports:
+      - protocol: TCP
+        port: 7687
+  tigerbeetle:
+    namespace: banking
+    podLabels:
+      app.kubernetes.io/name: tigerbeetle
+    ports:
+      - protocol: TCP
+        port: 3000
+  internet-https:
+    ipBlock:
+      cidr: 0.0.0.0/0
+      except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+      - protocol: TCP
+        port: 443
+
+messaging:
+  authentication:
+    enabled: true
+    createCredentialsSecrets: false

@@ -23,7 +23,8 @@
 {{- define "banksolution-common.kafkaUser" -}}
 {{- $name := include "banksolution-common.name" . -}}
 {{- $authentication := .Values.messaging.authentication -}}
-{{- $password := include "banksolution-common.kafkaPassword" . -}}
+{{- if $authentication.createCredentialsSecrets }}
+{{- $password := include "banksolution-common.kafkaPassword" . }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -47,6 +48,7 @@ type: Opaque
 stringData:
   password: {{ $password | quote }}
 ---
+{{- end }}
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaUser
 metadata:

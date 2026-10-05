@@ -20,7 +20,11 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 {{- end -}}
 
 {{- define "banksolution-common.image" -}}
+{{- if .registry -}}
+{{- printf "%s/%s:%s" .registry .repository .tag -}}
+{{- else -}}
 {{- printf "%s:%s" .repository .tag -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "banksolution-common.topicEnvName" -}}
