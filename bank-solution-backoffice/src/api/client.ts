@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {redirectToLogin} from '@/auth/session';
 
 const API_BASE_URL = '/api/v1';
 
@@ -25,6 +26,9 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+      if (error.response?.status === 401) {
+          redirectToLogin();
+      }
     console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }

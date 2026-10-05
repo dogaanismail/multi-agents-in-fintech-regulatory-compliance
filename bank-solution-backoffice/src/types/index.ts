@@ -529,3 +529,12 @@ export interface ReviewQueueResponse {
   sla_breached_count: number;
   items: ReviewQueueItem[];
 }
+
+export type BackofficeRole = 'viewer' | 'operator' | 'compliance-officer' | 'admin';
+
+export interface CurrentUser {
+  username: string;
+  fullName: string | null;
+  email: string | null;
+  roles: BackofficeRole[];
+}

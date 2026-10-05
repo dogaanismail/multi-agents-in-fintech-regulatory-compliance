@@ -6,22 +6,22 @@ import { useApi } from '@/hooks/useApi';
 import { Card, LoadingSpinner, Badge, Button, Input, CopyButton } from '@/components/common';
 import { formatDate, formatCurrency, getStatusColor, getRiskLevelColor, getRiskActionColor } from '@/utils/formatters';
 import {ShapContributionChart} from '@/components/explainability';
+import {useAuth} from '@/auth';
 
 export const PaymentDetailPage: React.FC = () => {
   const { paymentId } = useParams<{ paymentId: string }>();
   const navigate = useNavigate();
+    const {currentUser, hasRole} = useAuth();
+    const reviewerUsername = currentUser.username;
   const { data: payment, loading, error, execute } = useApi<PaymentHistoryResponse>();
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [approvedBy, setApprovedBy] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
-  const [rejectedBy, setRejectedBy] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [overrideApprove, setOverrideApprove] = useState(true);
-  const [overriddenBy, setOverriddenBy] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
 
   const [ledgerPostings, setLedgerPostings] = useState<LedgerPostingResponse[]>([]);
@@ -37,7 +37,7 @@ export const PaymentDetailPage: React.FC = () => {
   }, [paymentId]);
 
   const handleApprove = async () => {
-    if (!paymentId || !approvedBy || !approvalNotes) {
+      if (!paymentId || !approvalNotes) {
       alert('Please fill in all required fields');
       return;
     }
@@ -46,7 +46,7 @@ export const PaymentDetailPage: React.FC = () => {
       setActionLoading(true);
       await paymentService.approveManualReview(paymentId, {
         paymentId,
-        approvedBy,
+          approvedBy: reviewerUsername,
         approvalNotes,
       });
       alert('Payment approved successfully');
@@ -61,7 +61,7 @@ export const PaymentDetailPage: React.FC = () => {
   };
 
   const handleReject = async () => {
-    if (!paymentId || !rejectedBy || !rejectionReason) {
+      if (!paymentId || !rejectionReason) {
       alert('Please fill in all required fields');
       return;
     }
@@ -70,7 +70,7 @@ export const PaymentDetailPage: React.FC = () => {
       setActionLoading(true);
       await paymentService.rejectManualReview(paymentId, {
         paymentId,
-        rejectedBy,
+          rejectedBy: reviewerUsername,
         rejectionReason,
       });
       alert('Payment rejected successfully');
@@ -85,7 +85,7 @@ export const PaymentDetailPage: React.FC = () => {
   };
 
   const handleOverride = async () => {
-    if (!paymentId || !overriddenBy || !overrideReason) {
+      if (!paymentId || !overrideReason) {
       alert('Please fill in all required fields');
       return;
     }
@@ -93,7 +93,7 @@ export const PaymentDetailPage: React.FC = () => {
     try {
       setActionLoading(true);
       await paymentService.overrideDecision(paymentId, {
-        overriddenBy,
+          overriddenBy: reviewerUsername,
         overrideReason,
         approvePayment: overrideApprove,
       });
@@ -127,8 +127,9 @@ export const PaymentDetailPage: React.FC = () => {
     return <div className="text-gray-500">Payment not found</div>;
   }
 
-  const canApproveOrReject = payment.status === 'MANUAL_REVIEW_REQUIRED';
-  const canOverride = payment.status === 'BLOCKED';
+    const isComplianceOfficer = hasRole('compliance-officer');
+    const canApproveOrReject = isComplianceOfficer && payment.status === 'MANUAL_REVIEW_REQUIRED';
+    const canOverride = isComplianceOfficer && payment.status === 'BLOCKED';
 
   return (
     <div className="space-y-6">
@@ -620,13 +621,7 @@ export const PaymentDetailPage: React.FC = () => {
           confirmText="Approve"
           confirmVariant="success"
         >
-          <Input
-            label="Approved By (Your Name)"
-            placeholder="Enter your name"
-            value={approvedBy}
-            onChange={(e) => setApprovedBy(e.target.value)}
-            required
-          />
+            <ReviewerLine reviewerUsername={reviewerUsername}/>
           <Input
             label="Approval Notes"
             placeholder="Enter approval notes"
@@ -647,13 +642,7 @@ export const PaymentDetailPage: React.FC = () => {
           confirmText="Reject"
           confirmVariant="danger"
         >
-          <Input
-            label="Rejected By (Your Name)"
-            placeholder="Enter your name"
-            value={rejectedBy}
-            onChange={(e) => setRejectedBy(e.target.value)}
-            required
-          />
+            <ReviewerLine reviewerUsername={reviewerUsername}/>
           <Input
             label="Rejection Reason"
             placeholder="Enter rejection reason"
@@ -691,13 +680,7 @@ export const PaymentDetailPage: React.FC = () => {
               </Button>
             </div>
           </div>
-          <Input
-            label="Override By (Your Name)"
-            placeholder="Enter your name"
-            value={overriddenBy}
-            onChange={(e) => setOverriddenBy(e.target.value)}
-            required
-          />
+            <ReviewerLine reviewerUsername={reviewerUsername}/>
           <Input
             label="Override Reason"
             placeholder="Enter the reason for overriding this decision"
@@ -712,6 +695,12 @@ export const PaymentDetailPage: React.FC = () => {
 };
 
 // Helper Components
+const ReviewerLine: React.FC<{ reviewerUsername: string }> = ({reviewerUsername}) => (
+    <p className="mb-4 text-sm text-gray-600">
+        Recorded as <span className="font-medium text-gray-900">{reviewerUsername}</span>
+    </p>
+);
+
 /**
  * The aggregate version is the sequence number of the last event applied to the payment in
  * payment-engine's event store; it only ever grows, so it tells the officer how far the

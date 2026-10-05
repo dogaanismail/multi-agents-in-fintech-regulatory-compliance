@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {RoleGate} from '@/auth';
 import { configurationService } from '@/api';
 import { ConfigurationResponse, UpdateConfigRequest, ConfigType, ConfigAuditLogResponse } from '@/types';
 import { useApi } from '@/hooks/useApi';
@@ -127,10 +128,12 @@ export const ConfigurationDetailPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 font-mono">{config.configKey}</h1>
         </div>
         <div className="flex space-x-3">
+            <RoleGate role="admin">
           {!editMode && (
             <Button onClick={() => setEditMode(true)}>Edit</Button>
           )}
           <Button variant="danger" onClick={handleDelete}>Delete</Button>
+            </RoleGate>
         </div>
       </div>
 

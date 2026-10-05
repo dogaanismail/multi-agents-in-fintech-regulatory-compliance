@@ -21,22 +21,27 @@ import { CreateAccountPage } from './pages/CreateAccountPage';
 import { CreatePaymentPage } from './pages/CreatePaymentPage';
 import { ExchangeRatePage } from './pages/ExchangeRatePage';
 import {LedgerPage} from './pages/LedgerPage';
+import {AccessDenied, AuthProvider, RoleGate} from './auth';
 
 function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="payments" element={<PaymentListPage />} />
-          <Route path="payments/create" element={<CreatePaymentPage />} />
+          <Route path="payments/create"
+                 element={<RoleGate role="operator" fallback={<AccessDenied/>}><CreatePaymentPage/></RoleGate>}/>
           <Route path="payments/:paymentId" element={<PaymentDetailPage />} />
             <Route path="payments/:paymentId/explanation" element={<PaymentExplanationPage/>}/>
           <Route path="customers" element={<CustomerListPage />} />
-          <Route path="customers/create" element={<CreateCustomerPage />} />
+          <Route path="customers/create"
+                 element={<RoleGate role="operator" fallback={<AccessDenied/>}><CreateCustomerPage/></RoleGate>}/>
           <Route path="customers/:customerId" element={<CustomerDetailPage />} />
           <Route path="accounts" element={<AccountListPage />} />
-          <Route path="accounts/open" element={<CreateAccountPage />} />
+          <Route path="accounts/open"
+                 element={<RoleGate role="operator" fallback={<AccessDenied/>}><CreateAccountPage/></RoleGate>}/>
           <Route path="accounts/:accountId" element={<AccountDetailPage />} />
             <Route path="ledger" element={<LedgerPage/>}/>
           <Route path="configurations" element={<ConfigurationListPage />} />
@@ -51,6 +56,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

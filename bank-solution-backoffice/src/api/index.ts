@@ -8,3 +8,4 @@ export * from './marlTrainingService';
 export * from './learningEvidenceService';
 export * from './currencyConversionService';
 export * from './reviewQueueService';
+export * from './authService';

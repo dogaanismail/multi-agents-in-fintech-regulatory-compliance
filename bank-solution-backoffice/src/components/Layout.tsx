@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import {RoleGate, SignOutButton, useAuth} from '@/auth';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
+    const {currentUser} = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +83,7 @@ export const Layout: React.FC = () => {
               </NavLink>
 
               {/* Create Dropdown */}
+                <RoleGate role="operator">
               <div ref={dropdownRef} className="relative">
                 <button
                   onClick={() => setCreateOpen((o) => !o)}
@@ -109,6 +112,15 @@ export const Layout: React.FC = () => {
                     <DropdownItem to="/payments/create" icon="💳" label="New Payment" />
                   </div>
                 )}
+              </div>
+                </RoleGate>
+
+                <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
+                    <div className="text-right leading-tight">
+                        <p className="text-sm font-medium text-gray-900">{currentUser.fullName ?? currentUser.username}</p>
+                        <p className="text-xs text-gray-500">{currentUser.roles.join(', ')}</p>
+                    </div>
+                    <SignOutButton/>
               </div>
             </nav>
           </div>

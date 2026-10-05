@@ -297,14 +297,21 @@ Once the Schema Registry is healthy, register the Avro schemas and create the Ka
 > ./scripts/setup-complete.sh
 > ```
 
-### Step 2 — Start Backend Infrastructure (PostgreSQL, Neo4j) & Microservices
+### Step 2 — Start Backend Infrastructure (PostgreSQL, Neo4j, Keycloak) & Microservices
+
+The browser and the containers must reach Keycloak under the same name, so add it to `/etc/hosts` once:
+
+```bash
+echo "127.0.0.1 keycloak" | sudo tee -a /etc/hosts
+```
 
 ```bash
 cd bank-solution-backend
 docker compose up -d
 ```
 
-This brings up PostgreSQL 16.2, Neo4j 5.26, all 10 Java microservices (with Liquibase migrations), and the backoffice gateway.
+This brings up PostgreSQL 16.2, Neo4j 5.26, Keycloak, all 10 Java microservices (with Liquibase migrations), and the
+backoffice gateway.
 
 ### Step 3 — Start AI Agents & MADDPG Orchestrator
 
@@ -322,7 +329,23 @@ cd bank-solution-backoffice
 npm install && npm run dev
 ```
 
-The React UI will be available at `http://localhost:5173`.
+The React UI will be available at `http://localhost:3000` (or `http://localhost:6060` from Docker Compose).
+
+### Signing in
+
+The backoffice signs in through Keycloak; the gateway keeps the session, so tokens never reach the browser. The realm,
+roles and local demo users are in `infrastructure/keycloak/bank-solution-realm.json`. Every demo user's password is
+`default`.
+
+| User       | Role                 | Can                                                                      |
+|------------|----------------------|--------------------------------------------------------------------------|
+| `viewer`   | `viewer`             | Read payments, customers, accounts, risk assessments and MARL dashboards |
+| `operator` | `operator`           | Everything `viewer` can, plus create customers, accounts and payments    |
+| `officer`  | `compliance-officer` | Everything `viewer` can, plus approve, reject and override payments      |
+| `admin`    | `admin`              | Everything, including configuration, MARL training and ledger postings   |
+
+The gateway enforces these rules (`SecurityConfig` in `backoffice-gateway-svc`); a write that is not explicitly granted
+needs `admin`. The Keycloak admin console is at http://keycloak:8180 (`admin` / `default`).
 
 ### Service URLs
 
@@ -347,6 +370,7 @@ The React UI will be available at `http://localhost:5173`.
 | Configuration Service     | http://localhost:5009 | 5009 |
 | Beneficiary Service       | http://localhost:5014 | 5014 |
 | Backoffice Gateway        | http://localhost:3030 | 3030 |
+| Keycloak                  | http://keycloak:8180  | 8180 |
 | **AI Services**           |                       |      |
 | Transaction Pattern Agent | http://localhost:1001 | 1001 |
 | Customer Risk Agent       | http://localhost:1002 | 1002 |
@@ -359,7 +383,7 @@ The React UI will be available at `http://localhost:5173`.
 | Loki (logs)               | http://localhost:3100 | 3100 |
 | **Frontend**              |                       |      |
 | Backoffice UI (Docker)    | http://localhost:6060 | 6060 |
-| Backoffice UI (dev)       | http://localhost:5173 | 5173 |
+| Backoffice UI (dev)       | http://localhost:3000 | 3000 |
 
 ---
 

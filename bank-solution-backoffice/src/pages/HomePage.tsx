@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import {RoleGate} from '@/auth';
 import { Card } from '@/components/common';
 
 export const HomePage: React.FC = () => {
@@ -13,6 +14,7 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
+      <RoleGate role="operator">
       <Card title="🚀 Quick Actions">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
@@ -61,6 +63,7 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
       </Card>
+      </RoleGate>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Payments Card */}

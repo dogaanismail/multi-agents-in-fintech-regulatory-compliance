@@ -16,6 +16,10 @@ export default defineConfig({
         target: 'http://localhost:3030',
         changeOrigin: true,
       },
+        '^/(oauth2/|login/oauth2/|logout$)': {
+            target: 'http://localhost:3030',
+            changeOrigin: false,
+        },
     },
   },
 })
