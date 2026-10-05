@@ -1,0 +1,11 @@
+createSecrets: true
+secrets:
+  adminPassword: default
+  demoUserPassword: default
+  backofficeClientSecret: local-backoffice-secret
+  serviceClientSecrets:
+    account-service: local-account-service-secret
+    risk-engine-service: local-risk-engine-service-secret
+    payment-service: local-payment-service-secret
+    beneficiary-service: local-beneficiary-service-secret
+    marl-orchestrator: local-marl-orchestrator-secret

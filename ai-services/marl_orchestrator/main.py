@@ -13,6 +13,7 @@ Master's Thesis: Multi-Agent System for Fintech Regulatory Compliance
 """
 
 import asyncio
+import shutil
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -69,6 +70,18 @@ async def _warm_dynamic_config() -> None:
         )
 
 
+def _seed_model_dir_from_baseline(model_dir: Path) -> None:
+    baseline_dir = Path(settings.baseline_model_path)
+    baseline_files = list(baseline_dir.glob("*.pth")) if baseline_dir.exists() else []
+    if not baseline_files or (model_dir.exists() and any(model_dir.glob("*.pth"))):
+        return
+
+    model_dir.mkdir(parents=True, exist_ok=True)
+    for baseline_file in baseline_files:
+        shutil.copy2(baseline_file, model_dir / baseline_file.name)
+    logger.info(f"🌱 Seeded {len(baseline_files)} baseline model files from {baseline_dir} into {model_dir}")
+
+
 def _load_model_weights() -> None:
     """
     Load persisted Actor/Critic weights from disk when available.
@@ -78,6 +91,7 @@ def _load_model_weights() -> None:
     from maddpg.core import maddpg_coordinator
 
     model_dir = Path(settings.model_path)
+    _seed_model_dir_from_baseline(model_dir)
     pth_files = list(model_dir.glob("*.pth")) if model_dir.exists() else []
 
     if not pth_files:

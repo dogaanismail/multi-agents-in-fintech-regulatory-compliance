@@ -1,0 +1,6 @@
+apiVersion: v2
+name: keycloak
+description: Keycloak identity provider with the bank-staff and bank-internal realms
+type: application
+version: 0.1.0
+appVersion: 26.8.0

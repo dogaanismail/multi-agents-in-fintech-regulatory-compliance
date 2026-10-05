@@ -37,3 +37,8 @@ networkPolicy:
     - ledger-service
     - beneficiary-service
     - ai/marl-orchestrator
+
+secretEnv:
+  - name: KEYCLOAK_CLIENT_SECRET
+    secretName: backoffice-gateway-keycloak-client
+    key: client-secret

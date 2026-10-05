@@ -63,7 +63,9 @@ $(terraform output -raw configure_kubectl)
 kubectl get applications -n argocd
 ```
 
-Generated passwords live only in the Terraform state (local, git-ignored) and in the cluster's Secrets. Nothing is
+Generated passwords live only in the Terraform state (local, git-ignored) and in the cluster's Secrets. Print the
+staff demo password with `terraform output -raw demo_user_password` and the Keycloak console's with
+`terraform output -raw keycloak_admin_password`. Nothing is
 exposed publicly yet: reach the services the same way as on kind, with `kubectl port-forward`.
 
 ## Cost and teardown

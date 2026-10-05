@@ -1,0 +1,3 @@
+createCredentialsSecrets: true
+credentials:
+  keycloak: local-keycloak

@@ -28,5 +28,9 @@ resource "helm_release" "bank_solution_apps" {
     kubernetes_secret_v1.kafka_client_credentials,
     kubernetes_secret_v1.kafka_user_password,
     kubernetes_secret_v1.neo4j_credentials,
+    kubernetes_secret_v1.keycloak_admin,
+    kubernetes_secret_v1.keycloak_realm_secrets,
+    kubernetes_secret_v1.backoffice_keycloak_client,
+    kubernetes_secret_v1.service_keycloak_client,
   ]
 }

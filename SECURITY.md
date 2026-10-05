@@ -15,7 +15,13 @@ Keycloak holds one realm per population, so a token from one can never pass as a
 | `bank-partners`  | Partner fintechs          | Client credentials, scopes, rate limits    | Planned  |
 
 The realm files are `infrastructure/keycloak/*-realm.json`. Secrets and demo passwords are `${ENV}` placeholders that
-Keycloak fills in on import; Docker Compose supplies local values.
+Keycloak fills in on import. Docker Compose and the kind `local` environment supply local values; in the cloud
+environments Terraform generates every secret (`terraform output -raw demo_user_password`).
+
+Every deployment uses the issuer `http://keycloak:8180/realms/<realm>`. In Kubernetes, Keycloak runs in `platform`
+(chart `charts/platform/keycloak`, database `identity-postgres`) and an `ExternalName` Service named `keycloak` in
+`banking` and `ai` points at it, so pods resolve the same name as Compose. Browsers need `127.0.0.1 keycloak` in
+`/etc/hosts` and a port-forward to 8180.
 
 ## Permissions and roles
 
@@ -65,7 +71,6 @@ Kafka messages carry no tokens: each service has its own SCRAM login and ACLs, a
 
 ## Not done yet
 
-- Keycloak is not deployed in Kubernetes or the cloud environments yet; until it is, those deployments cannot sign in.
 - The gateway relays the staff token to every service. Token exchange (RFC 8693) would give each downstream call a
   token for that service only.
 - A role change reaches a signed-in staff user at their next login; services see it within one access-token lifetime (5

@@ -1,0 +1,14 @@
+{{- range $clientId := include "keycloak.realmServiceClients" . | fromJsonArray }}
+{{- if not (hasKey $.Values.serviceClients $clientId) }}
+{{- fail (printf "bank-internal client %s has no namespace in serviceClients" $clientId) }}
+{{- end }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realms
+data:
+  {{- range $path, $_ := .Files.Glob "realms/*-realm.json" }}
+  {{ base $path }}: |
+    {{- $.Files.Get $path | nindent 4 }}
+  {{- end }}

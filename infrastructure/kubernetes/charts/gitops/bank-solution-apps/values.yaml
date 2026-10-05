@@ -32,6 +32,12 @@ stores:
   - name: tigerbeetle
     namespace: banking
     chart: charts/data/tigerbeetle
+  - name: identity-postgres
+    namespace: platform
+    chart: charts/data/postgres
+  - name: keycloak
+    namespace: platform
+    chart: charts/platform/keycloak
 
 syncPolicy:
   automated:

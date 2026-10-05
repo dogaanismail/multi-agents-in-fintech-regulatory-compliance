@@ -39,3 +39,8 @@ networkPolicy:
     - account-service
     - network-topology-service
     - customer-profile-service
+
+secretEnv:
+  - name: SERVICE_CLIENT_SECRET
+    secretName: risk-engine-service-keycloak-client
+    key: client-secret

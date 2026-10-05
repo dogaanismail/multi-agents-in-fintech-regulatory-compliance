@@ -35,3 +35,8 @@ networkPolicy:
   egress:
     - customer-service
     - ledger-service
+
+secretEnv:
+  - name: SERVICE_CLIENT_SECRET
+    secretName: account-service-keycloak-client
+    key: client-secret

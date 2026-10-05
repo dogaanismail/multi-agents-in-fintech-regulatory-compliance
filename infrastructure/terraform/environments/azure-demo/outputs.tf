@@ -17,3 +17,15 @@ output "database_roles" {
   description = "PostgreSQL roles that received generated credentials."
   value       = module.platform.database_roles
 }
+
+output "keycloak_admin_password" {
+  description = "Password of the Keycloak admin console user (admin); print with terraform output -raw."
+  value       = module.platform.keycloak_admin_password
+  sensitive   = true
+}
+
+output "demo_user_password" {
+  description = "Password of the demo staff users; print with terraform output -raw."
+  value       = module.platform.demo_user_password
+  sensitive   = true
+}

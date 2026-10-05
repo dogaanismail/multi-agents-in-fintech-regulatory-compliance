@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "ebs_csi_driver_trust" {
     actions = ["sts:AssumeRole", "sts:TagSession"]
 
     principals {
-        type = "Service"
+      type = "Service"
       identifiers = ["pods.eks.amazonaws.com"]
     }
   }

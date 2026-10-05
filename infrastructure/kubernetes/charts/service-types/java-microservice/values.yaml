@@ -74,6 +74,7 @@ networkPolicy:
   enabled: true
   baseline:
     - dns
+    - keycloak
   ingress: [ ]
   egress: [ ]
 

@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     
     # Model Paths
     model_path: str = os.getenv("MODEL_PATH", "./trained_models")
+    baseline_model_path: str = os.getenv("BASELINE_MODEL_PATH", "./training/trained_models")
     
     # Kafka
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")

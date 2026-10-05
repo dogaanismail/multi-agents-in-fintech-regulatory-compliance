@@ -10,7 +10,7 @@ resource "helm_release" "strimzi" {
   repository = "oci://quay.io/strimzi-helm"
   chart      = "strimzi-kafka-operator"
   version    = "1.2.0"
-    values = [file("${var.kubernetes_directory}/platform/strimzi/values.yaml")]
+  values = [file("${var.kubernetes_directory}/platform/strimzi/values.yaml")]
 
   depends_on = [helm_release.priority_classes]
 }
@@ -22,5 +22,5 @@ resource "helm_release" "cloudnative_pg" {
   repository       = "https://cloudnative-pg.github.io/charts"
   chart            = "cloudnative-pg"
   version          = "0.29.1"
-    values = [file("${var.kubernetes_directory}/platform/cloudnative-pg/values.yaml")]
+  values = [file("${var.kubernetes_directory}/platform/cloudnative-pg/values.yaml")]
 }

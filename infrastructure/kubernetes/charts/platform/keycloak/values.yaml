@@ -1,0 +1,41 @@
+image: quay.io/keycloak/keycloak:26.8.0
+priorityClassName: platform-critical
+
+hostname: http://keycloak:8180
+httpPort: 8180
+managementPort: 9000
+
+backofficeUrl: http://localhost:6060
+backofficeDevServerUrl: http://localhost:3000
+
+database:
+  host: identity-postgres-rw
+  port: 5432
+  name: keycloak
+  credentialsSecret: keycloak-db-credentials
+  waitImage: ghcr.io/cloudnative-pg/postgresql:16
+
+clientNamespaces:
+  - banking
+  - ai
+
+backofficeClient:
+  service: backoffice-gateway
+  namespace: banking
+
+serviceClients:
+  account-service: banking
+  risk-engine-service: banking
+  payment-service: banking
+  beneficiary-service: banking
+  marl-orchestrator: ai
+
+createSecrets: false
+secrets: { }
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 768Mi
+  limits:
+    memory: 1Gi

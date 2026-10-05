@@ -53,6 +53,13 @@ networkPeers:
     ports:
       - protocol: TCP
         port: 3000
+  keycloak:
+    namespace: platform
+    podLabels:
+      app.kubernetes.io/name: keycloak
+    ports:
+      - protocol: TCP
+        port: 8180
   internet-https:
     ipBlock:
       cidr: 0.0.0.0/0

@@ -109,6 +109,28 @@ a running broker can issue. The broker, the entity operator and the Strimzi oper
 `platform-critical` PriorityClass, so they preempt application pods instead of staying `Pending`. The operator's leader
 lease is 60 s (default 15 s): under a saturated node it would otherwise lose the lease and restart mid-reconciliation.
 
+## Keycloak
+
+`charts/platform/keycloak` runs Keycloak in `platform` with its own CloudNativePG database (`identity-postgres`) and
+imports both realms from `infrastructure/keycloak` (linked into the chart as `realms/`). Pods in `banking` and `ai`
+reach it as `keycloak:8180` through an `ExternalName` alias, which keeps the token issuer identical to Docker Compose.
+Every service type has `keycloak` in its network-policy baseline. Keycloak runs at `platform-critical` priority: without
+it nobody signs in and services cannot get or validate tokens.
+
+Secrets: the `local` environment lets the chart create them (`environments/local/keycloak.yaml`); `cloud-demo` turns
+that off and Terraform generates them. Each machine client's secret lands in its service's namespace as
+`<service>-keycloak-client`; the chart fails to render if `bank-internal-realm.json` gains a client that has no
+namespace in `serviceClients`.
+
+To sign in on kind: add `127.0.0.1 keycloak` to `/etc/hosts`, then
+
+```bash
+kubectl -n platform port-forward svc/keycloak 8180:8180
+kubectl -n banking port-forward svc/backoffice-ui 6060:80
+```
+
+and open http://localhost:6060 (users and roles are in `SECURITY.md`).
+
 ## Adding a service
 
 1. Write `services/<namespace>/<name>.yaml`, starting with `serviceType: <type>`, then image, `containerPort`, `env`,

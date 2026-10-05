@@ -1,0 +1,17 @@
+storage:
+  size: 1Gi
+
+parameters:
+  max_connections: "50"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+databases:
+  - service: keycloak
+    database: keycloak
+    role: keycloak
