@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Data
 @Component
 @ConfigurationProperties(prefix = "spring.kafka")
@@ -12,6 +14,7 @@ public class KafkaConfigurationProperties {
     private String bootstrapServers;
     private SchemaRegistry schemaRegistry = new SchemaRegistry();
     private Consumer consumer = new Consumer();
+    private Listener listener = new Listener();
     private Topics topics = new Topics();
 
     @Data
@@ -22,6 +25,11 @@ public class KafkaConfigurationProperties {
     @Data
     public static class Consumer {
         private String groupId;
+    }
+
+    @Data
+    public static class Listener {
+        private Duration authExceptionRetryInterval;
     }
 
     @Data

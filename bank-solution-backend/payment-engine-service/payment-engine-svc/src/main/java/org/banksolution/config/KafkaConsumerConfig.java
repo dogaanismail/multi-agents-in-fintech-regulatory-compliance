@@ -87,6 +87,8 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.getContainerProperties().setObservationEnabled(true);
+        factory.getContainerProperties()
+                .setAuthExceptionRetryInterval(kafkaConfigurationProperties.getListener().getAuthExceptionRetryInterval());
         factory.setCommonErrorHandler(createErrorHandler());
 
         return factory;
