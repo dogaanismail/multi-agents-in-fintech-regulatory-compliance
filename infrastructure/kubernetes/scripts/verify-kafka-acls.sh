@@ -53,8 +53,8 @@ probe() {
     local properties_file="$1" action="$2" target="$3"
     case "$action" in
         describe)
-            kafka_exec timeout "$PROBE_TIMEOUT_SECONDS" "$KAFKA_BIN/kafka-topics.sh" --bootstrap-server "$BOOTSTRAP" \
-                --command-config "$properties_file" --describe --topic "$target" 2>&1
+            kafka_exec timeout "$PROBE_TIMEOUT_SECONDS" "$KAFKA_BIN/kafka-get-offsets.sh" --bootstrap-server "$BOOTSTRAP" \
+                --command-config "$properties_file" --topic "$target" 2>&1
             ;;
         produce)
             echo "acl-probe" | kafka_exec timeout "$PROBE_TIMEOUT_SECONDS" "$KAFKA_BIN/kafka-console-producer.sh" \
@@ -72,7 +72,7 @@ observe() {
     local action="$1" target="$2" output="$3"
     if grep -qiE "not authorized|authorizationexception|authentication failed|saslauthentication|timed out|timeoutexception" <<<"$output"; then
         echo "deny"
-    elif [[ "$action" == "describe" ]] && ! grep -q "Topic: $target" <<<"$output"; then
+    elif [[ "$action" == "describe" ]] && ! grep -q "^$target:" <<<"$output"; then
         echo "deny"
     else
         echo "allow"

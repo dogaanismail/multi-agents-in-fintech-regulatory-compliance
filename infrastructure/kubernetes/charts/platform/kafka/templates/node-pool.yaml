@@ -20,3 +20,6 @@ spec:
     {{- toYaml .Values.nodePool.jvmOptions | nindent 4 }}
   resources:
     {{- toYaml .Values.nodePool.resources | nindent 4 }}
+  template:
+    pod:
+      priorityClassName: {{ .Values.priorityClassName }}

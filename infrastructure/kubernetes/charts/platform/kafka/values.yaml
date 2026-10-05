@@ -1,5 +1,6 @@
 clusterName: bank-kafka
 version: 4.3.1
+priorityClassName: platform-critical
 
 nodePool:
   name: dual-role

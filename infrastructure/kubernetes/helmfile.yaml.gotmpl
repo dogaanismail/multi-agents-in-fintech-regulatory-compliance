@@ -19,12 +19,20 @@ repositories:
     url: https://argoproj.github.io/argo-helm
 
 releases:
+  - name: priority-classes
+    namespace: platform
+    chart: charts/platform/priority-classes
+    labels:
+      tier: operators
+
   - name: strimzi-operator
     namespace: platform
     chart: strimzi/strimzi-kafka-operator
     version: 1.2.0
     labels:
       tier: operators
+    needs:
+      - platform/priority-classes
     values:
       - platform/strimzi/values.yaml
 

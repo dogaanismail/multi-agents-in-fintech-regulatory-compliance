@@ -27,6 +27,9 @@ spec:
     config:
       {{- toYaml .Values.config | nindent 6 }}
   entityOperator:
+    template:
+      pod:
+        priorityClassName: {{ .Values.priorityClassName }}
     topicOperator:
       jvmOptions:
         {{- toYaml .Values.topicOperator.jvmOptions | nindent 8 }}

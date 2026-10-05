@@ -1,0 +1,4 @@
+0priorityClasses:
+  - name: platform-critical
+    value: 1000000
+    description: Kafka, its operators and anything every service depends on

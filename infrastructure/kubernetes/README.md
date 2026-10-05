@@ -35,19 +35,19 @@ crash-loops ("Not enough disk space" on the CNPG cluster).
 
 ## Layout
 
-| Path                                  | Holds                                                                                   |
-|---------------------------------------|-----------------------------------------------------------------------------------------|
-| `charts/service-types/*`              | One chart per kind of service; its `values.yaml` is the complete definition of the type |
-| `services/<namespace>/<release>.yaml` | One file per service: only what differs from its type                                   |
-| `charts/library/banksolution-common`  | Building blocks the types assemble: ConfigMap, Deployment, Service, migration Job       |
-| `charts/data/*`                       | Stateful stores: `postgres` (CNPG), `neo4j` (official chart), `tigerbeetle`             |
-| `data/<namespace>/<release>.yaml`     | One file per store instance: `bank-postgres`, `ai-postgres` (their databases)           |
-| `charts/platform/*`                   | `kafka` (Strimzi KRaft + topics), `schema-registry` (+ schema registration Job)         |
-| `platform/*`                          | Values for third-party charts (Strimzi, CloudNativePG, ArgoCD)                          |
-| `environments/<env>/services.yaml`    | Overrides applied to every service in that environment                                  |
-| `environments/<env>/<release>.yaml`   | Overrides for one data/platform release (credentials, sizes); optional                  |
-| `charts/gitops/bank-solution-apps`    | ArgoCD project + ApplicationSets: `stores` (list) and `services` (one app per file)     |
-| `helmfile.yaml.gotmpl`                | Bootstrap only: operators, ArgoCD, `bank-solution-apps`                                 |
+| Path                                  | Holds                                                                                               |
+|---------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `charts/service-types/*`              | One chart per kind of service; its `values.yaml` is the complete definition of the type             |
+| `services/<namespace>/<release>.yaml` | One file per service: only what differs from its type                                               |
+| `charts/library/banksolution-common`  | Building blocks the types assemble: ConfigMap, Deployment, Service, migration Job                   |
+| `charts/data/*`                       | Stateful stores: `postgres` (CNPG), `neo4j` (official chart), `tigerbeetle`                         |
+| `data/<namespace>/<release>.yaml`     | One file per store instance: `bank-postgres`, `ai-postgres` (their databases)                       |
+| `charts/platform/*`                   | `kafka` (Strimzi KRaft + topics), `schema-registry` (+ schema registration Job), `priority-classes` |
+| `platform/*`                          | Values for third-party charts (Strimzi, CloudNativePG, ArgoCD)                                      |
+| `environments/<env>/services.yaml`    | Overrides applied to every service in that environment                                              |
+| `environments/<env>/<release>.yaml`   | Overrides for one data/platform release (credentials, sizes); optional                              |
+| `charts/gitops/bank-solution-apps`    | ArgoCD project + ApplicationSets: `stores` (list) and `services` (one app per file)                 |
+| `helmfile.yaml.gotmpl`                | Bootstrap only: operators, ArgoCD, `bank-solution-apps`                                             |
 
 ### Service types
 
@@ -103,6 +103,11 @@ Compose and the Testcontainers tests stay on PLAINTEXT, because the clients only
 
 `./scripts/verify-kafka-acls.sh` probes the live broker with each service's own credentials: a service can describe
 its topics, but cannot write another service's topic, join another service's group, or connect anonymously.
+
+On one node, a redeploy surges a second copy of every service, and the new copies wait for Kafka credentials that only
+a running broker can issue. The broker, the entity operator and the Strimzi operator therefore run under the
+`platform-critical` PriorityClass, so they preempt application pods instead of staying `Pending`. The operator's leader
+lease is 60 s (default 15 s): under a saturated node it would otherwise lose the lease and restart mid-reconciliation.
 
 ## Adding a service
 

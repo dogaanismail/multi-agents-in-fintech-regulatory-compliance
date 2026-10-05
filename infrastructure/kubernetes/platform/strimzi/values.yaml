@@ -1,8 +1,16 @@
 watchNamespaces: [ ]
 watchAnyNamespace: false
+priorityClassName: platform-critical
+extraEnvs:
+  - name: STRIMZI_LEADER_ELECTION_LEASE_DURATION_MS
+    value: "60000"
+  - name: STRIMZI_LEADER_ELECTION_RENEW_DEADLINE_MS
+    value: "45000"
+  - name: STRIMZI_LEADER_ELECTION_RETRY_PERIOD_MS
+    value: "5000"
 resources:
   requests:
-    cpu: 100m
+    cpu: 500m
     memory: 256Mi
   limits:
     memory: 384Mi
