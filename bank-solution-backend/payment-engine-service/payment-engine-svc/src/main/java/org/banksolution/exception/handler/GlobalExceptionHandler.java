@@ -3,19 +3,26 @@ package org.banksolution.exception.handler;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.axonframework.modelling.command.AggregateNotFoundException;
 import org.banksolution.exception.CustomError;
 import org.banksolution.exception.InvalidPaymentStateException;
+import org.banksolution.exception.PaymentNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -75,16 +82,78 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    protected ResponseEntity<@NonNull CustomError> handleRuntimeException(RuntimeException runtimeException) {
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<@NonNull CustomError> handleHttpMessageNotReadable(HttpMessageNotReadableException httpMessageNotReadableException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .header(CustomError.Header.VALIDATION_ERROR.getName())
+                .message("Malformed request body")
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    protected ResponseEntity<@NonNull CustomError> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException methodArgumentTypeMismatchException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .header(CustomError.Header.VALIDATION_ERROR.getName())
+                .message("Invalid value for " + methodArgumentTypeMismatchException.getName())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    protected ResponseEntity<@NonNull CustomError> handleResponseStatusException(ResponseStatusException responseStatusException) {
+
+        HttpStatus httpStatus = HttpStatus.valueOf(responseStatusException.getStatusCode().value());
+        CustomError customError = CustomError.builder()
+                .httpStatus(httpStatus)
+                .header(CustomError.Header.API_ERROR.getName())
+                .message(responseStatusException.getReason() != null ? responseStatusException.getReason() : httpStatus.getReasonPhrase())
+                .build();
+
+        return new ResponseEntity<>(customError, httpStatus);
+    }
+
+    @ExceptionHandler(AggregateNotFoundException.class)
+    protected ResponseEntity<@NonNull CustomError> handleAggregateNotFound(AggregateNotFoundException aggregateNotFoundException) {
 
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)
-                .header(CustomError.Header.API_ERROR.getName())
-                .message(runtimeException.getMessage())
+                .header(CustomError.Header.NOT_FOUND.getName())
+                .message("Payment not found: " + aggregateNotFoundException.getAggregateIdentifier())
                 .build();
 
         return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    protected ResponseEntity<@NonNull CustomError> handlePaymentNotFound(PaymentNotFoundException paymentNotFoundException) {
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.NOT_FOUND)
+                .header(CustomError.Header.NOT_FOUND.getName())
+                .message(paymentNotFoundException.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    protected ResponseEntity<@NonNull CustomError> handleRuntimeException(RuntimeException runtimeException) {
+        log.error("Unexpected error", runtimeException);
+
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .header(CustomError.Header.API_ERROR.getName())
+                .message("Unexpected error")
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(InvalidPaymentStateException.class)
