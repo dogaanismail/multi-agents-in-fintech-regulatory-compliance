@@ -21,6 +21,7 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: marl-orchestrator-group
   consumes:
     fraud-analysis-requested: fraud.analysis.requested
     agent-manual-feedback: agent.manual.feedback
@@ -42,6 +43,8 @@ persistentPaths:
     size: 1Gi
 
 networkPolicy:
+  ingress:
+    - banking/backoffice-gateway
   egress:
     - transaction-pattern-agent
     - customer-risk-agent

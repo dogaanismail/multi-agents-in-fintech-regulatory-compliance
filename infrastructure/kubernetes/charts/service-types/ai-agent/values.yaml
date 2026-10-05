@@ -15,6 +15,7 @@ networkPolicy:
   enabled: true
   baseline:
     - dns
+  ingress: [ ]
   egress: [ ]
 
 probes:

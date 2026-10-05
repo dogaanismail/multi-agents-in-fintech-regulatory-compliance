@@ -18,6 +18,9 @@ spec:
     metadata:
       labels:
         {{- include "banksolution-common.labels" . | nindent 8 }}
+        {{- if or (include "banksolution-common.enabled" .Values.messaging) .Values.kafkaClient }}
+        banksolution.io/kafka-client: "true"
+        {{- end }}
       annotations:
         checksum/config: {{ include "banksolution-common.configMapData" . | sha256sum }}
     spec:
@@ -40,11 +43,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "banksolution-common.name" . }}
-          {{- $env := cat (include "banksolution-common.datasourceEnv" .) (include "banksolution-common.secretEnv" .) | trim }}
+          {{- $env := cat (include "banksolution-common.datasourceEnv" .) (include "banksolution-common.secretEnv" .) (include "banksolution-common.kafkaEnv" .) | trim }}
           {{- if or $env .Values.extraEnv }}
           env:
             {{- include "banksolution-common.datasourceEnv" . | trim | nindent 12 }}
             {{- include "banksolution-common.secretEnv" . | trim | nindent 12 }}
+            {{- include "banksolution-common.kafkaEnv" . | trim | nindent 12 }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

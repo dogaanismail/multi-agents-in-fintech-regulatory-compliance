@@ -31,10 +31,13 @@ public class OutboxKafkaSender implements DisposableBean {
 
     public OutboxKafkaSender(
             String bootstrapServers,
+            Map<String, Object> kafkaClientSecurityProperties,
             Duration sendTimeout,
             ObservationRegistry observationRegistry) {
+
         this.sendTimeout = sendTimeout;
-        this.outboxProducerFactory = new DefaultKafkaProducerFactory<>(toOutboxProducerConfig(bootstrapServers, sendTimeout));
+        this.outboxProducerFactory = new DefaultKafkaProducerFactory<>(
+                toOutboxProducerConfig(bootstrapServers, kafkaClientSecurityProperties, sendTimeout));
         this.outboxKafkaTemplate = new KafkaTemplate<>(outboxProducerFactory);
 
         if (observationRegistry != null) {
@@ -92,11 +95,13 @@ public class OutboxKafkaSender implements DisposableBean {
 
     private static Map<String, Object> toOutboxProducerConfig(
             String bootstrapServers,
+            Map<String, Object> kafkaClientSecurityProperties,
             Duration sendTimeout) {
 
         int sendTimeoutMillis = Math.toIntExact(sendTimeout.toMillis());
         Map<String, Object> producerConfig = new HashMap<>();
         producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        producerConfig.putAll(kafkaClientSecurityProperties);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         producerConfig.put(ProducerConfig.ACKS_CONFIG, "all");

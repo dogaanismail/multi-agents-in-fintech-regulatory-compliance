@@ -18,3 +18,9 @@ migration:
   enabled: true
   image:
     repository: customer-svc-db-migration-app
+
+networkPolicy:
+  ingress:
+    - account-service
+    - beneficiary-service
+    - backoffice-gateway

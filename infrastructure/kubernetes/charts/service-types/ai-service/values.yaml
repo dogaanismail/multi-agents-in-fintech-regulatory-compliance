@@ -36,6 +36,16 @@ messaging:
   networkPeers:
     - kafka
     - schema-registry
+  consumerGroup: ""
+  transactionalIdPrefix: ""
+  otherProducedTopics: [ ]
+  authentication:
+    enabled: false
+    kafkaCluster: bank-kafka
+    kafkaNamespace: platform
+    securityProtocol: SASL_PLAINTEXT
+    mechanism: SCRAM-SHA-512
+    credentials: { }
 
 migration:
   enabled: false
@@ -56,6 +66,7 @@ networkPolicy:
   enabled: true
   baseline:
     - dns
+  ingress: [ ]
   egress: [ ]
 
 probes:

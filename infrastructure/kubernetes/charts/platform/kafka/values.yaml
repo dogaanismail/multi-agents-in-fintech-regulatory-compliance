@@ -29,6 +29,20 @@ topicOperator:
     limits:
       memory: 256Mi
 
+userOperator:
+  jvmOptions:
+    -Xms: 64m
+    -Xmx: 128m
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      memory: 256Mi
+
+superUsers:
+  - kafka-admin
+
 config:
   offsets.topic.replication.factor: 1
   transaction.state.log.replication.factor: 1

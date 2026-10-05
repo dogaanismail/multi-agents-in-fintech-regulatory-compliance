@@ -25,9 +25,13 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: network-topology-group
   consumes:
     payment-completed: payment-completed-events
 
 networkPolicy:
+  ingress:
+    - risk-engine-service
+    - backoffice-gateway
   egress:
     - neo4j

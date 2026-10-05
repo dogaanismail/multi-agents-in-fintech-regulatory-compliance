@@ -12,6 +12,7 @@ from confluent_kafka import Producer
 
 from app.core.config import settings
 from app.core.logging import logger
+from app.infrastructure.kafka.kafka_config import kafka_security_config
 
 
 class DeadLetterPublisher:
@@ -19,6 +20,7 @@ class DeadLetterPublisher:
     def __init__(self):
         self._producer = Producer({
             "bootstrap.servers": settings.kafka_bootstrap_servers,
+            **kafka_security_config(),
             "acks": "all",
             "retries": 3,
             "enable.idempotence": True,

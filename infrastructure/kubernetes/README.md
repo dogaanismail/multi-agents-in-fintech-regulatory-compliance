@@ -71,8 +71,11 @@ single source of truth. Subjects to register are listed in that chart's `values.
 
 ## Network policies
 
-Every service gets an egress-only NetworkPolicy: it may open connections to exactly what it declares, nothing else.
-Ingress is left open so kubelet probes are never affected.
+Every service gets a NetworkPolicy: it may open connections to exactly what it declares (`networkPolicy.egress`), and
+it accepts connections on its port only from the callers it declares (`networkPolicy.ingress`, e.g. payment-engine only
+from `backoffice-gateway`). Kubelet probes and `kubectl port-forward` are unaffected by ingress rules. `backoffice-ui`
+declares no ingress, as the public entry point. Kafka's listener only admits pods labelled
+`banksolution.io/kafka-client: "true"`, which the library sets on every service with `messaging`.
 
 - `networkPolicy.egress` in the service file lists what it calls: `account-service` (same namespace),
   `banking/configuration-service` (another namespace), or a peer name.
@@ -85,6 +88,22 @@ Ingress is left open so kubelet probes are never affected.
 `./scripts/verify-network-policies.sh` probes real connections from inside the pods (e.g. `marl-orchestrator` →
 `bank-postgres` must be refused) against a running cluster.
 
+## Kafka authentication and ACLs
+
+Kafka's `plain` listener (9092) requires SCRAM-SHA-512 and authorization is `simple`: a client may only do what its
+`KafkaUser` allows. Every service with `messaging` gets one, rendered by the library chart in `platform` next to Kafka:
+
+- Read on each `consumes` topic, Write on its `<topic>.DLT`, Write on each `produces` topic and `otherProducedTopics`.
+- Read on `messaging.consumerGroup`; payment-engine also gets its `transactionalIdPrefix` (Axon's Kafka producer).
+- Credentials: `messaging.authentication.credentials.<release>` in `environments/<env>/services.yaml` becomes
+  `<release>-kafka-credentials` in the service's namespace (Java reads `SPRING_KAFKA_*`, Python `KAFKA_SASL_*`).
+
+Schema Registry has its own `KafkaUser` for `_schemas`; `kafka-admin` is a super user for operations.
+Compose and the Testcontainers tests stay on PLAINTEXT, because the clients only add SASL when those variables are set.
+
+`./scripts/verify-kafka-acls.sh` probes the live broker with each service's own credentials: a service can describe
+its topics, but cannot write another service's topic, join another service's group, or connect anonymously.
+
 ## Adding a service
 
 1. Write `services/<namespace>/<name>.yaml`, starting with `serviceType: <type>`, then image, `containerPort`, `env`,
@@ -96,6 +115,9 @@ Ingress is left open so kubelet probes are never affected.
      file is what the pod actually uses.
    - `migration`: the Liquibase image, run as a pre-install/pre-upgrade Job.
    - `networkPolicy.egress`: every other service or peer it calls; anything not listed is blocked.
+   - `networkPolicy.ingress`: every service that calls it; add the new service to the callee's list as well.
+   - Kafka: `messaging.consumerGroup` for a consumer, plus its password under
+     `messaging.authentication.credentials` in `environments/<env>/services.yaml`.
 2. Add the image to `scripts/build-images.sh` (`JAVA_IMAGES` for Gradle modules, `DOCKERFILE_IMAGES` otherwise).
 
 After editing the library chart, run `helm dependency update` on each type chart and on `schema-registry`: they

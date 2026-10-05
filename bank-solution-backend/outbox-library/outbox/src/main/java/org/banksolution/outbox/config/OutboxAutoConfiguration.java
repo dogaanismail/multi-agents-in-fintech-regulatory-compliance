@@ -7,6 +7,8 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 
 import java.time.Clock;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.banksolution.outbox.publisher.OutboxEventPublisher;
 import org.banksolution.outbox.relay.OutboxEventCleaner;
@@ -34,6 +36,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @EnableConfigurationProperties(OutboxProperties.class)
 public class OutboxAutoConfiguration {
 
+    private static final Map<String, String> KAFKA_CLIENT_SECURITY_PROPERTIES = Map.of(
+            "spring.kafka.security.protocol", "security.protocol",
+            "spring.kafka.properties.sasl.mechanism", "sasl.mechanism",
+            "spring.kafka.properties.sasl.jaas.config", "sasl.jaas.config");
+
     @Bean
     public OutboxPayloadSerializer outboxPayloadSerializer(
             OutboxProperties outboxProperties,
@@ -56,6 +63,7 @@ public class OutboxAutoConfiguration {
         return new OutboxKafkaSender(
                 resolveRequiredSetting(outboxProperties.getKafka().getBootstrapServers(), environment,
                         "spring.kafka.bootstrap-servers", "outbox.kafka.bootstrap-servers"),
+                resolveKafkaClientSecurityProperties(environment),
                 outboxProperties.getKafka().getSendTimeout(),
                 observationRegistry.getIfAvailable());
     }
@@ -170,6 +178,17 @@ public class OutboxAutoConfiguration {
         immediatePublishExecutor.initialize();
 
         return immediatePublishExecutor;
+    }
+
+    static Map<String, Object> resolveKafkaClientSecurityProperties(Environment environment) {
+        Map<String, Object> kafkaClientSecurityProperties = new HashMap<>();
+        KAFKA_CLIENT_SECURITY_PROPERTIES.forEach((springProperty, kafkaProperty) -> {
+            String value = environment.getProperty(springProperty);
+            if (value != null && !value.isBlank()) {
+                kafkaClientSecurityProperties.put(kafkaProperty, value);
+            }
+        });
+        return kafkaClientSecurityProperties;
     }
 
     private static String resolveRequiredSetting(

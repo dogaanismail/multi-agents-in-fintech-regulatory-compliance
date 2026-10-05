@@ -42,6 +42,21 @@
 {{- end }}
 {{- end -}}
 
+{{- define "banksolution-common.networkPolicyIngressRule" -}}
+{{- $parts := splitList "/" .name -}}
+{{- $namespace := ternary (first $parts) .context.Release.Namespace (eq (len $parts) 2) -}}
+- from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ $namespace }}
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: {{ last $parts }}
+  ports:
+    - protocol: TCP
+      port: {{ .context.Values.containerPort }}
+{{- end -}}
+
 {{- define "banksolution-common.networkPolicy" -}}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -55,6 +70,15 @@ spec:
       {{- include "banksolution-common.selectorLabels" . | nindent 6 }}
   policyTypes:
     - Egress
+    {{- if .Values.networkPolicy.ingress }}
+    - Ingress
+    {{- end }}
+  {{- with .Values.networkPolicy.ingress }}
+  ingress:
+    {{- range $name := . }}
+    {{- include "banksolution-common.networkPolicyIngressRule" (dict "context" $ "name" $name) | nindent 4 }}
+    {{- end }}
+  {{- end }}
   egress:
     {{- range $name := include "banksolution-common.networkPolicyPeerNames" . | fromJsonArray }}
     {{- include "banksolution-common.networkPolicyRule" (dict "context" $ "name" $name) | nindent 4 }}

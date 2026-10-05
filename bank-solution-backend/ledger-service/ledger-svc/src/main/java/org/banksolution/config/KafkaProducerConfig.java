@@ -8,8 +8,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.banksolution.kafka.KafkaClientSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -24,6 +26,7 @@ public class KafkaProducerConfig {
     private static final int RETRIES = 3;
 
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
+    private final Environment environment;
 
     @Bean
     public KafkaTemplate<@NonNull String, @NonNull LedgerPostingCompletedEvent> ledgerPostingCompletedEventKafkaTemplate() {
@@ -59,6 +62,7 @@ public class KafkaProducerConfig {
         Map<String, Object> props = new HashMap<>();
 
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigurationProperties.getBootstrapServers());
+        props.putAll(KafkaClientSecurity.resolveKafkaClientSecurityProperties(environment));
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
         props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,

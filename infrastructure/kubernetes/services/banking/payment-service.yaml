@@ -27,6 +27,8 @@ migration:
     repository: payment-svc-db-migration-app
 
 networkPolicy:
+  ingress:
+    - backoffice-gateway
   egress:
     - account-service
     - internet-https

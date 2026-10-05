@@ -19,6 +19,7 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: risk-engine-group
   consumes:
     risk-assessment-requested: risk.assessment.requested
     fraud-analysis-completed: fraud.analysis.completed
@@ -32,6 +33,8 @@ migration:
     repository: risk-svc-db-migration-app
 
 networkPolicy:
+  ingress:
+    - backoffice-gateway
   egress:
     - account-service
     - network-topology-service

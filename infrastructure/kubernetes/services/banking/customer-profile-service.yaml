@@ -16,6 +16,7 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: customer-profile-group
   consumes:
     payment-completed: payment-completed-events
 
@@ -23,3 +24,8 @@ migration:
   enabled: true
   image:
     repository: customer-profile-svc-db-migration-app
+
+networkPolicy:
+  ingress:
+    - risk-engine-service
+    - backoffice-gateway

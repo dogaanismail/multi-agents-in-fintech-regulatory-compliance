@@ -11,3 +11,7 @@ env:
 
 writablePaths:
   - /app/logs
+
+networkPolicy:
+  ingress:
+    - marl-orchestrator

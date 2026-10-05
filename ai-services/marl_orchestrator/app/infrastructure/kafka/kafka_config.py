@@ -16,6 +16,17 @@ from app.core.config import settings
 from app.core.logging import logger
 
 
+def kafka_security_config() -> Dict[str, Any]:
+    if settings.kafka_security_protocol.upper() == "PLAINTEXT":
+        return {}
+    return {
+        'security.protocol': settings.kafka_security_protocol,
+        'sasl.mechanisms': settings.kafka_sasl_mechanism,
+        'sasl.username': settings.kafka_sasl_username,
+        'sasl.password': settings.kafka_sasl_password,
+    }
+
+
 class KafkaConfig:
     """
     Kafka client factory for creating consumers and producers.
@@ -68,6 +79,7 @@ class KafkaConfig:
         """
         consumer_config = {
             'bootstrap.servers': settings.kafka_bootstrap_servers,
+            **kafka_security_config(),
             'group.id': group_id,
             'auto.offset.reset': auto_offset_reset,
             'enable.auto.commit': enable_auto_commit,
@@ -103,6 +115,7 @@ class KafkaConfig:
         """
         producer_config = {
             'bootstrap.servers': settings.kafka_bootstrap_servers,
+            **kafka_security_config(),
             'schema.registry.url': settings.schema_registry_url,
             # Reliability settings
             'acks': 'all',
@@ -141,6 +154,7 @@ class KafkaConfig:
         """
         producer_config = {
             'bootstrap.servers': settings.kafka_bootstrap_servers,
+            **kafka_security_config(),
             'schema.registry.url': settings.schema_registry_url,
             # Reliability settings
             'acks': 'all',

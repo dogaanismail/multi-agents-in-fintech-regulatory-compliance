@@ -16,6 +16,10 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: payment-engine-group
+  transactionalIdPrefix: payment-engine-tx-
+  otherProducedTopics:
+    - payment-domain-events
   consumes:
     payment-created: payment-created-events
     risk-assessment-completed: risk.assessment.completed
@@ -32,3 +36,7 @@ resources:
     memory: 384Mi
   limits:
     memory: 640Mi
+
+networkPolicy:
+  ingress:
+    - backoffice-gateway

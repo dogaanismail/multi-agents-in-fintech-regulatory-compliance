@@ -21,5 +21,7 @@ migration:
     repository: beneficiary-svc-db-migration-app
 
 networkPolicy:
+  ingress:
+    - backoffice-gateway
   egress:
     - customer-service

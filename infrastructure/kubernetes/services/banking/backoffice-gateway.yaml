@@ -22,6 +22,8 @@ env:
   MARL_ORCHESTRATOR_URL: http://marl-orchestrator.ai:1004
 
 networkPolicy:
+  ingress:
+    - backoffice-ui
   egress:
     - customer-service
     - account-service

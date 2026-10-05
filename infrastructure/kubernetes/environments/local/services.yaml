@@ -63,3 +63,17 @@ networkPeers:
     ports:
       - protocol: TCP
         port: 443
+
+messaging:
+  authentication:
+    enabled: true
+    credentials:
+      account-service: local-account-service-kafka
+      customer-profile-service: local-customer-profile-service-kafka
+      ledger-service: local-ledger-service-kafka
+      network-topology-service: local-network-topology-service-kafka
+      payment-engine-service: local-payment-engine-service-kafka
+      payment-history-service: local-payment-history-service-kafka
+      payment-service: local-payment-service-kafka
+      risk-engine-service: local-risk-engine-service-kafka
+      marl-orchestrator: local-marl-orchestrator-kafka

@@ -18,6 +18,7 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: account-group
   consumes:
     wallet-balance-changed: ledger.wallet.balance.changed
 
@@ -27,6 +28,10 @@ migration:
     repository: account-svc-db-migration-app
 
 networkPolicy:
+  ingress:
+    - payment-service
+    - risk-engine-service
+    - backoffice-gateway
   egress:
     - customer-service
     - ledger-service

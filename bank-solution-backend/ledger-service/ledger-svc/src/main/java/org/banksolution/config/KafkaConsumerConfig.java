@@ -16,8 +16,10 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.banksolution.kafka.KafkaClientSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -48,6 +50,7 @@ public class KafkaConsumerConfig {
 
     private final KafkaConfigurationProperties kafkaConfigurationProperties;
     private final MeterRegistry meterRegistry;
+    private final Environment environment;
 
     @Bean(name = "kafkaListenerContainerFactory")
     public <T> ConcurrentKafkaListenerContainerFactory<@NonNull String, @NonNull T> kafkaListenerContainerFactory() {
@@ -75,6 +78,7 @@ public class KafkaConsumerConfig {
         Map<String, Object> props = new HashMap<>();
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigurationProperties.getBootstrapServers());
+        props.putAll(KafkaClientSecurity.resolveKafkaClientSecurityProperties(environment));
         props.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaConfigurationProperties.getConsumer().getGroupId());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -137,6 +141,7 @@ public class KafkaConsumerConfig {
 
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigurationProperties.getBootstrapServers());
+        props.putAll(KafkaClientSecurity.resolveKafkaClientSecurityProperties(environment));
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
                 kafkaConfigurationProperties.getSchemaRegistry().getUrl());

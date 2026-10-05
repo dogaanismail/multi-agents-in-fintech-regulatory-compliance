@@ -19,6 +19,7 @@ env:
 
 messaging:
   enabled: true
+  consumerGroup: ledger-group
   consumes:
     ledger-posting-requested: ledger.posting.requested
   produces:
@@ -26,5 +27,8 @@ messaging:
     wallet-balance-changed: ledger.wallet.balance.changed
 
 networkPolicy:
+  ingress:
+    - account-service
+    - backoffice-gateway
   egress:
     - tigerbeetle

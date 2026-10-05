@@ -18,3 +18,8 @@ migration:
   enabled: true
   image:
     repository: configuration-svc-db-migration-app
+
+networkPolicy:
+  ingress:
+    - backoffice-gateway
+    - ai/marl-orchestrator

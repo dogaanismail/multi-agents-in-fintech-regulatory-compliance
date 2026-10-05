@@ -16,6 +16,7 @@ datasource:
 
 messaging:
   enabled: true
+  consumerGroup: payment-history-group
   consumes:
     payment-snapshot-events: payment-snapshot-events
 
@@ -23,3 +24,7 @@ migration:
   enabled: true
   image:
     repository: payment-history-svc-db-migration-app
+
+networkPolicy:
+  ingress:
+    - backoffice-gateway

@@ -1,0 +1,29 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaUser
+metadata:
+  name: {{ .Values.kafkaUser.name }}
+  labels:
+    strimzi.io/cluster: {{ .Values.kafkaUser.kafkaCluster }}
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: _schemas
+          patternType: literal
+        operations:
+          - All
+      - resource:
+          type: group
+          name: schema-registry
+          patternType: prefix
+        operations:
+          - All
+      - resource:
+          type: cluster
+        operations:
+          - Describe
+          - DescribeConfigs

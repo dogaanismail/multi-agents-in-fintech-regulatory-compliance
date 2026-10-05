@@ -10,6 +10,20 @@ spec:
         port: 9092
         type: internal
         tls: false
+        authentication:
+          type: scram-sha-512
+        networkPolicyPeers:
+          - namespaceSelector: { }
+            podSelector:
+              matchLabels:
+                banksolution.io/kafka-client: "true"
+          - podSelector:
+              matchLabels:
+                strimzi.io/cluster: {{ .Values.clusterName }}
+    authorization:
+      type: simple
+      superUsers:
+        {{- toYaml .Values.superUsers | nindent 8 }}
     config:
       {{- toYaml .Values.config | nindent 6 }}
   entityOperator:
@@ -18,3 +32,8 @@ spec:
         {{- toYaml .Values.topicOperator.jvmOptions | nindent 8 }}
       resources:
         {{- toYaml .Values.topicOperator.resources | nindent 8 }}
+    userOperator:
+      jvmOptions:
+        {{- toYaml .Values.userOperator.jvmOptions | nindent 8 }}
+      resources:
+        {{- toYaml .Values.userOperator.resources | nindent 8 }}

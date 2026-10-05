@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     schema_registry_url: str = os.getenv("SCHEMA_REGISTRY_URL", "http://localhost:8081")
     kafka_consumer_group: str = "marl-orchestrator-group"
+    kafka_security_protocol: str = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+    kafka_sasl_mechanism: str = os.getenv("KAFKA_SASL_MECHANISM", "")
+    kafka_sasl_username: str = os.getenv("KAFKA_SASL_USERNAME", "")
+    kafka_sasl_password: str = os.getenv("KAFKA_SASL_PASSWORD", "")
     fraud_analysis_requested_topic: str = "fraud.analysis.requested"
     fraud_analysis_completed_topic: str = "fraud.analysis.completed"
     agent_manual_feedback_topic: str = "agent.manual.feedback"
