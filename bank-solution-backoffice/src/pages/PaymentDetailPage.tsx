@@ -11,7 +11,7 @@ import {useAuth} from '@/auth';
 export const PaymentDetailPage: React.FC = () => {
   const { paymentId } = useParams<{ paymentId: string }>();
   const navigate = useNavigate();
-    const {currentUser, hasRole} = useAuth();
+  const {currentUser, hasPermission} = useAuth();
     const reviewerUsername = currentUser.username;
   const { data: payment, loading, error, execute } = useApi<PaymentHistoryResponse>();
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -127,9 +127,8 @@ export const PaymentDetailPage: React.FC = () => {
     return <div className="text-gray-500">Payment not found</div>;
   }
 
-    const isComplianceOfficer = hasRole('compliance-officer');
-    const canApproveOrReject = isComplianceOfficer && payment.status === 'MANUAL_REVIEW_REQUIRED';
-    const canOverride = isComplianceOfficer && payment.status === 'BLOCKED';
+  const canApproveOrReject = hasPermission('payment.review') && payment.status === 'MANUAL_REVIEW_REQUIRED';
+  const canOverride = hasPermission('payment.override') && payment.status === 'BLOCKED';
 
   return (
     <div className="space-y-6">

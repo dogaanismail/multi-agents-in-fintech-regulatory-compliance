@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import {RoleGate} from '@/auth';
+import {PermissionGate} from '@/auth';
 import { customerService, accountService, paymentService } from '@/api';
 import { CustomerResponse, AccountResponse, PaymentHistoryResponse, Page } from '@/types';
 import { useApi } from '@/hooks/useApi';
@@ -59,20 +59,22 @@ export const CustomerDetailPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Customer Details</h1>
         <div className="flex items-center gap-3">
-            <RoleGate role="operator">
+          <PermissionGate permission="account.open">
           <Link
             to={`/accounts/open?customerId=${customerId}`}
             className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm"
           >
             🏦 Open Account
           </Link>
+          </PermissionGate>
+          <PermissionGate permission="payment.create">
           <Link
             to="/payments/create"
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
           >
             💳 New Payment
           </Link>
-            </RoleGate>
+          </PermissionGate>
           <Button variant="secondary" onClick={() => navigate('/customers')}>
             Back to Customers
           </Button>

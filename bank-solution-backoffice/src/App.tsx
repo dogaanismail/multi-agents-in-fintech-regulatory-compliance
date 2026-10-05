@@ -21,7 +21,7 @@ import { CreateAccountPage } from './pages/CreateAccountPage';
 import { CreatePaymentPage } from './pages/CreatePaymentPage';
 import { ExchangeRatePage } from './pages/ExchangeRatePage';
 import {LedgerPage} from './pages/LedgerPage';
-import {AccessDenied, AuthProvider, RoleGate} from './auth';
+import {AccessDenied, AuthProvider, PermissionGate} from './auth';
 
 function App() {
   return (
@@ -32,16 +32,18 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="payments" element={<PaymentListPage />} />
           <Route path="payments/create"
-                 element={<RoleGate role="operator" fallback={<AccessDenied/>}><CreatePaymentPage/></RoleGate>}/>
+                 element={<PermissionGate permission="payment.create"
+                                          fallback={<AccessDenied/>}><CreatePaymentPage/></PermissionGate>}/>
           <Route path="payments/:paymentId" element={<PaymentDetailPage />} />
             <Route path="payments/:paymentId/explanation" element={<PaymentExplanationPage/>}/>
           <Route path="customers" element={<CustomerListPage />} />
           <Route path="customers/create"
-                 element={<RoleGate role="operator" fallback={<AccessDenied/>}><CreateCustomerPage/></RoleGate>}/>
+                 element={<PermissionGate permission="customer.create" fallback={<AccessDenied/>}><CreateCustomerPage/></PermissionGate>}/>
           <Route path="customers/:customerId" element={<CustomerDetailPage />} />
           <Route path="accounts" element={<AccountListPage />} />
           <Route path="accounts/open"
-                 element={<RoleGate role="operator" fallback={<AccessDenied/>}><CreateAccountPage/></RoleGate>}/>
+                 element={<PermissionGate permission="account.open"
+                                          fallback={<AccessDenied/>}><CreateAccountPage/></PermissionGate>}/>
           <Route path="accounts/:accountId" element={<AccountDetailPage />} />
             <Route path="ledger" element={<LedgerPage/>}/>
           <Route path="configurations" element={<ConfigurationListPage />} />

@@ -530,11 +530,32 @@ export interface ReviewQueueResponse {
   items: ReviewQueueItem[];
 }
 
-export type BackofficeRole = 'viewer' | 'operator' | 'compliance-officer' | 'admin';
+export type Permission =
+    'payment.read' |
+    'customer.read' |
+    'account.read' |
+    'ledger.read' |
+    'risk.read' |
+    'marl.read' |
+    'configuration.read' |
+    'customer.create' |
+    'customer.update' |
+    'customer.delete' |
+    'account.open' |
+    'payment.create' |
+    'payment.review' |
+    'payment.override' |
+    'configuration.write' |
+    'marl.train' |
+    'ledger.post' |
+    'beneficiary.write' |
+    'payment-engine.command' |
+    'iam.manage';
 
 export interface CurrentUser {
   username: string;
   fullName: string | null;
   email: string | null;
-  roles: BackofficeRole[];
+  roles: string[];
+  permissions: Permission[];
 }

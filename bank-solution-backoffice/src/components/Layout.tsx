@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import {RoleGate, SignOutButton, useAuth} from '@/auth';
+import {PermissionGate, SignOutButton, useAuth} from '@/auth';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
@@ -83,7 +83,7 @@ export const Layout: React.FC = () => {
               </NavLink>
 
               {/* Create Dropdown */}
-                <RoleGate role="operator">
+              <PermissionGate permission={['customer.create', 'account.open', 'payment.create']}>
               <div ref={dropdownRef} className="relative">
                 <button
                   onClick={() => setCreateOpen((o) => !o)}
@@ -107,13 +107,16 @@ export const Layout: React.FC = () => {
 
                 {createOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                    <DropdownItem to="/customers/create" icon="👤" label="New Customer" />
-                    <DropdownItem to="/accounts/open" icon="🏦" label="Open Account" />
-                    <DropdownItem to="/payments/create" icon="💳" label="New Payment" />
+                    <PermissionGate permission="customer.create"><DropdownItem to="/customers/create" icon="👤"
+                                                                               label="New Customer"/></PermissionGate>
+                    <PermissionGate permission="account.open"><DropdownItem to="/accounts/open" icon="🏦"
+                                                                            label="Open Account"/></PermissionGate>
+                    <PermissionGate permission="payment.create"><DropdownItem to="/payments/create" icon="💳"
+                                                                              label="New Payment"/></PermissionGate>
                   </div>
                 )}
               </div>
-                </RoleGate>
+              </PermissionGate>
 
                 <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
                     <div className="text-right leading-tight">

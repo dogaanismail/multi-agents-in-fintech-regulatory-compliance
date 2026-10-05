@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {RoleGate} from '@/auth';
+import {PermissionGate} from '@/auth';
 import { Card } from '@/components/common';
 
 export const HomePage: React.FC = () => {
@@ -14,9 +14,10 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <RoleGate role="operator">
+      <PermissionGate permission={['customer.create', 'account.open', 'payment.create']}>
       <Card title="🚀 Quick Actions">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <PermissionGate permission="customer.create">
           <Link
             to="/customers/create"
             className="flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-green-300 bg-green-50 hover:bg-green-100 hover:border-green-400 transition-all group"
@@ -31,7 +32,9 @@ export const HomePage: React.FC = () => {
               <p className="text-xs text-green-700 mt-0.5">Register a new customer profile</p>
             </div>
           </Link>
+          </PermissionGate>
 
+          <PermissionGate permission="account.open">
           <Link
             to="/accounts/open"
             className="flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all group"
@@ -46,7 +49,9 @@ export const HomePage: React.FC = () => {
               <p className="text-xs text-purple-700 mt-0.5">Open a bank account for a customer</p>
             </div>
           </Link>
+          </PermissionGate>
 
+          <PermissionGate permission="payment.create">
           <Link
             to="/payments/create"
             className="flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all group"
@@ -61,9 +66,10 @@ export const HomePage: React.FC = () => {
               <p className="text-xs text-blue-700 mt-0.5">Submit a payment for MARL assessment</p>
             </div>
           </Link>
+          </PermissionGate>
         </div>
       </Card>
-      </RoleGate>
+      </PermissionGate>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Payments Card */}

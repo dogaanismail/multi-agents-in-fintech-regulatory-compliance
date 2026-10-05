@@ -608,7 +608,7 @@ services:
     container_name: keycloak
     command: [ "start-dev", "--import-realm" ]
     ports:
-      - "8180:8180"
+      - "127.0.0.1:8180:8180"
     environment:
       KC_HTTP_PORT: 8180
       KC_HOSTNAME: http://keycloak:8180
@@ -653,7 +653,7 @@ services:
       LEDGER_SERVICE_URL: http://ledger-service:5013
       BENEFICIARY_SERVICE_URL: http://beneficiary-service:5014
       MARL_ORCHESTRATOR_URL: http://marl-orchestrator:1004
-      KEYCLOAK_ISSUER_URI: http://keycloak:8180/realms/bank-solution
+      KEYCLOAK_ISSUER_URI: http://keycloak:8180/realms/bank-staff
       KEYCLOAK_CLIENT_SECRET: local-backoffice-secret
       CORS_ORIGINS: http://localhost:6060
       OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces

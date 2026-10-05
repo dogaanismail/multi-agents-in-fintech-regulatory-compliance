@@ -12,46 +12,47 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.banksolution.security.KeycloakRealmRolesAuthoritiesMapper.REALM_ROLES_CLAIM;
+import static org.banksolution.security.KeycloakAuthoritiesMapper.PERMISSIONS_CLAIM;
+import static org.banksolution.security.KeycloakAuthoritiesMapper.REALM_ROLES_CLAIM;
 
-class KeycloakRealmRolesAuthoritiesMapperTest {
+class KeycloakAuthoritiesMapperTest {
 
-    private final KeycloakRealmRolesAuthoritiesMapper keycloakRealmRolesAuthoritiesMapper =
-            new KeycloakRealmRolesAuthoritiesMapper();
+    private final KeycloakAuthoritiesMapper keycloakAuthoritiesMapper = new KeycloakAuthoritiesMapper();
 
     @Test
-    void shouldTurnEveryRealmRoleIntoASpringRole() {
+    void shouldGrantEveryPermissionAsIsAndEveryRealmRoleWithTheRolePrefix() {
         OidcUserAuthority oidcUserAuthority = createOidcUserAuthority(Map.of(
                 "sub", "officer",
-                REALM_ROLES_CLAIM, List.of("compliance-officer", "viewer")));
+                REALM_ROLES_CLAIM, List.of("compliance-officer"),
+                PERMISSIONS_CLAIM, List.of("payment.review", "payment.read")));
 
-        Set<GrantedAuthority> grantedAuthorities =
-                keycloakRealmRolesAuthoritiesMapper.mapAuthorities(List.of(oidcUserAuthority));
+        Set<GrantedAuthority> grantedAuthorities = keycloakAuthoritiesMapper.mapAuthorities(List.of(oidcUserAuthority));
 
         assertThat(grantedAuthorities).containsExactlyInAnyOrder(
-                new SimpleGrantedAuthority("ROLE_compliance-officer"),
-                new SimpleGrantedAuthority("ROLE_viewer"));
+                new SimpleGrantedAuthority("payment.review"),
+                new SimpleGrantedAuthority("payment.read"),
+                new SimpleGrantedAuthority("ROLE_compliance-officer"));
     }
 
     @Test
-    void shouldGrantNothingWhenTheIdTokenCarriesNoRealmRoles() {
+    void shouldGrantNothingWhenTheIdTokenCarriesNoRolesOrPermissions() {
         OidcUserAuthority oidcUserAuthority = createOidcUserAuthority(Map.of("sub", "nobody"));
 
-        assertThat(keycloakRealmRolesAuthoritiesMapper.mapAuthorities(List.of(oidcUserAuthority))).isEmpty();
+        assertThat(keycloakAuthoritiesMapper.mapAuthorities(List.of(oidcUserAuthority))).isEmpty();
     }
 
     @Test
     void shouldIgnoreAuthoritiesThatAreNotOidcUserAuthorities() {
         GrantedAuthority scopeAuthority = new SimpleGrantedAuthority("SCOPE_openid");
 
-        assertThat(keycloakRealmRolesAuthoritiesMapper.mapAuthorities(List.of(scopeAuthority))).isEmpty();
+        assertThat(keycloakAuthoritiesMapper.mapAuthorities(List.of(scopeAuthority))).isEmpty();
     }
 
     private static OidcUserAuthority createOidcUserAuthority(Map<String, Object> idTokenClaims) {
         OidcIdToken oidcIdToken = new OidcIdToken(
                 "id-token",
-                Instant.parse("2026-10-05T10:00:00Z"),
-                Instant.parse("2026-10-05T10:05:00Z"),
+                Instant.parse("2026-10-06T10:00:00Z"),
+                Instant.parse("2026-10-06T10:05:00Z"),
                 idTokenClaims);
         return new OidcUserAuthority(oidcIdToken);
     }

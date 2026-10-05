@@ -1,3 +1,3 @@
 export {AuthProvider, useAuth} from './AuthContext';
-export {RoleGate, AccessDenied} from './RoleGate';
+export {PermissionGate, AccessDenied} from './PermissionGate';
 export {SignOutButton} from './SignOutButton';

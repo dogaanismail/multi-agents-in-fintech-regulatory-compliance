@@ -1,7 +1,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import {Card, Badge, Button, LoadingSpinner} from '@/components/common';
 import {ledgerService} from '@/api/ledgerService';
-import {RoleGate} from '@/auth';
+import {PermissionGate} from '@/auth';
 import {
     Currency,
     LedgerInternalAccountResponse,
@@ -103,11 +103,11 @@ export const LedgerPage = () => {
                         here.
                     </p>
                 </div>
-                <RoleGate role="admin">
+                <PermissionGate permission="ledger.post">
                 <Button variant="primary" onClick={() => setShowCreateForm((v) => !v)}>
                     {showCreateForm ? 'Close' : '＋ Create Internal Account'}
                 </Button>
-                </RoleGate>
+                </PermissionGate>
             </div>
 
             {showCreateForm && (

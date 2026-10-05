@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {RoleGate} from '@/auth';
+import {PermissionGate} from '@/auth';
 import { customerService } from '@/api';
 import { CustomerResponse } from '@/types';
 import { useApi } from '@/hooks/useApi';
@@ -18,14 +18,14 @@ export const CustomerListPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
-          <RoleGate role="operator">
+          <PermissionGate permission="customer.create">
         <Link
           to="/customers/create"
           className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors shadow-sm"
         >
           <span>＋</span> Create Customer
         </Link>
-          </RoleGate>
+          </PermissionGate>
       </div>
 
       <Card>

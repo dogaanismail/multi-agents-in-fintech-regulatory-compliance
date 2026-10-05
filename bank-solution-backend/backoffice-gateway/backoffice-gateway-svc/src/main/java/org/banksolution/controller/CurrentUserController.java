@@ -3,7 +3,7 @@ package org.banksolution.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.banksolution.model.response.CurrentUserResponse;
-import org.banksolution.security.KeycloakRealmRolesAuthoritiesMapper;
+import org.banksolution.security.KeycloakAuthoritiesMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,16 +21,17 @@ import java.util.Optional;
 public class CurrentUserController {
 
     @GetMapping
-    @Operation(summary = "Get the signed-in user", description = "Returns the signed-in user and their realm roles")
+    @Operation(summary = "Get the signed-in user", description = "Returns the signed-in user, their roles and their effective permissions")
     public ResponseEntity<@NonNull CurrentUserResponse> getCurrentUser(@AuthenticationPrincipal OidcUser oidcUser) {
-        List<String> realmRoles = Optional
-                .ofNullable(oidcUser.getClaimAsStringList(KeycloakRealmRolesAuthoritiesMapper.REALM_ROLES_CLAIM))
-                .orElse(List.of());
-
         return ResponseEntity.ok(new CurrentUserResponse(
                 oidcUser.getPreferredUsername(),
                 oidcUser.getFullName(),
                 oidcUser.getEmail(),
-                realmRoles));
+                readClaim(oidcUser, KeycloakAuthoritiesMapper.REALM_ROLES_CLAIM),
+                readClaim(oidcUser, KeycloakAuthoritiesMapper.PERMISSIONS_CLAIM)));
+    }
+
+    private static List<String> readClaim(OidcUser oidcUser, String claimName) {
+        return Optional.ofNullable(oidcUser.getClaimAsStringList(claimName)).orElse(List.of());
     }
 }

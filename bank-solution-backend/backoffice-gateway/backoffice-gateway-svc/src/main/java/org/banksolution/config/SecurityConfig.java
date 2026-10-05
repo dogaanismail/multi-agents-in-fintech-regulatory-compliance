@@ -1,6 +1,6 @@
 package org.banksolution.config;
 
-import org.banksolution.security.KeycloakRealmRolesAuthoritiesMapper;
+import org.banksolution.security.KeycloakAuthoritiesMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,10 +22,25 @@ import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttrib
 import org.springframework.web.server.WebFilter;
 import reactor.core.publisher.Mono;
 
-import static org.banksolution.security.BackofficeRole.ADMIN;
-import static org.banksolution.security.BackofficeRole.COMPLIANCE_OFFICER;
-import static org.banksolution.security.BackofficeRole.OPERATOR;
-import static org.banksolution.security.BackofficeRole.VIEWER;
+import static org.banksolution.security.Permission.ACCOUNT_OPEN;
+import static org.banksolution.security.Permission.ACCOUNT_READ;
+import static org.banksolution.security.Permission.BENEFICIARY_WRITE;
+import static org.banksolution.security.Permission.CONFIGURATION_READ;
+import static org.banksolution.security.Permission.CONFIGURATION_WRITE;
+import static org.banksolution.security.Permission.CUSTOMER_CREATE;
+import static org.banksolution.security.Permission.CUSTOMER_DELETE;
+import static org.banksolution.security.Permission.CUSTOMER_READ;
+import static org.banksolution.security.Permission.CUSTOMER_UPDATE;
+import static org.banksolution.security.Permission.LEDGER_POST;
+import static org.banksolution.security.Permission.LEDGER_READ;
+import static org.banksolution.security.Permission.MARL_READ;
+import static org.banksolution.security.Permission.MARL_TRAIN;
+import static org.banksolution.security.Permission.PAYMENT_CREATE;
+import static org.banksolution.security.Permission.PAYMENT_ENGINE_COMMAND;
+import static org.banksolution.security.Permission.PAYMENT_OVERRIDE;
+import static org.banksolution.security.Permission.PAYMENT_READ;
+import static org.banksolution.security.Permission.PAYMENT_REVIEW;
+import static org.banksolution.security.Permission.RISK_READ;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -41,22 +56,42 @@ public class SecurityConfig {
         return http
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/actuator/health/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/me").authenticated()
+
+                        .pathMatchers(HttpMethod.GET, "/api/v1/payments/**", "/api/v1/payment-history/**",
+                                "/api/v1/payment-engine/**", "/api/v1/exchange-rates/**")
+                        .hasAuthority(PAYMENT_READ.authority())
+                        .pathMatchers(HttpMethod.GET, "/api/v1/customers/**", "/api/v1/customer-profiles/**",
+                                "/api/v1/beneficiaries/**")
+                        .hasAuthority(CUSTOMER_READ.authority())
+                        .pathMatchers(HttpMethod.GET, "/api/v1/accounts/**").hasAuthority(ACCOUNT_READ.authority())
+                        .pathMatchers(HttpMethod.GET, "/api/v1/ledger/**").hasAuthority(LEDGER_READ.authority())
+                        .pathMatchers(HttpMethod.GET, "/api/v1/risk/**", "/api/v1/networks/**")
+                        .hasAuthority(RISK_READ.authority())
+                        .pathMatchers(HttpMethod.GET, "/api/v1/marl/**").hasAuthority(MARL_READ.authority())
+                        .pathMatchers(HttpMethod.GET, "/api/v1/configurations/**")
+                        .hasAuthority(CONFIGURATION_READ.authority())
+
+                        .pathMatchers(HttpMethod.POST, "/api/v1/customers").hasAuthority(CUSTOMER_CREATE.authority())
+                        .pathMatchers(HttpMethod.PUT, "/api/v1/customers/*").hasAuthority(CUSTOMER_UPDATE.authority())
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/customers/*").hasAuthority(CUSTOMER_DELETE.authority())
+                        .pathMatchers(HttpMethod.POST, "/api/v1/accounts/open-account")
+                        .hasAuthority(ACCOUNT_OPEN.authority())
+                        .pathMatchers(HttpMethod.POST, "/api/v1/payments/request").hasAuthority(PAYMENT_CREATE.authority())
                         .pathMatchers(HttpMethod.POST,
                                 "/api/v1/payment-engine/payments/*/manual-review/approve",
-                                "/api/v1/payment-engine/payments/*/manual-review/reject",
-                                "/api/v1/payment-engine/payments/*/decision/override")
-                        .hasRole(COMPLIANCE_OFFICER.keycloakRoleName())
-                        .pathMatchers(HttpMethod.POST,
-                                "/api/v1/customers",
-                                "/api/v1/accounts/open-account",
-                                "/api/v1/payments/request")
-                        .hasRole(OPERATOR.keycloakRoleName())
-                        .pathMatchers(HttpMethod.PUT, "/api/v1/customers/*")
-                        .hasRole(OPERATOR.keycloakRoleName())
-                        .pathMatchers(HttpMethod.GET, "/api/v1/**")
-                        .hasRole(VIEWER.keycloakRoleName())
-                        .pathMatchers("/api/v1/**")
-                        .hasRole(ADMIN.keycloakRoleName())
+                                "/api/v1/payment-engine/payments/*/manual-review/reject")
+                        .hasAuthority(PAYMENT_REVIEW.authority())
+                        .pathMatchers(HttpMethod.POST, "/api/v1/payment-engine/payments/*/decision/override")
+                        .hasAuthority(PAYMENT_OVERRIDE.authority())
+                        .pathMatchers(HttpMethod.POST, "/api/v1/payment-engine/payments")
+                        .hasAuthority(PAYMENT_ENGINE_COMMAND.authority())
+                        .pathMatchers("/api/v1/configurations/**").hasAuthority(CONFIGURATION_WRITE.authority())
+                        .pathMatchers(HttpMethod.POST, "/api/v1/marl/training/**").hasAuthority(MARL_TRAIN.authority())
+                        .pathMatchers(HttpMethod.POST, "/api/v1/ledger/**").hasAuthority(LEDGER_POST.authority())
+                        .pathMatchers("/api/v1/beneficiaries/**").hasAuthority(BENEFICIARY_WRITE.authority())
+
+                        .pathMatchers("/api/v1/**").denyAll()
                         .anyExchange().authenticated())
                 .oauth2Login(login -> login
                         .authorizationRequestResolver(pkceAuthorizationRequestResolver(clientRegistrationRepository)))
@@ -71,8 +106,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public GrantedAuthoritiesMapper keycloakRealmRolesAuthoritiesMapper() {
-        return new KeycloakRealmRolesAuthoritiesMapper();
+    public GrantedAuthoritiesMapper keycloakAuthoritiesMapper() {
+        return new KeycloakAuthoritiesMapper();
     }
 
     @Bean

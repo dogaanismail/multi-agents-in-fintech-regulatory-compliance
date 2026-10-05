@@ -1,0 +1,363 @@
+{
+  "realm": "bank-staff",
+  "displayName": "Bank Solution Staff",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "loginWithEmailAllowed": true,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "viewer",
+        "description": "Reads payments, customers, accounts, risk assessments and the MARL dashboards",
+        "composite": true,
+        "composites": {
+          "client": {
+            "bank-platform": [
+              "payment.read",
+              "customer.read",
+              "account.read",
+              "ledger.read",
+              "risk.read",
+              "marl.read",
+              "configuration.read"
+            ]
+          }
+        }
+      },
+      {
+        "name": "operator",
+        "description": "Creates customers, accounts and payments",
+        "composite": true,
+        "composites": {
+          "client": {
+            "bank-platform": [
+              "payment.read",
+              "customer.read",
+              "account.read",
+              "ledger.read",
+              "risk.read",
+              "marl.read",
+              "configuration.read",
+              "customer.create",
+              "customer.update",
+              "account.open",
+              "payment.create"
+            ]
+          }
+        }
+      },
+      {
+        "name": "compliance-officer",
+        "description": "Approves and rejects payments under manual review and overrides final decisions",
+        "composite": true,
+        "composites": {
+          "client": {
+            "bank-platform": [
+              "payment.read",
+              "customer.read",
+              "account.read",
+              "ledger.read",
+              "risk.read",
+              "marl.read",
+              "configuration.read",
+              "payment.review",
+              "payment.override"
+            ]
+          }
+        }
+      },
+      {
+        "name": "admin",
+        "description": "Changes platform configuration, triggers MARL training and posts to the ledger",
+        "composite": true,
+        "composites": {
+          "client": {
+            "bank-platform": [
+              "payment.read",
+              "customer.read",
+              "account.read",
+              "ledger.read",
+              "risk.read",
+              "marl.read",
+              "configuration.read",
+              "customer.create",
+              "customer.update",
+              "customer.delete",
+              "account.open",
+              "payment.create",
+              "payment.review",
+              "payment.override",
+              "configuration.write",
+              "marl.train",
+              "ledger.post",
+              "beneficiary.write",
+              "payment-engine.command"
+            ]
+          }
+        }
+      },
+      {
+        "name": "super-admin",
+        "description": "Manages backoffice users, roles and role permissions; holds no business permissions",
+        "composite": true,
+        "composites": {
+          "client": {
+            "bank-platform": [
+              "iam.manage"
+            ]
+          }
+        }
+      }
+    ],
+    "client": {
+      "bank-platform": [
+        {
+          "name": "payment.read",
+          "description": "Read payments, their history, explanations and exchange rates"
+        },
+        {
+          "name": "customer.read",
+          "description": "Read customers, customer risk profiles and beneficiaries"
+        },
+        {
+          "name": "account.read",
+          "description": "Read accounts and wallet balances"
+        },
+        {
+          "name": "ledger.read",
+          "description": "Read ledger accounts, postings and the trial balance"
+        },
+        {
+          "name": "risk.read",
+          "description": "Read risk assessments and the transaction network"
+        },
+        {
+          "name": "marl.read",
+          "description": "Read MARL decisions, the review queue, training status and the replay buffer"
+        },
+        {
+          "name": "configuration.read",
+          "description": "Read platform configuration"
+        },
+        {
+          "name": "customer.create",
+          "description": "Register customers"
+        },
+        {
+          "name": "customer.update",
+          "description": "Update customer details"
+        },
+        {
+          "name": "customer.delete",
+          "description": "Delete customers"
+        },
+        {
+          "name": "account.open",
+          "description": "Open accounts for customers"
+        },
+        {
+          "name": "payment.create",
+          "description": "Submit payments"
+        },
+        {
+          "name": "payment.review",
+          "description": "Approve or reject payments held for manual review"
+        },
+        {
+          "name": "payment.override",
+          "description": "Override a final payment decision"
+        },
+        {
+          "name": "configuration.write",
+          "description": "Create, change and delete platform configuration"
+        },
+        {
+          "name": "marl.train",
+          "description": "Trigger a MARL training cycle"
+        },
+        {
+          "name": "ledger.post",
+          "description": "Create internal ledger accounts and post ledger instructions"
+        },
+        {
+          "name": "beneficiary.write",
+          "description": "Create, change and delete beneficiaries"
+        },
+        {
+          "name": "payment-engine.command",
+          "description": "Send payment commands straight to the payment engine"
+        },
+        {
+          "name": "iam.manage",
+          "description": "Manage backoffice users, roles and the permissions of each role"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "backoffice",
+      "name": "Backoffice",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BACKOFFICE_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "${BACKOFFICE_URL}/login/oauth2/code/keycloak",
+        "${BACKOFFICE_DEV_SERVER_URL}/login/oauth2/code/keycloak"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "${BACKOFFICE_URL}/##${BACKOFFICE_DEV_SERVER_URL}/"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "bank-platform",
+      "name": "Bank Platform permissions",
+      "description": "Holds the permission catalog as client roles; no one signs in with this client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "viewer",
+      "email": "viewer@bank-solution.local",
+      "emailVerified": true,
+      "firstName": "Vera",
+      "lastName": "Viewer",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "viewer"
+      ]
+    },
+    {
+      "username": "operator",
+      "email": "operator@bank-solution.local",
+      "emailVerified": true,
+      "firstName": "Omar",
+      "lastName": "Operator",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "operator"
+      ]
+    },
+    {
+      "username": "officer",
+      "email": "officer@bank-solution.local",
+      "emailVerified": true,
+      "firstName": "Clara",
+      "lastName": "Compliance",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "compliance-officer"
+      ]
+    },
+    {
+      "username": "admin",
+      "email": "admin@bank-solution.local",
+      "emailVerified": true,
+      "firstName": "Ada",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ]
+    },
+    {
+      "username": "superadmin",
+      "email": "superadmin@bank-solution.local",
+      "emailVerified": true,
+      "firstName": "Sam",
+      "lastName": "Superadmin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "super-admin"
+      ]
+    }
+  ]
+}

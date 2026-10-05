@@ -1,16 +1,17 @@
 import React from 'react';
-import {BackofficeRole} from '@/types';
+import {Permission} from '@/types';
 import {useAuth} from './AuthContext';
 
-interface RoleGateProps {
-    role: BackofficeRole;
+interface PermissionGateProps {
+    permission: Permission | Permission[];
     fallback?: React.ReactNode;
     children: React.ReactNode;
 }
 
-export const RoleGate: React.FC<RoleGateProps> = ({role, fallback = null, children}) => {
-    const {hasRole} = useAuth();
-    return <>{hasRole(role) ? children : fallback}</>;
+export const PermissionGate: React.FC<PermissionGateProps> = ({permission, fallback = null, children}) => {
+    const {hasPermission} = useAuth();
+    const requiredPermissions = Array.isArray(permission) ? permission : [permission];
+    return <>{requiredPermissions.some(hasPermission) ? children : fallback}</>;
 };
 
 export const AccessDenied: React.FC = () => (

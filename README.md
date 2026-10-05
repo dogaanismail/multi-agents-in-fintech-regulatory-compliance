@@ -333,19 +333,21 @@ The React UI will be available at `http://localhost:3000` (or `http://localhost:
 
 ### Signing in
 
-The backoffice signs in through Keycloak; the gateway keeps the session, so tokens never reach the browser. The realm,
-roles and local demo users are in `infrastructure/keycloak/bank-solution-realm.json`. Every demo user's password is
-`default`.
+The backoffice signs in through Keycloak's `bank-staff` realm; the gateway keeps the session, so tokens never reach the
+browser. Code checks **permissions** (`payment.review`, `customer.create`, `configuration.write`, …); a **role** is a
+named set of permissions, defined in `infrastructure/keycloak/bank-staff-realm.json` and editable at runtime in Keycloak
+without a deploy. Every demo user's password is `default`.
 
-| User       | Role                 | Can                                                                      |
-|------------|----------------------|--------------------------------------------------------------------------|
-| `viewer`   | `viewer`             | Read payments, customers, accounts, risk assessments and MARL dashboards |
-| `operator` | `operator`           | Everything `viewer` can, plus create customers, accounts and payments    |
-| `officer`  | `compliance-officer` | Everything `viewer` can, plus approve, reject and override payments      |
-| `admin`    | `admin`              | Everything, including configuration, MARL training and ledger postings   |
+| User         | Role                 | Permissions                                                                    |
+|--------------|----------------------|--------------------------------------------------------------------------------|
+| `viewer`     | `viewer`             | Every `*.read`                                                                 |
+| `operator`   | `operator`           | Reads, plus create customers, update customers, open accounts, submit payments |
+| `officer`    | `compliance-officer` | Reads, plus review (approve/reject) and override payments                      |
+| `admin`      | `admin`              | Everything except identity management                                          |
+| `superadmin` | `super-admin`        | Only `iam.manage`: manages users and roles, holds no business permissions      |
 
-The gateway enforces these rules (`SecurityConfig` in `backoffice-gateway-svc`); a write that is not explicitly granted
-needs `admin`. The Keycloak admin console is at http://keycloak:8180 (`admin` / `default`).
+The gateway enforces the permissions (`SecurityConfig` in `backoffice-gateway-svc`); an endpoint that is not listed is
+denied. The Keycloak admin console is at http://keycloak:8180 (`admin` / `default`), bound to localhost only.
 
 ### Service URLs
 

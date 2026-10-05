@@ -1,12 +1,12 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {authService} from '@/api';
-import {BackofficeRole, CurrentUser} from '@/types';
+import {CurrentUser, Permission} from '@/types';
 import {LoadingSpinner} from '@/components/common';
 import {SignOutButton} from './SignOutButton';
 
 interface AuthContextValue {
     currentUser: CurrentUser;
-    hasRole: (role: BackofficeRole) => boolean;
+  hasPermission: (permission: Permission) => boolean;
 }
 
 type SessionProblem = 'no-backoffice-role' | 'gateway-unavailable';
@@ -43,9 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
         );
     }
 
-    const hasRole = (role: BackofficeRole): boolean => currentUser.roles.includes(role);
+  const hasPermission = (permission: Permission): boolean => currentUser.permissions.includes(permission);
 
-    return <AuthContext.Provider value={{currentUser, hasRole}}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{currentUser, hasPermission}}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextValue => {

@@ -6,5 +6,6 @@ public record CurrentUserResponse(
         String username,
         String fullName,
         String email,
-        List<String> roles) {
+        List<String> roles,
+        List<String> permissions) {
 }

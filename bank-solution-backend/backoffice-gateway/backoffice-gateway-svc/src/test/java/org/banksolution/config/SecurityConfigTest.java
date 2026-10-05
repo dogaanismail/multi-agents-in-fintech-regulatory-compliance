@@ -1,7 +1,6 @@
 package org.banksolution.config;
 
 import org.banksolution.common.BaseGatewaySecurityTest;
-import org.banksolution.security.BackofficeRole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -12,11 +11,7 @@ import org.springframework.http.HttpStatus;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.banksolution.fixtures.BackofficeUserFixtures.createBackofficeLogin;
-import static org.banksolution.security.BackofficeRole.ADMIN;
-import static org.banksolution.security.BackofficeRole.COMPLIANCE_OFFICER;
-import static org.banksolution.security.BackofficeRole.OPERATOR;
-import static org.banksolution.security.BackofficeRole.VIEWER;
+import static org.banksolution.fixtures.BackofficeUserFixtures.createStaffLogin;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
@@ -25,6 +20,12 @@ import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 
 class SecurityConfigTest extends BaseGatewaySecurityTest {
+
+    private static final String VIEWER = "viewer";
+    private static final String OPERATOR = "operator";
+    private static final String COMPLIANCE_OFFICER = "compliance-officer";
+    private static final String ADMIN = "admin";
+    private static final String SUPER_ADMIN = "super-admin";
 
     private static final String PAYMENTS = "/api/v1/payments";
     private static final String MANUAL_REVIEW_APPROVE = "/api/v1/payment-engine/payments/p-1/manual-review/approve";
@@ -36,6 +37,7 @@ class SecurityConfigTest extends BaseGatewaySecurityTest {
     private static final String MARL_TRAINING_TRIGGER = "/api/v1/marl/training/trigger";
     private static final String LEDGER_POSTINGS = "/api/v1/ledger/postings";
     private static final String PAYMENT_ENGINE_INITIATE = "/api/v1/payment-engine/payments";
+    private static final String UNLISTED_WRITE = "/api/v1/payment-history/rebuild";
 
     static Stream<Arguments> permissionMatrix() {
         return Stream.of(
@@ -70,19 +72,24 @@ class SecurityConfigTest extends BaseGatewaySecurityTest {
                 arguments(OPERATOR, POST, LEDGER_POSTINGS, false),
                 arguments(ADMIN, POST, LEDGER_POSTINGS, true),
                 arguments(OPERATOR, POST, PAYMENT_ENGINE_INITIATE, false),
-                arguments(ADMIN, POST, PAYMENT_ENGINE_INITIATE, true));
+                arguments(ADMIN, POST, PAYMENT_ENGINE_INITIATE, true),
+
+                arguments(SUPER_ADMIN, GET, PAYMENTS, false),
+                arguments(SUPER_ADMIN, POST, MANUAL_REVIEW_APPROVE, false),
+                arguments(SUPER_ADMIN, POST, CONFIGURATIONS, false),
+                arguments(ADMIN, POST, UNLISTED_WRITE, false));
     }
 
     @ParameterizedTest(name = "{0} {1} {2} allowed={3}")
     @MethodSource("permissionMatrix")
     void shouldGrantEachRoleExactlyItsPermissions(
-            BackofficeRole assignedRole,
+            String realmRole,
             HttpMethod method,
             String path,
             boolean allowed) {
 
         HttpStatus status = HttpStatus.valueOf(webTestClient
-                .mutateWith(createBackofficeLogin(assignedRole))
+                .mutateWith(createStaffLogin(realmRole))
                 .mutateWith(csrf())
                 .method(method)
                 .uri(path)
@@ -107,7 +114,7 @@ class SecurityConfigTest extends BaseGatewaySecurityTest {
 
     @Test
     void shouldRejectStateChangingRequestsWithoutACsrfToken() {
-        webTestClient.mutateWith(createBackofficeLogin(COMPLIANCE_OFFICER))
+        webTestClient.mutateWith(createStaffLogin(COMPLIANCE_OFFICER))
                 .post().uri(MANUAL_REVIEW_APPROVE)
                 .exchange()
                 .expectStatus().isForbidden();
@@ -115,11 +122,19 @@ class SecurityConfigTest extends BaseGatewaySecurityTest {
 
     @Test
     void shouldIssueAReadableCsrfCookieForTheBrowser() {
-        webTestClient.mutateWith(createBackofficeLogin(VIEWER))
+        webTestClient.mutateWith(createStaffLogin(VIEWER))
                 .get().uri("/api/v1/me")
                 .exchange()
                 .expectCookie().exists("XSRF-TOKEN")
                 .expectCookie().httpOnly("XSRF-TOKEN", false);
+    }
+
+    @Test
+    void shouldLetAUserWithoutBusinessPermissionsReadTheirOwnProfile() {
+        webTestClient.mutateWith(createStaffLogin(SUPER_ADMIN))
+                .get().uri("/api/v1/me")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
@@ -135,7 +150,7 @@ class SecurityConfigTest extends BaseGatewaySecurityTest {
                 .exchange()
                 .expectStatus().isFound()
                 .expectHeader().value("Location", location -> assertThat(location)
-                        .startsWith("http://keycloak:8180/realms/bank-solution/protocol/openid-connect/auth")
+                        .startsWith("http://keycloak:8180/realms/bank-staff/protocol/openid-connect/auth")
                         .contains("code_challenge=")
                         .contains("code_challenge_method=S256"));
     }

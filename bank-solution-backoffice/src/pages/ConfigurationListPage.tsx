@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {RoleGate} from '@/auth';
+import {PermissionGate} from '@/auth';
 import { configurationService } from '@/api';
 import { ConfigurationResponse, ConfigCategory, CreateConfigRequest, ConfigType } from '@/types';
 import { useApi } from '@/hooks/useApi';
@@ -107,9 +107,9 @@ export const ConfigurationListPage: React.FC = () => {
             Manage MARL reward and offline retraining parameters
           </p>
         </div>
-          <RoleGate role="admin">
+        <PermissionGate permission="configuration.write">
         <Button onClick={() => setShowCreateModal(true)}>+ New Configuration</Button>
-          </RoleGate>
+        </PermissionGate>
       </div>
 
       <div className="flex space-x-2">
@@ -206,14 +206,14 @@ export const ConfigurationListPage: React.FC = () => {
                       >
                         Edit
                       </Link>
-                        <RoleGate role="admin">
+                      <PermissionGate permission="configuration.write">
                       <button
                         onClick={() => handleDelete(config.id, config.configKey)}
                         className="text-red-600 hover:text-red-800 font-medium"
                       >
                         Delete
                       </button>
-                        </RoleGate>
+                      </PermissionGate>
                     </td>
                   </tr>
                 ))}

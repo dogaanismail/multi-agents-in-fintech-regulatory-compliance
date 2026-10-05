@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import {RoleGate} from '@/auth';
+import {PermissionGate} from '@/auth';
 import { marlTrainingService } from '@/api/marlTrainingService';
 import {
   TrainingStatusResponse,
@@ -278,7 +278,7 @@ export const MarlTrainingPage: React.FC = () => {
                 table below.
               </p>
               <div className="flex items-center gap-4">
-                  <RoleGate role="admin">
+                <PermissionGate permission="marl.train">
                 <button
                   onClick={handleTrigger}
                   disabled={triggerLoading || status?.is_training}
@@ -290,7 +290,7 @@ export const MarlTrainingPage: React.FC = () => {
                 >
                   {triggerLoading ? '⏳ Triggering…' : '▶ Trigger Training Now'}
                 </button>
-                  </RoleGate>
+                </PermissionGate>
                 {status?.is_training && (
                   <span className="text-sm text-blue-600">
                     Training is already running…
