@@ -12,6 +12,7 @@ public final class Permissions {
     public static final String CUSTOMER_CREATE = "customer.create";
     public static final String CUSTOMER_UPDATE = "customer.update";
     public static final String CUSTOMER_DELETE = "customer.delete";
+    public static final String CUSTOMER_ONBOARD = "customer.onboard";
     public static final String ACCOUNT_OPEN = "account.open";
     public static final String PAYMENT_CREATE = "payment.create";
     public static final String PAYMENT_REVIEW = "payment.review";

@@ -12,6 +12,7 @@ public enum Permission {
     CUSTOMER_CREATE("customer.create"),
     CUSTOMER_UPDATE("customer.update"),
     CUSTOMER_DELETE("customer.delete"),
+    CUSTOMER_ONBOARD("customer.onboard"),
     ACCOUNT_OPEN("account.open"),
     PAYMENT_CREATE("payment.create"),
     PAYMENT_REVIEW("payment.review"),

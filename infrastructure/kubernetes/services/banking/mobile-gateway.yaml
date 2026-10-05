@@ -1,0 +1,25 @@
+serviceType: java-microservice
+
+image:
+  repository: mobile-gateway-svc
+
+containerPort: 3040
+
+env:
+  SERVER_PORT: 3040
+  CUSTOMER_SERVICE_URL: http://customer-service:5001
+  ACCOUNT_SERVICE_URL: http://account-service:5002
+  PAYMENT_SERVICE_URL: http://payment-service:5003
+  PAYMENT_HISTORY_SERVICE_URL: http://payment-history-service:5005
+
+secretEnv:
+  - name: SERVICE_CLIENT_SECRET
+    secretName: mobile-gateway-keycloak-client
+    key: client-secret
+
+networkPolicy:
+  egress:
+    - customer-service
+    - account-service
+    - payment-service
+    - payment-history-service

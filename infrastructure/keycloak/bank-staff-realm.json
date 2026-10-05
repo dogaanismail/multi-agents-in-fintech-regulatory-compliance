@@ -158,6 +158,10 @@
           "description": "Delete customers"
         },
         {
+          "name": "customer.onboard",
+          "description": "Link a new customer to the app login that owns it; held only by mobile-gateway"
+        },
+        {
           "name": "account.open",
           "description": "Open accounts for customers"
         },

@@ -48,6 +48,9 @@ public class CustomerEntity extends BaseEntity {
     @Column(name = "nationality", nullable = false, length = 2)
     private String nationality;
 
+    @Column(name = "identity_subject", unique = true)
+    private String identitySubject;
+
     @Column(name = "type", nullable = false, length = 50)
     @Builder.Default
     @Enumerated(EnumType.STRING)

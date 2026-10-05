@@ -541,6 +541,7 @@ export type Permission =
     'customer.create' |
     'customer.update' |
     'customer.delete' |
+    'customer.onboard' |
     'account.open' |
     'payment.create' |
     'payment.review' |

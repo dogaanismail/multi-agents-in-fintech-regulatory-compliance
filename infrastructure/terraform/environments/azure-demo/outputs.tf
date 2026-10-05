@@ -29,3 +29,9 @@ output "demo_user_password" {
   value       = module.platform.demo_user_password
   sensitive   = true
 }
+
+output "demo_customer_password" {
+  description = "Password of the demo mobile customer; print with terraform output -raw."
+  value       = module.platform.demo_customer_password
+  sensitive   = true
+}

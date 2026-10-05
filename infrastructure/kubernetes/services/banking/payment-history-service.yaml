@@ -28,3 +28,4 @@ migration:
 networkPolicy:
   ingress:
     - backoffice-gateway
+    - mobile-gateway

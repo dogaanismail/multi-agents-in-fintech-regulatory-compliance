@@ -24,3 +24,9 @@ output "demo_user_password" {
     value       = random_password.keycloak_demo_users.result
     sensitive   = true
 }
+
+output "demo_customer_password" {
+    description = "Password of the demo mobile customer (customer@bank-solution.local)."
+    value       = random_password.keycloak_demo_customer.result
+    sensitive   = true
+}

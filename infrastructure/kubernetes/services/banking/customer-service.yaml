@@ -24,3 +24,4 @@ networkPolicy:
     - account-service
     - beneficiary-service
     - backoffice-gateway
+    - mobile-gateway

@@ -42,6 +42,26 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerResponse);
     }
 
+    @Operation(summary = "Onboard the customer of an app login",
+            description = "Creates a customer linked to a bank-customers login; only mobile-gateway may call it")
+    @PostMapping("/identities/{identitySubject}")
+    @RequiresPermission(Permissions.CUSTOMER_ONBOARD)
+    public ResponseEntity<@NonNull CustomerResponse> onboardCustomer(
+            @PathVariable String identitySubject,
+            @Valid @RequestBody CustomerCreateRequest customerCreateRequest) {
+
+        log.info("POST /api/v1/customers/identities/{} - Onboarding customer", identitySubject);
+        CustomerResponse customerResponse = customerService.onboardCustomer(identitySubject, customerCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerResponse);
+    }
+
+    @Operation(summary = "Get the customer of an app login")
+    @GetMapping("/identities/{identitySubject}")
+    @RequiresPermission(Permissions.CUSTOMER_READ)
+    public ResponseEntity<@NonNull CustomerResponse> getCustomerByIdentitySubject(@PathVariable String identitySubject) {
+        return ResponseEntity.ok(customerService.getCustomerByIdentitySubject(identitySubject));
+    }
+
     @Operation(summary = "Get a customer by id")
     @GetMapping("/{id}")
     @RequiresPermission(Permissions.CUSTOMER_READ)

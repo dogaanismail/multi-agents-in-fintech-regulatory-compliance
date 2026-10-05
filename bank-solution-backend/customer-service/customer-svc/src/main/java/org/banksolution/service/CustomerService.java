@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banksolution.entity.CustomerEntity;
 import org.banksolution.exception.CustomerAlreadyExistsException;
+import org.banksolution.exception.CustomerAlreadyOnboardedException;
 import org.banksolution.exception.CustomerNotFoundException;
 import org.banksolution.mapper.CustomerMapper;
 import org.banksolution.model.request.CustomerCreateRequest;
@@ -43,6 +44,37 @@ public class CustomerService {
 
         log.info("Customer created successfully with id: {}", savedCustomerEntity.getId());
         return CustomerMapper.toCustomerResponse(savedCustomerEntity);
+    }
+
+    @Transactional
+    public CustomerResponse onboardCustomer(
+            String identitySubject,
+            CustomerCreateRequest customerCreateRequest) {
+
+        log.info("Onboarding customer for identity: {}", identitySubject);
+
+        if (customerRepository.findCustomerEntityByIdentitySubject(identitySubject).isPresent()) {
+            throw new CustomerAlreadyOnboardedException(identitySubject);
+        }
+
+        if (customerRepository.existsCustomerEntityByEmail(customerCreateRequest.getEmail())) {
+            throw new CustomerAlreadyExistsException(customerCreateRequest.getEmail());
+        }
+
+        CustomerEntity customerEntity = CustomerMapper.toCustomerEntity(customerCreateRequest);
+        customerEntity.setIdentitySubject(identitySubject);
+        CustomerEntity savedCustomerEntity = customerRepository.save(customerEntity);
+
+        log.info("Customer {} onboarded for identity: {}", savedCustomerEntity.getId(), identitySubject);
+        return CustomerMapper.toCustomerResponse(savedCustomerEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerResponse getCustomerByIdentitySubject(String identitySubject) {
+        CustomerEntity customerEntity = customerRepository.findCustomerEntityByIdentitySubject(identitySubject)
+                .orElseThrow(() -> CustomerNotFoundException.forIdentitySubject(identitySubject));
+
+        return CustomerMapper.toCustomerResponse(customerEntity);
     }
 
     @Transactional(readOnly = true)

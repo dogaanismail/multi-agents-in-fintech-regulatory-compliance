@@ -29,6 +29,7 @@ serviceClients:
   payment-service: banking
   beneficiary-service: banking
   marl-orchestrator: ai
+  mobile-gateway: banking
 
 createSecrets: false
 secrets: { }

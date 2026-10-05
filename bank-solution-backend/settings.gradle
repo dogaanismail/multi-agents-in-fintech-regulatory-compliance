@@ -86,6 +86,10 @@ include 'payment-service:payment-svc-db-migration-changelog'
 include 'backoffice-gateway'
 include 'backoffice-gateway:backoffice-gateway-svc'
 
+// mobile gateway: customer-facing API for the mobile app (bank-customers realm)
+include 'mobile-gateway'
+include 'mobile-gateway:mobile-gateway-svc'
+
 // configuration service modules
 include 'configuration-service'
 include 'configuration-service:configuration-svc'

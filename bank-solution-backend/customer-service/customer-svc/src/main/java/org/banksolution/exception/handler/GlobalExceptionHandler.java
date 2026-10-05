@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.banksolution.exception.CustomError;
 import org.banksolution.exception.CustomerAlreadyExistsException;
+import org.banksolution.exception.CustomerAlreadyOnboardedException;
 import org.banksolution.exception.CustomerNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -135,8 +136,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(customError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(CustomerAlreadyExistsException.class)
-    protected ResponseEntity<@NonNull CustomError> handleCustomerAlreadyExistException(CustomerAlreadyExistsException ex) {
+    @ExceptionHandler({CustomerAlreadyExistsException.class, CustomerAlreadyOnboardedException.class})
+    protected ResponseEntity<@NonNull CustomError> handleCustomerAlreadyExistException(RuntimeException ex) {
 
         CustomError customError = CustomError.builder()
                 .httpStatus(HttpStatus.CONFLICT)

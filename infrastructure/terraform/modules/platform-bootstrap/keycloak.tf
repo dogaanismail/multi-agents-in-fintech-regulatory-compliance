@@ -20,6 +20,14 @@ resource "random_password" "keycloak_demo_users" {
   special = false
 }
 
+resource "random_password" "keycloak_demo_customer" {
+  length      = 20
+  special     = false
+  min_upper   = 1
+  min_lower   = 1
+  min_numeric = 1
+}
+
 resource "random_password" "keycloak_backoffice_client" {
   length  = 40
   special = false
@@ -54,8 +62,9 @@ resource "kubernetes_secret_v1" "keycloak_realm_secrets" {
 
   data = merge(
     {
-      BACKOFFICE_CLIENT_SECRET    = random_password.keycloak_backoffice_client.result
-      KEYCLOAK_DEMO_USER_PASSWORD = random_password.keycloak_demo_users.result
+      BACKOFFICE_CLIENT_SECRET        = random_password.keycloak_backoffice_client.result
+      KEYCLOAK_DEMO_USER_PASSWORD     = random_password.keycloak_demo_users.result
+      KEYCLOAK_DEMO_CUSTOMER_PASSWORD = random_password.keycloak_demo_customer.result
     },
     {
       for service, _ in local.keycloak_service_clients :

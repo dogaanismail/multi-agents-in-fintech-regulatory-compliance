@@ -32,6 +32,7 @@ networkPolicy:
     - payment-service
     - risk-engine-service
     - backoffice-gateway
+    - mobile-gateway
   egress:
     - customer-service
     - ledger-service

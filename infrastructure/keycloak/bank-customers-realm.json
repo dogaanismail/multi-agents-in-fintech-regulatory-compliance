@@ -1,0 +1,75 @@
+{
+  "realm": "bank-customers",
+  "displayName": "Bank Solution",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "verifyEmail": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "passwordPolicy": "length(10) and digits(1) and upperCase(1) and lowerCase(1) and notUsername and notEmail",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 43200,
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 0,
+  "clients": [
+    {
+      "clientId": "mobile-app",
+      "name": "Mobile banking app",
+      "description": "Native app; public client, authorization code with PKCE (RFC 8252), no client secret",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "com.banksolution.mobile:/oauth2/callback",
+        "http://127.0.0.1:8765/callback"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "com.banksolution.mobile:/oauth2/logout"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience mobile-gateway",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "mobile-gateway",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "customer@bank-solution.local",
+      "email": "customer@bank-solution.local",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Customer",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_DEMO_CUSTOMER_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

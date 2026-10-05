@@ -2,6 +2,7 @@ createSecrets: true
 secrets:
   adminPassword: default
   demoUserPassword: default
+  demoCustomerPassword: Customer-Pass1
   backofficeClientSecret: local-backoffice-secret
   serviceClientSecrets:
     account-service: local-account-service-secret
@@ -9,3 +10,4 @@ secrets:
     payment-service: local-payment-service-secret
     beneficiary-service: local-beneficiary-service-secret
     marl-orchestrator: local-marl-orchestrator-secret
+    mobile-gateway: local-mobile-gateway-secret

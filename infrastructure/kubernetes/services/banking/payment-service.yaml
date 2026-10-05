@@ -29,6 +29,7 @@ migration:
 networkPolicy:
   ingress:
     - backoffice-gateway
+    - mobile-gateway
   egress:
     - account-service
     - internet-https

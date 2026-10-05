@@ -50,6 +50,10 @@
           "description": "Delete customers"
         },
         {
+          "name": "customer.onboard",
+          "description": "Link a new customer to the app login that owns it; held only by mobile-gateway"
+        },
+        {
           "name": "account.open",
           "description": "Open accounts for customers"
         },
@@ -376,6 +380,80 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "mobile-gateway",
+      "name": "mobile-gateway",
+      "description": "Machine identity of mobile-gateway for calls to customer-service, account-service, payment-service, payment-history-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${MOBILE_GATEWAY_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "bank-platform",
+            "claim.name": "permissions",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience customer-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "customer-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience account-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "account-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience payment-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "payment-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience payment-history-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "payment-history-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "users": [
@@ -429,6 +507,21 @@
       "clientRoles": {
         "bank-platform": [
           "configuration.read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-mobile-gateway",
+      "enabled": true,
+      "serviceAccountClientId": "mobile-gateway",
+      "clientRoles": {
+        "bank-platform": [
+          "customer.onboard",
+          "customer.read",
+          "account.read",
+          "account.open",
+          "payment.create",
+          "payment.read"
         ]
       }
     }

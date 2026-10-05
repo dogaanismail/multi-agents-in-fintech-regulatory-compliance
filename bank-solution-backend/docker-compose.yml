@@ -3,6 +3,7 @@ services:
   bank-solution-postgres:
     image: postgres:16.2
     container_name: bank-solution-postgres
+    command: [ "postgres", "-c", "max_connections=200" ]
     environment:
       POSTGRES_USER: default
       POSTGRES_PASSWORD: default
@@ -628,6 +629,8 @@ services:
       PAYMENT_SERVICE_CLIENT_SECRET: local-payment-service-secret
       BENEFICIARY_SERVICE_CLIENT_SECRET: local-beneficiary-service-secret
       MARL_ORCHESTRATOR_CLIENT_SECRET: local-marl-orchestrator-secret
+      MOBILE_GATEWAY_CLIENT_SECRET: local-mobile-gateway-secret
+      KEYCLOAK_DEMO_CUSTOMER_PASSWORD: Customer-Pass1
     volumes:
       - ../infrastructure/keycloak:/opt/keycloak/data/import:ro
     networks:
@@ -639,6 +642,36 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+    restart: unless-stopped
+
+  # Customer-facing API for the mobile app: validates bank-customers tokens, calls services as mobile-gateway
+  mobile-gateway:
+    image: mobile-gateway-svc:latest
+    container_name: mobile-gateway-app
+    build:
+      context: ./mobile-gateway/mobile-gateway-svc
+      dockerfile: Dockerfile
+    ports:
+      - "3040:3040"
+    environment:
+      SERVICE_CLIENT_SECRET: local-mobile-gateway-secret
+      CUSTOMER_SERVICE_URL: http://customer-service:5001
+      ACCOUNT_SERVICE_URL: http://account-service:5002
+      PAYMENT_SERVICE_URL: http://payment-service:5003
+      PAYMENT_HISTORY_SERVICE_URL: http://payment-history-service:5005
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - bank-network
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/3040 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
 
   # Backoffice Gateway

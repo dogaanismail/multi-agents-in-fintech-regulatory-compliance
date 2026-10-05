@@ -16,6 +16,7 @@ payment-engine-svc-api                   gradle   bank-solution-backend/payment-
 network-topology-svc                     gradle   bank-solution-backend/network-topology-service/network-topology-svc
 ledger-svc                               gradle   bank-solution-backend/ledger-service/ledger-svc
 backoffice-gateway-svc                   gradle   bank-solution-backend/backoffice-gateway/backoffice-gateway-svc
+mobile-gateway-svc                       gradle   bank-solution-backend/mobile-gateway/mobile-gateway-svc
 beneficiary-svc-api                      gradle   bank-solution-backend/beneficiary-service/beneficiary-svc
 beneficiary-svc-db-migration-app         gradle   bank-solution-backend/beneficiary-service/beneficiary-svc-db-migration
 backoffice-ui                            docker   bank-solution-backoffice
